@@ -1,0 +1,55 @@
+
+<% if @collective.commits.any? %>
+  <div class='row'>
+    <div class='col-md-3'>
+      <!-- # commits -->
+      <% @commits = @collective.commits.this_period(@range).count %>
+      <% @commits_last_period = @collective.commits.last_period(@range).count %>
+      <%= render partial: 'stat', locals: {icon: 'git-commit', title: 'Commits', this_period: @commits, last_period: @commits_last_period} %>
+    </div>
+    <div class='col-md-3'>
+      <!-- # merges -->
+      <% @merges = @collective.commits.merges.this_period(@range).count %>
+      <% @merges_last_period = @collective.commits.merges.last_period(@range).count %>
+      <%= render partial: 'stat', locals: {icon: 'git-merge', title: 'Merge Commits', this_period: @merges, last_period: @merges_last_period} %>
+    </div>
+    <div class='col-md-3'>
+      <!-- # authors -->
+      <% @authors = @collective.commits.this_period(@range).distinct.count(:author) %>
+      <% @authors_last_period = @collective.commits.last_period(@range).distinct.count(:author) %>
+      <%= render partial: 'stat', locals: {icon: 'person', title: 'Authors', this_period: @authors, last_period: @authors_last_period} %>
+    </div>
+    <div class='col-md-3'>
+      <!-- # committers -->
+      <% @committers = @collective.commits.this_period(@range).distinct.count(:committer) %>
+      <% @committers_last_period = @collective.commits.last_period(@range).distinct.count(:committer) %>
+      <%= render partial: 'stat', locals: {icon: 'person', title: 'Committers', this_period: @committers, last_period: @committers_last_period} %>
+    </div>
+  </div>
+
+  <div class='row'>
+    <div class='col-md-3'>
+      <!-- # additions -->
+      <% @additions = @collective.commits.this_period(@range).sum(:additions) %>
+      <% @additions_last_period = @collective.commits.last_period(@range).sum(:additions) %>
+      <%= render partial: 'stat', locals: {icon: 'plus', title: 'Additions', this_period: @additions, last_period: @additions_last_period} %>
+    </div>
+    <div class='col-md-3'>
+      <!-- # deletions -->
+      <% @deletions = @collective.commits.this_period(@range).sum(:deletions) %>
+      <% @deletions_last_period = @collective.commits.last_period(@range).sum(:deletions) %>
+      <%= render partial: 'stat', locals: {icon: 'dash', title: 'Deletions', this_period: @deletions, last_period: @deletions_last_period} %>
+    </div>
+  </div>
+<% end %>
+
+<% if @collective.tags.displayable.any? %>
+  <div class='row'>
+    <div class='col-md-3'>
+      <!-- # releases -->
+      <% @releases = @collective.tags.displayable.this_period(@range).count %>
+      <% @releases_last_period = @collective.tags.displayable.last_period(@range).count %>
+      <%= render partial: 'stat', locals: {icon: 'tag', title: 'Releases', this_period: @releases, last_period: @releases_last_period} %>
+    </div>
+  </div>
+<% end %>

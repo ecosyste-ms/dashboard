@@ -1,0 +1,26 @@
+<% positive_diff_change ||= 1 %>
+
+<div class="card shadow-sm mb-3 stat">
+  <div class="card-content">
+    <div class="card-body">
+      <div class="row g-0">
+        <div class="col-md-4">
+          <%= octicon icon, height: 50 %>
+        </div>
+        <div class="col-md-8 text-end">
+
+          <span class='info' title='<%= title %> in the past <%= @range %> days'><%= octicon 'info', height: 14 %></span>
+          <h3>
+            <%= this_period.round(2) %>
+
+            <% diff = this_period - last_period %>
+            <% unless diff.zero?  %>
+              <small class='<%= diff_class(diff*positive_diff_change) %>' title='<%= last_period %> <%= title %> in the previous <%= @range %> days'><%= '+' if diff > 0 %><%= diff.round(2) %></small>
+            <% end %>
+          </h3>
+          <span><%= title %></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

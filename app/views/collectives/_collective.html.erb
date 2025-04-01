@@ -1,0 +1,28 @@
+<div class="card mb-3 collective d-flex" id="collective_<%= collective.id %>">
+  <div class="card-body pb-1">
+    <div class="d-flex">
+      
+      <div class="flex-grow-1 ms-3 text-break">
+        <h5 class='card-title'>
+          <%= link_to collective, collective_path(collective) %>
+        </h5>
+      
+        <p class="card-subtitle mb-2 text-muted">
+          <%= collective.description %>
+        </p>
+
+        <p class="card-subtitle mb-2 text-muted">
+          <i><small>
+            <%= number_with_delimiter collective.projects_count %> repositories - <%= number_with_delimiter collective.transactions_count %> transactions - <%= number_to_currency collective.balance.try(:round, 2) %> <%= collective.currency %>
+          </small></i>
+        </p>
+        <p class="card-subtitle mb-2 text-muted"><i><small>
+          Last updated: <%= collective.last_synced_at.strftime("%d %b %Y") %>
+        </small></i></p>
+      </div>
+      <div class="flex-shrink-0">
+        <img src="<%= collective.icon_url %>" class="rounded" height='40' width='40' onerror="this.style.display='none'">
+      </div>  
+    </div>
+  </div>
+</div>

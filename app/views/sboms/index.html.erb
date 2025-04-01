@@ -1,0 +1,10 @@
+<% @meta_title = "SBOMs" %>
+<% @meta_description = "Software Bill of Materials" %>
+
+<div class="container-md">
+
+  <%= render 'nav' %>
+
+  <%= render @sboms %>
+  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+</div>

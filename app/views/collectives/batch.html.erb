@@ -1,0 +1,85 @@
+<% @meta_title = "#{@collectives.map(&:to_s).join(', ')}" %>
+<% @meta_description = "Open collective stats for #{@collectives.map(&:to_s).join(', ')} combined" %>
+
+<div class="container-md">
+  <%= render 'nav' %>
+
+  <h1>Viewing stats for the following collectives:</h1>
+
+  <% @collectives.each do |collective| %>
+
+    <span class='badge text-bg-light border p-1 m-1'>
+      <img src="<%= collective.icon_url(size: 20) %>" class="rounded" height='20' width='20' onerror="this.style.display='none'">
+      <%= link_to collective, collective_path(collective), class: 'text-decoration-none text-dark' %>
+      <%= link_to bootstrap_icon('x', height: 20), url_for(collective_slugs: (@slugs - [collective.slug]).join(',')), class: 'text-decoration-none text-muted' %>
+    </span>
+  
+  <% end %>
+
+
+
+  <div class='d-flex justify-content-between my-4'>
+  
+    <%= link_to batch_collectives_path(collective_slugs: @slugs.join(','), range: @range, start_date: previous_period_start_date, end_date: previous_period_end_date), class: "btn btn-light" do %>
+      <%= octicon 'chevron-left' %> <%= previous_period_name %>
+    <% end %>
+
+    <span class='btn pe-none'><%= current_period_name %></span>
+
+    <%= link_to batch_collectives_path(collective_slugs: @slugs.join(','), range: @range, start_date: next_period_start_date, end_date: next_period_end_date), class: "btn btn-light #{'disabled' unless next_period_valid?}" do %>
+      <%= next_period_name %> <%= octicon 'chevron-right' %>
+    <% end %>
+
+  </div>
+
+  <%= render 'stats/collective_stats' %>
+
+  <hr/>
+
+  <%= render 'stats/project_stats' %>
+
+  <hr>
+
+
+  <br/><br/>
+  <%= form_with url: url_for, method: :get do |form| %>
+    <%= form.label :range, 'Select range:' %>
+    <%= form.hidden_field :slugs, value: params[:collective_slugs] %>
+    <%= form.select :range, options_for_select([30, 90, 180, 360], @range.to_i), {}, { onchange: 'this.form.submit()' } %>
+  <% end %><br/>
+
+  <%= line_chart transactions_chart_path(collective_slugs:  params[:collective_slugs], chart: 'all_transactions', period: @period, range: @range), title: 'All Transactions' %>
+  <%= line_chart transactions_chart_path(collective_slugs:  params[:collective_slugs], chart: 'expenses', period: @period, range: @range), title: 'Expenses' %>
+  <%= line_chart transactions_chart_path(collective_slugs:  params[:collective_slugs], chart: 'donations', period: @period, range: @range), title: 'Donations' %>
+  <%= line_chart transactions_chart_path(collective_slugs:  params[:collective_slugs], chart: 'unique_donors', period: @period, range: @range), title: 'Donors' %>
+  <%= line_chart transactions_chart_path(collective_slugs:  params[:collective_slugs], chart: 'unique_expenses', period: @period, range: @range), title: 'Spenders' %>
+
+  <%= render_batch_collective_issues_chart 'issues_opened' %>
+  <%= render_batch_collective_issues_chart 'issues_closed' %>
+  <%= render_batch_collective_issues_chart 'issue_authors' %>
+  <%= render_batch_collective_issues_chart 'issue_average_time_to_close', max: nil, ytitle: 'Days' %>
+
+  <%= render_batch_collective_issues_chart 'pull_requests_opened' %>
+  <%= render_batch_collective_issues_chart 'pull_requests_closed' %>
+  <%= render_batch_collective_issues_chart 'pull_requests_merged' %>
+  <%= render_batch_collective_issues_chart 'pull_requests_not_merged' %>
+  <%= render_batch_collective_issues_chart 'pull_request_authors' %>
+  <%= render_batch_collective_issues_chart 'pull_request_average_time_to_close', max: nil, ytitle: 'Days' %>
+  <%= render_batch_collective_issues_chart 'pull_request_average_time_to_merge', max: nil, ytitle: 'Days' %>
+
+  <%= line_chart commits_chart_path(collective_slugs:  params[:collective_slugs], chart: 'commits', range: @range, period: @period), title: 'Commits' %>
+  <%= line_chart commits_chart_path(collective_slugs:  params[:collective_slugs], chart: 'commit_authors', range: @range, period: @period), title: 'Commit Authors' %>
+
+  <% if @projects.any? %>
+    <h2>Repositories</h2>
+    <%= render @projects %>
+    <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+  <% else %>
+    <p>
+      No repositories found.
+    </p>
+  <% end %>
+
+</div>
+
+<i class="bi bi-x-circle-fill"></i>

@@ -1,0 +1,186 @@
+<% if project.packages_count > 0 %>
+    <hr>
+    <h2>
+      Package metadata
+    </h2>
+
+    <ul>
+      <li>
+        Total packages: <%= number_with_delimiter project.packages_count %>
+      <li>
+        Total downloads: 
+        <% if project.packages.sum(&:downloads) > 0 %>
+        <ul>
+          <% project.packages.group_by(&:ecosystem).each do |ecosystem, pkgs| %>
+            <% next if pkgs.sum(&:downloads).zero? %>
+            <li>
+              <%= ecosystem %>:
+              <%= number_with_delimiter pkgs.sum(&:downloads) %>
+              <%= pkgs.first.downloads_period %>
+            </li>
+          <% end %>
+        </ul>
+        <% else %>
+          <i>unknown</i>
+        <% end %>
+      </li>
+      <% if project.packages.map{|p| p.metadata['docker_downloads_count'] || 0 }.sum > 0 %>
+      <li>
+        Total docker downloads: <%= number_with_delimiter project.packages.map{|p| p.metadata['docker_downloads_count'] || 0 }.sum %>
+      </li>
+      <% end %>
+      <li>
+        Total dependent packages: <%= number_with_delimiter project.packages.sum{|p| p.metadata['dependent_packages_count'] || 0 } %>
+        <% if project.packages.length > 1 %>
+          <small class='text-muted'>(may contain duplicates)</small>
+        <% end %>
+      </li>
+      <li>
+        Total dependent repositories: <%= number_with_delimiter project.packages.sum{|p| p.metadata['dependent_repos_count'] || 0 } %>
+        <% if project.packages.length > 1 %>
+          <small class='text-muted'>(may contain duplicates)</small>
+        <% end %>
+      </li>
+      <li>
+        Total versions: <%= number_with_delimiter project.packages.sum{|p| p.metadata['versions_count'] || 0 } %>
+      </li>
+      <% if project.packages.map{|p| p.metadata['maintainers'].map{|m| m['uuid'] } }.flatten.uniq.length > 0 %>
+      <li>
+        Total maintainers: <%= number_with_delimiter project.packages.map{|p| p.metadata['maintainers'].map{|m| m['uuid'] } }.flatten.uniq.length %>
+      </li>
+      <% end %>
+      <% if project.packages.map{|p| p.metadata['advisories'] }.flatten.uniq.length > 0 %>
+      <li>
+        Total advisories: <%= number_with_delimiter project.packages.map{|p| p.metadata['advisories'] }.flatten.uniq.length %>
+      </li>
+      <% end %>
+    </ul>
+
+
+    <% project.packages.sort_by{|p| p.metadata['rankings']['average'] || 100 }.each do |package| %>
+      <div class='card mb-3'>
+        <div class="card-body pb-1">
+          <div class="d-flex">
+            <div class="flex-grow-1 ms-3 text-break">
+              <h5 class='card-title'>
+                <%= link_to package.metadata['registry']['name'], package.metadata['registry']['url'] %>: <%= link_to package.metadata['name'], package.metadata['registry_url'] %>
+              </h5>
+
+              <p class="card-subtitle mb-2 text-muted">
+                <%= package.metadata['description'] %>
+              </p>
+
+              <ul>
+                <li>
+                  Homepage: <%= package.metadata['homepage'] %>
+                </li>
+                <% if package.metadata['keywords'].present? %>
+                <li>
+                  Keywords: <%= package.metadata['keywords'].join(', ') %>
+                </li>
+                <% end %>
+                <% if package.metadata['status'].present? %>
+                <li>
+                  Status: <%= package.metadata['status'] %>
+                </li>
+                <% end %>
+                <% if package.metadata['documentation_url'].present? %>
+                  <li>
+                    Documentation: <%= link_to package.metadata['documentation_url'], package.metadata['documentation_url'] %>
+                  </li>
+                <% end %>
+                <li>
+                  Licenses: <%= package.metadata['licenses'] %>
+                </li>
+                <% if package.metadata['keywords'].present? %>
+                <li>
+                  Keywords: <%= package.metadata['keywords'] %>
+                </li>
+                <% end %>
+                <li>
+                  Latest release: <%= package.metadata['latest_release_number'] %> 
+                  <% if package.metadata['latest_release_published_at'] %>
+                    <i>
+                      (published <%= distance_of_time_in_words_to_now package.metadata['latest_release_published_at'] %> ago)
+                    </i>
+                  <% end %>
+                </li>
+                <li>
+                  Last Synced: <%= package.metadata['last_synced_at'] %> 
+                  (<%= distance_of_time_in_words_to_now package.metadata['last_synced_at'] %> ago)
+                </li>
+                <li>
+                  Versions: <%= number_with_delimiter package.metadata['versions_count'] %>
+                </li>
+                <li>
+                  Dependent Packages: <%= link_to number_with_delimiter(package.metadata['dependent_packages_count']), package.metadata['dependent_packages_url'].gsub('/api/v1', ''), target: :_blank %>
+                </li>
+                <li>
+                  Dependent Repositories: <%= link_to number_with_delimiter(package.metadata['dependent_repos_count']), "https://repos.ecosyste.ms/usage/#{package.metadata['ecosystem']}/#{package.metadata['name']}", target: :_blank %>
+                </li>
+                <% if package.metadata['downloads'] %>
+                <li>
+                  Downloads: <%= number_with_delimiter(package.metadata['downloads']) %> <%= package.metadata['downloads_period'].try(:humanize).try(:gsub,'-', ' ') %> 
+                </li>
+                <% end %>
+                <% if package.metadata['docker_downloads_count'] %>
+                <li>
+                  Docker Downloads: <%= number_with_delimiter(package.metadata['docker_downloads_count']) %>
+                </li>
+                <% end %>
+                <li>
+                  Rankings:
+                  <ul>
+                    <% package.metadata['rankings'].sort_by{|k,v| v.nil? ? 100 : v }.each do |k,v| %>
+                      <% next if v.nil? %>
+                      <li>
+                        <%= k.humanize %>: <%= v.round(3) %>%
+                      </li>
+                    <% end%>
+                  </ul>
+                </li>
+                <% if package.metadata['maintainers'].any? %>
+                <li>
+                  Maintainers (<%= package.metadata['maintainers'].length %>)
+                  <ul>
+                    <% package.metadata['maintainers'].each do |maintainer| %>
+                      <li>
+                        <%= link_to (maintainer['login'] || maintainer['uuid']), maintainer['html_url'] %>
+                      </li>
+                    <% end%>
+                  </ul>
+                </li>
+                <% end%>
+                <% if package.metadata['metadata'] %>
+                  <% if package.metadata['metadata']['funding'] %>
+                    <li>
+                      Funding: 
+                      <ul>
+                        <% Array(package.metadata['metadata']['funding']).each do |link| %>
+                          <li>
+                            <%= Array(link).join(': ') %>
+                          </li>
+                        <% end %>
+                      </ul>
+                    </li>
+                  <% end %>
+                <% end %>
+                <% if package.metadata['advisories'].any? %>
+                  <li>
+                    Advisories:
+                    <ul>
+                      <% package.metadata['advisories'].each do |advisory| %>
+                        <li>
+                          <%= link_to advisory['title'], advisory['url'] %>
+                        </li>
+                      <% end %>
+                    </ul>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  <% end %>

@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  collective_id: 1
+  uuid: MyString
+  amount: 1.5
+  kind: MyString
+  currency: MyString
+  account: MyString
+
+two:
+  collective_id: 1
+  uuid: MyString
+  amount: 1.5
+  kind: MyString
+  currency: MyString
+  account: MyString

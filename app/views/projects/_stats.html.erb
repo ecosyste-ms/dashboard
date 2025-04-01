@@ -1,0 +1,132 @@
+<div class='row'>
+  <div class='col-md-3'>    
+    <%= open_issues %>
+  </div>
+  <div class='col-md-3'>
+    <%= render_stats(:open_pull_requests, title: 'New Pull Requests', icon: 'git-pull-request') %>
+  </div>
+  <div class='col-md-3'>
+    <!-- closed issues -->
+    <% @closed_issues = @project.issues.issue.closed_this_period(@range).count %>
+    <% @closed_issues_last_period = @project.issues.issue.closed_last_period(@range).count %>
+    <%= render partial: 'collectives/stat', locals: {icon: 'issue-closed', title: 'Closed Issues', this_period: @closed_issues, last_period: @closed_issues_last_period} %>
+    
+  </div>
+  <div class='col-md-3'>
+    <!-- prs merged -->
+    <% @merged_prs = @project.issues.pull_request.merged_this_period(@range).count %>
+    <% @merged_prs_last_period = @project.issues.pull_request.merged_last_period(@range).count %>
+    <%= render partial: 'collectives/stat', locals: {icon: 'git-merge', title: 'Merged Pull Requests', this_period: @merged_prs, last_period: @merged_prs_last_period} %>
+  </div>
+</div>
+
+
+<div class='row'>
+  <div class='col-md-3'>
+    <!-- # prs closed -->
+    <% @closed_prs = @project.issues.pull_request.closed_this_period(@range).count %>
+    <% @closed_prs_last_period = @project.issues.pull_request.closed_last_period(@range).count %>
+    <%= render partial: 'collectives/stat', locals: {icon: 'git-pull-request', title: 'Closed Pull Requests', this_period: @closed_prs, last_period: @closed_prs_last_period} %>
+
+  </div>
+  <div class='col-md-3'>
+    <!-- # issue authors -->
+    <% @issue_authors = @project.issues.issue.this_period(@range).group(:user).count.count %>
+    <% @issue_authors_last_period = @project.issues.issue.last_period(@range).group(:user).count.count %>
+    <%= render partial: 'collectives/stat', locals: {icon: 'person', title: 'Issue Authors', this_period: @issue_authors, last_period: @issue_authors_last_period} %>
+  </div>
+  <div class='col-md-3'>
+    <!-- # issues average time to close -->
+    <% @avg_issue_time_to_close = @project.issues.issue.this_period(@range).average(:time_to_close).to_i %>
+    <% @avg_issue_time_to_close_last_period = @project.issues.issue.last_period(@range).average(:time_to_close).to_i %>
+    <%= render partial: 'collectives/time_stat', locals: {icon: 'clock', title: 'Time-to-Close Issues', this_period: @avg_issue_time_to_close, last_period: @avg_issue_time_to_close_last_period} %>
+  </div>
+  <div class='col-md-3'>
+    <!-- # prs not merged -->
+    <% @not_merged_prs = @project.issues.pull_request.not_merged_this_period(@range).count %>
+    <% @not_merged_prs_last_period = @project.issues.pull_request.not_merged_last_period(@range).count %>
+    <%= render partial: 'collectives/stat', locals: {icon: 'git-pull-request', title: 'Not Merged PRs', this_period: @not_merged_prs, last_period: @not_merged_prs_last_period, positive_diff_change: -1} %>
+  </div>
+</div>
+
+<div class='row'>
+  <div class='col-md-3'>
+    <!-- # prs authors -->
+    <% @pr_authors = @project.issues.pull_request.this_period(@range).group(:user).count.count %>
+    <% @pr_authors_last_period = @project.issues.pull_request.last_period(@range).group(:user).count.count %>
+    <%= render partial: 'collectives/stat', locals: {icon: 'person', title: 'Pull Request Authors', this_period: @pr_authors, last_period: @pr_authors_last_period} %>
+  </div>
+  <div class='col-md-3'>
+    <!-- # prs average time to close -->
+    <% @avg_pr_time_to_close = @project.issues.pull_request.this_period(@range).average(:time_to_close).to_i %>
+    <% @avg_pr_time_to_close_last_period = @project.issues.pull_request.last_period(@range).average(:time_to_close).to_i %>
+    <%= render partial: 'collectives/time_stat', locals: {icon: 'clock', title: 'Time-to-Close PRs', this_period: @avg_pr_time_to_close, last_period: @avg_pr_time_to_close_last_period} %>
+  </div>
+  <div class='col-md-3'>
+    <!-- # prs average time to merge -->
+    <% @avg_pr_time_to_merge = @project.issues.pull_request.merged.this_period(@range).average(:time_to_close).to_i %>
+    <% @avg_pr_time_to_merge_last_period = @project.issues.pull_request.merged.last_period(@range).average(:time_to_close).to_i %>
+    <%= render partial: 'collectives/time_stat', locals: {icon: 'clock', title: 'Time-to-Merge PRs', this_period: @avg_pr_time_to_merge, last_period: @avg_pr_time_to_merge_last_period} %>
+  </div>
+  <div class='col-md-3'>
+    <!-- # maintainers -->
+    <% @maintainers = @project.issues.maintainers.this_period(@range).group(:user).count.count %>
+    <% @maintainers_last_period = @project.issues.maintainers.last_period(@range).group(:user).count.count %>
+    <%= render partial: 'collectives/stat', locals: {icon: 'passkey-fill', title: 'Maintainers', this_period: @maintainers, last_period: @maintainers_last_period} %>
+  </div>
+</div>
+
+<% if @project.commits.any? %>
+  <div class='row'>
+    <div class='col-md-3'>
+      <!-- # commits -->
+      <% @commits = @project.commits.this_period(@range).count %>
+      <% @commits_last_period = @project.commits.last_period(@range).count %>
+      <%= render partial: 'collectives/stat', locals: {icon: 'git-commit', title: 'Commits', this_period: @commits, last_period: @commits_last_period} %>
+    </div>
+    <div class='col-md-3'>
+      <!-- # merges -->
+      <% @merges = @project.commits.merges.this_period(@range).count %>
+      <% @merges_last_period = @project.commits.merges.last_period(@range).count %>
+      <%= render partial: 'collectives/stat', locals: {icon: 'git-merge', title: 'Merge Commits', this_period: @merges, last_period: @merges_last_period} %>
+    </div>
+    <div class='col-md-3'>
+      <!-- # authors -->
+      <% @authors = @project.commits.this_period(@range).distinct.count(:author) %>
+      <% @authors_last_period = @project.commits.last_period(@range).distinct.count(:author) %>
+      <%= render partial: 'collectives/stat', locals: {icon: 'person', title: 'Authors', this_period: @authors, last_period: @authors_last_period} %>
+    </div>
+    <div class='col-md-3'>
+      <!-- # committers -->
+      <% @committers = @project.commits.this_period(@range).distinct.count(:committer) %>
+      <% @committers_last_period = @project.commits.last_period(@range).distinct.count(:committer) %>
+      <%= render partial: 'collectives/stat', locals: {icon: 'person', title: 'Committers', this_period: @committers, last_period: @committers_last_period} %>
+    </div>
+  </div>
+
+  <div class='row'>
+    <div class='col-md-3'>
+      <!-- # additions -->
+      <% @additions = @project.commits.this_period(@range).sum(:additions) %>
+      <% @additions_last_period = @project.commits.last_period(@range).sum(:additions) %>
+      <%= render partial: 'collectives/stat', locals: {icon: 'plus', title: 'Additions', this_period: @additions, last_period: @additions_last_period} %>
+    </div>
+    <div class='col-md-3'>
+      <!-- # deletions -->
+      <% @deletions = @project.commits.this_period(@range).sum(:deletions) %>
+      <% @deletions_last_period = @project.commits.last_period(@range).sum(:deletions) %>
+      <%= render partial: 'collectives/stat', locals: {icon: 'dash', title: 'Deletions', this_period: @deletions, last_period: @deletions_last_period} %>
+    </div>
+  </div>
+<% end %>
+
+<% if @project.tags.displayable.any? %>
+  <div class='row'>
+    <div class='col-md-3'>
+      <!-- # releases -->
+      <% @releases = @project.tags.displayable.this_period(@range).count %>
+      <% @releases_last_period = @project.tags.displayable.last_period(@range).count %>
+      <%= render partial: 'collectives/stat', locals: {icon: 'tag', title: 'Releases', this_period: @releases, last_period: @releases_last_period} %>
+    </div>
+  </div>
+<% end %>

@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  projet_id: 1
+  name: MyString
+  sha: MyString
+  kind: MyString
+  published_at: 2024-02-15 14:11:35
+
+two:
+  projet_id: 1
+  name: MyString
+  sha: MyString
+  kind: MyString
+  published_at: 2024-02-15 14:11:35

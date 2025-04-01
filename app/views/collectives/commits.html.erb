@@ -1,0 +1,39 @@
+<% @meta_title = "#{@collective} commits" %>
+<% @meta_description = "Commits on #{@collective} projects" %>
+
+<div class="container-md">
+
+  <%= render 'nav' %>
+
+  <h1>
+    <%= @collective.to_s %>
+  </h1>
+
+  <p>
+    <%= @collective.description %> <br/>
+    <% if @collective.account_type %>
+      <%= @collective.account_type.humanize %> -
+    <% end %>
+    <% if @collective.host.present? %>
+      Host: <%= link_to @collective.host, "https://opencollective.com/#{@collective.host}" %> -
+    <% end %>
+    <%= link_to @collective.html_url, @collective.html_url, target: :_blank %>
+    <% if @collective.website.present? && @collective.website != @collective.project_url %>
+      - Website: <%= link_to @collective.website, @collective.website, target: :_blank %>
+    <% end %>
+    <% if @collective.project_url.present? %>
+      -  Code: <%= link_to @collective.project_url, @collective.project_url, target: :_blank %>
+    <% end %>
+  </p>
+
+  <%= render partial: 'collective_nav', locals: {active: 'commits'} %>
+
+  <% if @pagy.count > 0 %>
+    <%= render @commits %>
+    <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+  <% else %>
+    <p>
+      No commits found.
+    </p>
+  <% end %>
+</div>

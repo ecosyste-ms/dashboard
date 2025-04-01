@@ -1,0 +1,14 @@
+<% if commit.timestamp.present? %>
+  <div class="card mb-3">
+    <div class="card-body">
+      <strong><%= commit.first_line %></strong><br/>
+      <%= simple_format truncate(commit.the_rest_of_the_message, length: 100) %>
+      <small class='text-muted'>
+        <% if @project.nil? %>
+          <%= link_to commit.project, commit.project %> - 
+        <% end %>
+        <%= link_to commit.sha, commit.html_url %> authored <%= time_ago_in_words commit.timestamp %> ago
+      </small>
+    </div>
+  </div>
+<% end %>

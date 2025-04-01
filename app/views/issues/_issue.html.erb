@@ -1,0 +1,14 @@
+<div class="card mb-3">
+  <div class="card-body">
+    <strong><%= link_to issue.title, issue.html_url %></strong><br/>
+    <%= simple_format truncate(issue.body, length: 100) %>
+    <small class='text-muted'>
+      <% if @project.nil? %>
+        <%= link_to issue.project, issue.project %> - 
+      <% end %>
+      <%= issue.user %> opened this <%= issue.pull_request? ? 'pull request' : 'issue' %> <%= time_ago_in_words(issue.created_at) %> ago
+    </small>
+  </div>
+</div>
+
+    

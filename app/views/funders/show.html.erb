@@ -1,0 +1,73 @@
+<% @meta_title = "Funders: #{@funder}" %>
+<% @meta_description = "Projects on Open Collective funded by #{@funder}" %>
+
+<div class="container-md">
+    <%= render 'nav' %>
+
+  <h1>
+    <%= @funder %>
+  </h1>
+
+  <% if @collective %>
+    <p>
+      <%= @collective.description %> <br/>
+      Kind: <%= @collective.account_type.try(:humanize) %> -
+      <%= link_to @collective.html_url, @collective.html_url, target: :_blank %>
+      <% if @collective.website.present? && @collective.website != @collective.project_url %>
+      - 
+      Website: <%= link_to @collective.website, @collective.website, target: :_blank %>
+      <% end %>
+      <% if @collective.project_url.present? %>
+      - 
+      Code: <%= link_to @collective.project_url, @collective.project_url, target: :_blank %>
+      <% end %>
+    </p>
+  <% else %>
+    <% unless @funder.match(/^guest-/) || @funder.match(/^incognito-/) %>
+      <%= link_to "https://opencollective.com/#{@funder}", "https://opencollective.com/#{@funder}", target: :_blank %>
+    <% end %>
+  <% end %>
+
+  <div class='row my-3'>
+    <div class='col-6'>
+      <h4>Most funded collectives</h4>
+
+      <% @collectives.each do |collective| %>
+        <div class="card mb-3 collective d-flex">
+          <div class="card-body pb-1">
+            <div class="d-flex">
+              
+              <div class="flex-grow-1 ms-3 text-break">
+                <h5 class='card-title'>
+                  <%= link_to collective.collective, collective_path(collective.collective) %>
+                </h5>
+
+                <p class="card-subtitle mb-2 text-muted">
+                  <%= collective.collective.description %>
+                </p>
+              
+                <p class="card-subtitle mb-2 text-muted">
+                  <i><small>
+                    $<%= number_with_delimiter collective.total.try(:round, 2) %> - <%= collective.collective.account_type.try(:humanize) %>
+                  </small></i>
+                </p>
+              </div>
+              <div class="flex-shrink-0">
+                <img src="<%= collective.collective.icon_url %>" class="rounded" height='40' width='40' onerror="this.style.display='none'">
+              </div>  
+            </div>
+          </div>
+        </div>
+      <% end %>
+      <%== pagy_bootstrap_nav(@collective_pagy) if @collective_pagy.pages > 1 %>  
+
+      <%= link_to 'View breakdown', batch_collectives_path(collective_slugs: @collectives.map{|c| c.collective.account_type == 'COLLECTIVE' ? c.collective.slug : '' }.compact.join(',')) %>
+    </div>
+    <div class='col-6'>
+      <h4>Recent Transactions</h4>
+
+      <%= render @transactions %>
+      <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+    </div>
+  </div>
+</div>

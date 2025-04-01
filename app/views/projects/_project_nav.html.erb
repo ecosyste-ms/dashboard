@@ -1,0 +1,49 @@
+<% active ||= 'overview' %>
+
+<ul class="nav nav-tabs my-3">
+  <li class="nav-item">
+    <a class="nav-link <%= 'active' if active == 'overview' %>" href='<%= project_path(@project) %>'>
+      Overview
+    </a>
+  </li>    
+  <li class="nav-item">
+    <a class="nav-link  <%= 'active' if active == 'issues' %>" href='<%= issues_project_path(@project) %>'>
+      Issues and Pull Requests
+      <span class="badge bg-light text-dark">
+        <%= number_with_delimiter(@project.issues.count) %>
+      </span>
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link  <%= 'active' if active == 'releases' %>" href='<%= releases_project_path(@project) %>'>
+      Releases
+      <span class="badge bg-light text-dark">
+        <%= number_with_delimiter(@project.tags.displayable.count) %>
+      </span>
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link <%= 'active' if active == 'commits' %>" href='<%= commits_project_path(@project) %>'>
+      Commits
+      <span class="badge bg-light text-dark">
+        <%= number_with_delimiter(@project.commits.count) %>
+      </span>
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link <%= 'active' if active == 'packages' %>" href='<%= packages_project_path(@project) %>'>
+      Packages
+      <span class="badge bg-light text-dark">
+        <%= number_with_delimiter(@project.packages_count) %>
+      </span>
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link <%= 'active' if active == 'advisories' %>" href='<%= advisories_project_path(@project) %>'>
+      Advisories
+      <span class="badge bg-light text-dark">
+        <%= number_with_delimiter(@project.advisories_count) %>
+      </span>
+    </a>
+  </li>
+</ul>

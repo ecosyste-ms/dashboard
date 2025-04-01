@@ -1,0 +1,87 @@
+<div class='row'>
+  <h2>Project activity</h2>
+  <div class='col-md-6'>
+    <%= issue_pie_chart 'issues_and_pull_requests_pie_by_project', 'Active Projects' %>
+  </div>
+  
+  <div class='col-md-6'>
+    <%= issue_pie_chart 'issues_and_pull_requests_pie_by_contributor', 'Active Contributors' %>
+  </div>
+</div>
+
+<div class='row'>
+  <div class='col-md-6'>
+
+    <p>
+      New Projects: <%= number_with_delimiter(stat_this_period(:new_projects_count)) %><br/>
+      New Releases: <%= number_with_delimiter(stat_this_period(:new_releases_count)) %><br/>
+    </p>
+
+    <p>
+    New Issues: <%= number_with_delimiter(stat_this_period(:new_issues_count)) %><br/>
+    New Pull Requests: <%= number_with_delimiter(stat_this_period(:new_pull_requests_count)) %><br/>
+    </p>
+    <p>
+    Closed Issues: <%= number_with_delimiter(stat_this_period(:closed_issues_count)) %><br/>
+    Merged Pull Requests: <%= number_with_delimiter(stat_this_period(:merged_pull_requests_count)) %><br/>
+    Closed Pull Requests: <%= number_with_delimiter(stat_this_period(:closed_pull_requests_count)) %><br/>
+    </p>
+    <p>
+    Issue Authors: <%= number_with_delimiter(stat_this_period(:issue_authors_count)) %><br/>
+    Pull Request Authors: <%= number_with_delimiter(stat_this_period(:pull_request_authors_count)) %><br/>
+    Active Maintainers: <%= number_with_delimiter(stat_this_period(:active_maintainers_count)) %><br/>
+    </p>
+    <p>
+    Time to close issues: 
+    <% if stat = stat_this_period(:avg_issue_time_to_close) %>
+      <%= number_with_delimiter(stat.try(:seconds).try(:in_days).try(:round,1)) %> days
+    <% else %>
+      N/A
+    <% end %>
+    <br/>
+    Time to merge pull requests:
+    <% if stat = stat_this_period(:avg_pr_time_to_merge) %>
+      <%= number_with_delimiter(stat.try(:seconds).try(:in_days).try(:round,1)) %> days
+    <% else %>
+      N/A
+    <% end %>
+    <br/>
+    Time to close pull requests:
+    <% if stat = stat_this_period(:avg_pr_time_to_close) %>
+      <%= number_with_delimiter(stat.try(:seconds).try(:in_days).try(:round,1)) %> days
+    <% else %>
+      N/A
+    <% end %>
+    </p>  
+  </div>
+  
+  <div class='col-md-6'>
+    <%= issue_pie_chart 'contributor_roles_pie', 'Contributor roles' %>
+  </div>
+  
+</div>
+<hr>
+<h2>Commit Stats</h2>
+<div class='row'>
+  <div class='col-md-6'>
+    <%= commit_pie_chart 'project_commits_pie', 'Commits by Project' %>
+  </div>
+  <div class='col-md-6'>
+    <%= commit_pie_chart 'commit_authors_pie', 'Commit Authors' %>
+  </div>
+</div>
+
+<div class='row'>
+  <div class='col-md-6'>
+    <p>
+    Commits: <%= number_with_delimiter(stat_this_period(:commits_count)) %><br/>
+    Commit Authors: <%= number_with_delimiter(stat_this_period(:commit_authors_count)) %><br/>
+    Commit Committers: <%= number_with_delimiter(stat_this_period(:commit_committers_count)) %><br/>
+    Additions: <%= number_with_delimiter(stat_this_period(:additions_count)) %><br/>
+    Deletions: <%= number_with_delimiter(stat_this_period(:deletions_count)) %><br/>
+    </p>
+  </div>
+  <div class='col-md-6'>
+    <%= commit_pie_chart 'changes_pie', 'Commit Activity' %>
+  </div>
+</div>

@@ -1,0 +1,25 @@
+<div class="card mb-3 project d-flex">
+  <div class="card-body pb-1">
+    <div class="d-flex">
+      
+      <div class="flex-grow-1 ms-3 text-break">
+        <h5 class='card-title'>
+          <%= link_to transaction.collective, collective_path(transaction.collective) %>
+        </h5>
+      
+        <p class="card-subtitle mb-2 text-muted">
+          <%= number_with_delimiter transaction.net_amount.round(2) %> <%= transaction.currency %> - 
+          <%= transaction.description %>
+        </p>
+        
+        <p class="card-subtitle mb-2 text-muted"><i><small>
+          <%= transaction.created_at.strftime("%d %b %Y") %>
+        </small></i></p>
+        
+      </div>
+      <div class="flex-shrink-0">
+        <img src="<%= transaction.collective.icon_url %>" class="rounded" height='40' width='40' onerror="this.style.display='none'">
+      </div>  
+    </div>
+  </div>
+</div>

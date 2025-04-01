@@ -1,0 +1,67 @@
+<div class="card mb-3">
+  <div class="card-body">
+    <% if package.rankings.present? && package.rankings['average'] < 10.05 %>
+      <span class='badge bg-secondary float-end'>
+        Top <%= [package.rankings['average'].round(1), 0.1].max %>% on <%= package.registry_name %>
+      </span>
+    <% end %>
+
+    <h5 class="card-title">
+      <%= package.ecosystem %>:
+      <%= link_to package.name, package.registry_url %>
+      <% if package.latest_release_number %>
+        <small class='text-muted'>
+        <%= package.latest_release_number %>
+        </small>
+      <% end %>
+      <% if package.status %>
+        <small class='badge bg-secondary'>
+        <%= package.status %>
+        </small>
+      <% end %>
+      <% if package.funding.present? %>
+        <small title='Accepts funding'>
+          💰
+        </small>
+      <% end %>
+    </h5>
+
+    <% if package.description_with_fallback.present? %>
+      <%= truncate package.description_with_fallback, :length => 100 %><br/>
+    <% end %>
+
+    <small class='text-muted'>
+      <% if @project.nil? %>
+        <%= link_to package.project, package.project %> - 
+      <% end %>
+
+      <% if package.versions_count > 0 %>
+        <%= pluralize number_with_delimiter(package.versions_count), 'version' %>
+      <% end %>
+
+      <% if package.latest_release_published_at %>
+        <%= '-' if package.versions_count > 0 %> <span title="<%= package.latest_release_published_at %>">Latest release: <%= time_ago_in_words package.latest_release_published_at %> ago</span>
+      <% end %>
+
+      <% if package.dependent_packages_count && package.dependent_packages_count > 0 %>
+        - <%= pluralize number_with_delimiter(package.dependent_packages_count), 'dependent package' %>
+      <% end %>
+
+      <% if package.dependent_repos_count && package.dependent_repos_count > 0 %>
+        - <%= pluralize number_with_delimiter(package.dependent_repos_count), 'dependent repositories' %>
+      <% end %>
+
+      <% if package.downloads && package.downloads_period %>
+        - <%= number_to_human(package.downloads).downcase %> downloads <%= download_period(package.downloads_period) %>
+      <% end %>
+
+      <% if package.repo_metadata.present? && package.stars %>
+        - <%= number_with_delimiter package.stars %> stars on <%= package.repo_metadata.fetch('host',{})['name'] %>
+      <% end %>
+
+      <% if package.maintainers_count && package.maintainers_count > 0 %>
+        - <%= pluralize number_with_delimiter(package.maintainers_count), 'maintainer' %>
+      <% end %>
+    </small>
+  </div>
+</div>

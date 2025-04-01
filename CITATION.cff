@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+title: 'Ecosyste.ms: Dashboard'
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Andrew
+    family-names: Nesbitt
+    email: andrew@ecosyste.ms
+    orcid: 'https://orcid.org/0009-0007-2710-1118'
+repository-code: 'https://github.com/ecosyste-ms/dashboard'
+url: 'https://dashboard.ecosyste.ms'
+abstract: >-
+  An open API service for software projects hosted on Open Collective.
+keywords:
+  - open source
+  - package management
+  - software
+license: AGPL-3.0

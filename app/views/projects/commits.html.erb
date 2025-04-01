@@ -1,0 +1,27 @@
+<% @meta_title = "#{@project} commits" %>
+<% @meta_description = "Commits for #{@project}" %>
+
+<div class="container-md">
+
+  <%= render 'nav' %>
+
+  <h1>
+    <%= @project.to_s %>
+  </h1>
+
+  <p>
+    <%= @project.description %> <br/>
+    <%= link_to @project.url, @project.url %>
+  </p>
+
+  <%= render partial: 'project_nav', locals: {active: 'commits'} %>
+
+  <% if @pagy.count > 0 %>
+    <%= render @commits %>
+    <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+  <% else %>
+    <p>
+      No commits found.
+    </p>
+  <% end %>
+</div>
