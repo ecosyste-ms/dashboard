@@ -1,5 +1,0 @@
-<%- headers = ['slug', 'owner', 'kind', 'url','repositories_count'] -%>
-<%= CSV.generate_line headers -%>
-<%- @collectives.each do |collective| -%>
-<%= CSV.generate_line([collective.slug, collective.owner['login'], collective.owner['kind'], collective.owner['html_url'], collective.owner['repositories_count']]) -%>
-<%- end -%>

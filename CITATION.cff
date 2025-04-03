@@ -12,7 +12,7 @@ authors:
 repository-code: 'https://github.com/ecosyste-ms/dashboard'
 url: 'https://dashboard.ecosyste.ms'
 abstract: >-
-  An open API service for software projects hosted on Open Collective.
+  A web application to visualize and manage open source project data from the Ecosyste.ms API.
 keywords:
   - open source
   - package management
