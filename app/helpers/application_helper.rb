@@ -6,7 +6,7 @@ module ApplicationHelper
   end
 
   def meta_description
-    @meta_description || 'An open API service for software projects hosted on Dashboard.'
+    @meta_description || app_description
   end
 
   def app_name
@@ -14,7 +14,7 @@ module ApplicationHelper
   end
 
   def app_description
-    'An open API service for software projects hosted on Dashboard.'
+    'A web application to visualize and manage open source project data from the Ecosyste.ms API.'
   end
 
   def obfusticate_email(email)

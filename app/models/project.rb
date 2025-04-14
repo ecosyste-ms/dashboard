@@ -7,8 +7,6 @@ class Project < ApplicationRecord
   has_many :packages, dependent: :delete_all
   has_many :advisories, dependent: :delete_all
 
-  belongs_to :collective
-
   validates :url, presence: true, uniqueness: { case_sensitive: false }
 
   scope :active, -> { where("(repository ->> 'archived') = ?", 'false') }
@@ -28,12 +26,6 @@ class Project < ApplicationRecord
   scope :order_by_stars, -> { order(Arel.sql("(repository ->> 'stargazers_count')::int desc nulls last")) }
 
   scope :between, ->(start_date, end_date) { where('projects.created_at > ?', start_date).where('projects.created_at < ?', end_date) }
-
-  counter_culture :collective, column_name: 'projects_count', execute_after_commit: true
-
-  def related_dot_github_repository
-    @related_dot_github_repository ||= collective.dot_github_repository
-  end
 
   def self.purl_without_version(purl)
     PackageURL.new(**PackageURL.parse(purl.to_s).to_h.except(:version, :scheme)).to_s
@@ -301,10 +293,10 @@ class Project < ApplicationRecord
   end
 
   def owner_funding_links
-    return [] unless collective && collective.owner
-    return [] if collective.owner["metadata"].blank?
-    return [] unless collective.owner["metadata"]['has_sponsors_listing']
-    ["https://github.com/sponsors/#{collective.owner['login']}"]
+    return [] unless owner
+    return [] if owner["metadata"].blank?
+    return [] unless owner["metadata"]['has_sponsors_listing']
+    ["https://github.com/sponsors/#{owner['login']}"]
   end
 
   def repo_funding_links

@@ -40,7 +40,7 @@ class ProjectsController < ApplicationController
   def lookup
     @project = Project.find_by(url: params[:url].downcase)
     if @project.nil?
-      @project = Project.create(url: params[:url].downcase)
+      @project = Project.create!(url: params[:url].downcase)
       @project.sync_async
     end
     redirect_to @project
