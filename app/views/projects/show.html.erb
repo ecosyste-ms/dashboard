@@ -9,17 +9,17 @@
     <%= @project.to_s %>
   </h1>
 
-  <p>
-    <%= @project.description %> <br/>
-    <%= link_to @project.url, @project.url %>
-  </p>
-
-  <%= render 'project_nav' %>
-
-  <%= render 'stats/project_stats' %>
-
   <% if @project.last_synced_at %>
-  
+
+    <p>
+      <%= @project.description %> <br/>
+      <%= link_to @project.url, @project.url %>
+    </p>
+
+    <%= render 'project_nav' %>
+
+    <%= render 'stats/project_stats' %>
+
     <% if @project.keywords.any? %>
       <p>
         <% @project.keywords.each do |keyword| %>
