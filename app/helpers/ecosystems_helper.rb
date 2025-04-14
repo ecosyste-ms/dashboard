@@ -77,7 +77,7 @@ module EcosystemsHelper
         },
         {
           name: "Open Collective",
-          url: "https://dashboard.ecosyste.ms"
+          url: "https://opencollective.ecosyste.ms"
         }
       ],
       "Applications" => [
