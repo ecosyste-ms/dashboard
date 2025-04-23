@@ -1,20 +1,25 @@
-  <ul class="nav nav-tabs my-3">   
+<div class="dashboard-layout__navigation">
+  <ul class="nav nav-pills flex-column dboard-nav me-4">
     <li class="nav-item">
-      <a class="nav-link active" href='/projects'>
-        Projects
-      </a>
+      <a class="nav-link <%= 'active' if action_name == 'show' %>" href="<%= project_path(@project) %>">Overview</a>
     </li>
-    <li class="nav-item ms-auto">
-      <div class="dropdown">
-        <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-          Sort
-        </button>
-        <ul class="dropdown-menu">
-          <li><a class="dropdown-item <%= 'active' if params[:sort] == 'last_synced_at' %>" href="<%= url_for(sort: 'last_synced_at', order: 'desc') %>">Recently synced</a></li>
-          <li><a class="dropdown-item <%= 'active' if params[:sort] == 'created_at' %>" href="<%= url_for(sort: 'created_at', order: 'desc') %>">Recently created</a></li>
-          <li><a class="dropdown-item <%= 'active' if params[:sort] == 'updated_at' %>" href="<%= url_for(sort: 'updated_at', order: 'desc') %>">Recently updated</a></li>
-          <li><a class="dropdown-item <%= 'active' if params[:stars] == 'stars' %>" href="<%= url_for(sort: nil, order: nil) %>">Stars</a></li>
-        </ul>
-      </div>
+    <li class="nav-item">
+      <a class="nav-link <%= 'active' if action_name == 'productivity' %>" aria-current="page" href="<%= productivity_project_path(@project) %>">Productivity</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link <%= 'active' if action_name == 'responsiveness' %>" href="<%= responsiveness_project_path(@project) %>">Responsiveness</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link <%= 'active' if action_name == 'finance' %>" href="<%= finance_project_path(@project) %>">Finance</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link <%= 'active' if action_name == 'engagement' %>" href="<%= engagement_project_path(@project) %>">Engagement</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link <%= 'active' if action_name == 'adoption' %>" href="<%= adoption_project_path(@project) %>">Adoption</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link <%= 'active' if action_name == 'dependency' %>" href="<%= dependency_project_path(@project) %>">Dependency</a>
     </li>
   </ul>
+</div>

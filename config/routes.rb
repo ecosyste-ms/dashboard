@@ -38,6 +38,13 @@ Rails.application.routes.draw do
       get :releases
       get :commits
       get :advisories
+
+      get :productivity
+      get :responsiveness
+      get :finance
+      get :engagement
+      get :adoption
+      get :dependency
     end
   end
   

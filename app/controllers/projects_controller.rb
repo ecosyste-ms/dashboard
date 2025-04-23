@@ -74,4 +74,28 @@ class ProjectsController < ApplicationController
     @pagy, @advisories = pagy(@project.advisories.order('published_at DESC'))
     fresh_when(@advisories, public: true)
   end
+
+  def adoption
+    @project = Project.find(params[:id])
+  end
+
+  def engagement
+    @project = Project.find(params[:id])
+  end
+
+  def dependency
+    @project = Project.find(params[:id])
+  end
+
+  def productivity
+    @project = Project.find(params[:id])
+  end
+
+  def finance
+    @project = Project.find(params[:id])
+  end
+
+  def responsiveness
+    @project = Project.find(params[:id])
+  end
 end
