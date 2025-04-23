@@ -61,6 +61,25 @@ $btn-color: $color-white;
 $badge-font-weight: 400;
 $badge-padding-y: 0.4em;
 
+/* Outputs our colours variables as css variables so that chart.js can access them */
+:root {
+  --es-purple: #{$color-purple};
+  --es-purple-light: #{$color-purple-light};
+  --es-purple-dark: #{$color-purple-dark};
+  --es-orange: #{$color-orange};
+  --es-orange-light: #{$color-orange-light};
+  --es-orange-dark: #{$color-orange-dark};
+  --es-green: #{$color-green};
+  --es-green-light: #{$color-green-light};
+  --es-green-dark: #{$color-green-dark};
+  --es-green-darker: #{$color-green-darker};
+  --es-black: #{$color-black};
+  --es-white: #{$color-white};
+  --es-grey-light: #{$color-grey-light};
+  --es-grey: #{$color-grey};
+  --es-grey-dark: #{$color-grey-dark};
+}
+
 @import "bootstrap"; 
 
 @mixin spesh-link (
@@ -476,6 +495,10 @@ body {
   font-size: 1rem;
 }
 
+.stat-card-text--x-small {
+  font-size: 0.875rem;
+}
+
 .stat-card-title {
   @include font-size(2.1875rem);
   font-weight: 800;
@@ -489,7 +512,17 @@ body {
   font-size: $h3-font-size;
 }
 
+.stat-card-number-neutral {
+  color: $color-purple-dark;
+}
 
+.stat-card-number-positive {
+  color: $color-green-dark;
+}
+
+.stat-card-number-negative {
+  color: $color-orange-dark;
+}
 
 .well {
   background-color: $color-grey-light;
@@ -615,6 +648,25 @@ body {
   table {
     --bs-table-bg: transparent;
   }
+}
+
+.well {
+	.table-wrapper {
+		/* Add a shadow to indicate there's more to see if you scroll */
+		background: 
+		  linear-gradient(90deg, $color-grey-light 20%, rgba(255, 255, 255, 0)),
+		  linear-gradient(90deg, rgba(255, 255, 255, 0), $color-grey-light 80%) 
+						  100% 0,
+		  radial-gradient(farthest-side at 0 0%, $color-grey, rgba(0, 0, 0, 0)),
+		  radial-gradient(farthest-side at 100% 0%, $color-grey, rgba(0, 0, 0, 0))
+						  100% 0;
+		background-repeat: no-repeat;
+		background-size: 20% 200%, 20% 200%, 8% 400%, 8% 400%;
+		background-attachment: local, local, scroll, scroll;
+		table {
+		  --bs-table-bg: transparent;
+		}
+	  }
 }
 
 .table {
@@ -811,5 +863,150 @@ body {
   a {
     @include spesh-link();
     line-break: anywhere;
+  }
+}
+
+/* Dashboard */
+
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 100%;
+  gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  @include media-breakpoint-up(lg) { 
+    grid-template-columns: 25% 75%;
+  }
+}
+
+.dboard-filter-controls {
+  .btn-link {
+    text-decoration: none;
+    color: $color-black;
+    font-size: $font-size-small;
+    &:hover,
+    &:active {
+      background-color: darken($color-grey-light, 3%);
+    }
+    &.active {
+      background-color: $color-purple;
+      color: $color-white;
+      &:hover,
+      &:active {
+        background-color: $color-purple-dark;
+      }
+    }
+  }
+  .dropdown-item {
+    font-size: $font-size-small;
+  }
+}
+
+.dboard-nav {
+  .nav-link {
+    color: $color-black;
+    &:hover,
+    &:active {
+      background-color: $color-grey-light;
+    }
+    &.active {
+      &:hover,
+      &:active {
+        background-color: $color-purple-dark;
+      }
+    }
+  }
+}
+
+.dashboard-grid {
+  display: grid;
+  gap: $grid-gutter-width;
+  > * {
+    min-width: 0; /* without this we were seeing grid blowout */
+  }
+}
+
+.three-equal-widgets {
+  display: grid;
+  gap: $grid-gutter-width;
+  @include media-breakpoint-up(md) { 
+    grid-template-columns: repeat(2, 1fr);
+    > .card:first-child {
+      grid-column: span 2;
+    }
+  }
+  @include media-breakpoint-up(lg) { 
+    grid-template-columns: repeat(3, 1fr);
+    > .card:first-child {
+      grid-column: span 1;
+    }
+  }
+}
+
+.full-width-widget {
+  grid-template-columns: 1;
+}
+
+.two-thirds-widgets {
+  display: grid;
+  gap: $grid-gutter-width;
+  grid-template-columns: 1fr;
+  @include media-breakpoint-up(md) { 
+    grid-template-columns: repeat(3, 1fr);
+    .two-thirds-widgets__large {
+      grid-column: span 2;
+    }
+  }
+}
+
+.two-thirds-widget-group {
+  display: grid;
+  gap: $grid-gutter-width;
+  grid-template-columns: 1fr;
+  @include media-breakpoint-up(md) { 
+    grid-template-columns: 1fr 1fr;
+    grid-auto-flow: row dense;
+    
+    /* Make the large card span the full width */
+    .two-thirds-widget-group__large {
+      grid-column: 1 / -1; /* Spans from first to last column line */
+    }
+  }
+  @include media-breakpoint-up(lg) { 
+    grid-template-columns: 1fr 2fr; /* 1/3 for small cards, 2/3 for large card */
+    grid-template-rows: repeat(2, auto);
+
+    .two-thirds-widget-group__small:nth-of-type(1) {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    
+    /* Second small card in bottom-left */
+    .two-thirds-widget-group__small:nth-of-type(2) {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    
+    /* Large card spans both rows on the right */
+    .two-thirds-widget-group__large {
+      grid-column: 2;
+      grid-row: 1 / span 2; /* Start at row 1 and span 2 rows */
+    }
+  }
+  
+}
+
+.chart-wrapper {
+  position: relative;
+  width: 100%;
+  height: auto; /* Adjust as needed */
+  contain: layout paint style;
+  position: relative;
+  min-height: 200px; /* Fallback for SSR */
+  aspect-ratio: 16/9; /* Modern aspect control */
+
+  canvas {
+    max-width: 100%;
+    height: auto;
   }
 }
