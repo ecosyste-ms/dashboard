@@ -134,27 +134,15 @@
                 </div>
               </div>
             </div>
-            <div class="card two-thirds-widget-group__large well p-3 border-0">
-              <div class="card-body">
-                <h5 class="card-title">Recurring donors</h5>
-                <div class="stat-card mb-2">
-                  <div class="stat-card-body">
-                    <span class="stat-card-title stat-card-title--large stat-card-number-positive">
-                      75% <%= bootstrap_icon 'caret-up-fill', width: 18, height: 18, class: 'flex-shrink-0' %>
-                    </span>
-                    <span class="stat-card-text">65% last period</span>
-                  </div>
-                </div>
-                <div id="chartContainer" class="chart-wrapper" role="img" aria-describedby="chartDesc">
-                  <canvas id="barChart2" tabindex="0"  width="400" height="300" style="margin-left: 150px;"></canvas>
-                </div>
-
-                <p id="chartDesc" class="visually-hidden">
-                  We need to describe the chart here, for example 'this bar chart shows commits over the last 3 months. January had 110,988 commits, February 232,000, and March 123,989'
-                </p>
-
+            <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", card_class: "card two-thirds-widget-group__large" do %>
+              <div id="chartContainer" class="chart-wrapper" role="img" aria-describedby="chartDesc">
+                <canvas id="barChart2" tabindex="0" width="400" height="300" style="margin-left: 150px;"></canvas>
               </div>
-            </div>
+
+              <p id="chartDesc" class="visually-hidden">
+                We need to describe the chart here, for example 'this bar chart shows commits over the last 3 months. January had 110,988 commits, February 232,000, and March 123,989'
+              </p>
+            <% end %>
           </div>
         </div>
     </div>

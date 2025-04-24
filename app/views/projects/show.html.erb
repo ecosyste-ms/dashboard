@@ -1,8 +1,23 @@
 <% @meta_title = "#{@project}" %>
 <% @meta_description = "Stats for #{@project}" %>
 
-<%= render 'project_header' %>
-
+<div class="project-header purple-grad-bg  mb-5 pt-4 pb-4">
+  <div class="container">
+    <div class="row">
+      <% if @project.avatar_url.present? %>
+      <div class="col-md-1 mb-3 pt-3">
+        <img src="<%= @project.avatar_url %>" alt="<%= @project.to_s %> logo" class="img-fluid fund-logo" onerror="this.style.display='none'" />
+      </div>
+      <% end %>
+      <div class="col-md-11">
+        <h1 class="display-1 extra-bold"><%= @project.to_s %></h1>
+        <% if @project.last_synced_at %>
+          <p><%= @project.description %></p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="container">
 
   <div class="dashboard-layout">
@@ -69,108 +84,35 @@
         <% end %>
           <!-- Row 1: Three equal widgets -->
           <div class="three-equal-widgets">
-            <%= small_widget 'Recurring donors', 85, 65, symbol: '%' %>
-            <%= small_widget 'Recurring donors', 65, 65, symbol: '%' %>
-            <%= small_widget 'Recurring donors', 55, 65, symbol: '%' %>
+            <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", stat_size: "large" %>
+            <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", stat_size: "large" %>
+            <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", stat_size: "large" %>
           </div>
           <!-- Row 2: Full-width chart -->
-          <div class="full-width-widget">
-            <div class="card well p-3 border-0">
-              <div class="card-body">
-                <h5 class="card-title">Commits</h5>
-                <div class="stat-card mb-2">
-                  <div class="stat-card-body">
-                    <span class="stat-card-title stat-card-title--large stat-card-number-negative">
-                      110,978 <%= bootstrap_icon 'caret-down-fill', width: 18, height: 18, class: 'flex-shrink-0' %>
-                    </span>
-                    <span class="stat-card-text stat-card-text">111,262 last period</span>
-                  </div>
-                </div>
-                <div class="chart-wrapper">
-                  <canvas id="commitChart2" width="600  "></canvas>
-                </div>
-              </div>
+          <%= stat_card_widget 'Commits', 110978, 111262, increase_good: false, symbol: '', title_class: "card-title", card_class: "card" do %>
+            <div class="chart-wrapper">
+              <canvas id="commitChart2" width="600"></canvas>
             </div>
-          </div>
+          <% end %>
           <!-- Row 3: Two thirds widgets -->
           <div class="two-thirds-widgets">
-            <div class="card two-thirds-widgets__large well p-3 border-0">
-              <div class="card-body">
-                <h5 class="card-title">Recurring donors</h5>
-                <div class="stat-card mb-2">
-                  <div class="stat-card-body">
-                    <span class="stat-card-title stat-card-title--large stat-card-number-positive">
-                      75% <%= bootstrap_icon 'caret-up-fill', width: 18, height: 18, class: 'flex-shrink-0' %>
-                    </span>
-                    <span class="stat-card-text">65% last period</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="card two-thirds-widgets__small well p-3 border-0">
-              <div class="card-body">
-                <h5 class="card-title">Recurring donors</h5>
-                <div class="stat-card mb-2">
-                  <div class="stat-card-body">
-                    <span class="stat-card-title stat-card-title--small stat-card-number-positive">
-                      128,123,123 <%= bootstrap_icon 'caret-up-fill', width: 18, height: 18, class: 'flex-shrink-0' %>
-                    </span>
-                    <span class="stat-card-text stat-card-text--small">128,123,127 last period</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", card_class: " two-thirds-widgets__large" %>
+            <%= stat_card_widget 'Recurring donors', 128123123, 128123127, increase_good: true, symbol: '', title_class: "card-title", card_class: " two-thirds-widgets__small", stat_size: 'small' %>
           </div>
 
           <!-- Row 4: Two thirds widgets with double row-->
           <div class="two-thirds-widget-group">
-            <div class="card two-thirds-widget-group__small well  p-3 border-0">
-              <div class="card-body">
-                <h5 class="card-title">Recurring donors</h5>
-                <div class="stat-card mb-2">
-                  <div class="stat-card-body">
-                    <span class="stat-card-title stat-card-title--large stat-card-number-positive">
-                      75% <%= bootstrap_icon 'caret-up-fill', width: 18, height: 18, class: 'flex-shrink-0' %>
-                    </span>
-                    <span class="stat-card-text stat-card-text">65% last period</span>
-                  </div>
-                </div>
+            <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", card_class: " two-thirds-widget-group__small" %>
+            <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", card_class: " two-thirds-widget-group__small" %>
+            <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", card_class: " two-thirds-widget-group__large" do %>
+              <div id="chartContainer" class="chart-wrapper" role="img" aria-describedby="chartDesc">
+                <canvas id="barChart2" tabindex="0" width="400" height="300" style="margin-left: 150px;"></canvas>
               </div>
-            </div>
-            <div class="card two-thirds-widget-group__small well p-3 border-0">
-              <div class="card-body">
-                <h5 class="card-title">Recurring donors</h5>
-                <div class="stat-card mb-2">
-                  <div class="stat-card-body">
-                    <span class="stat-card-title stat-card-title--large stat-card-number-positive">
-                      75% <%= bootstrap_icon 'caret-up-fill', width: 18, height: 18, class: 'flex-shrink-0' %>
-                    </span>
-                    <span class="stat-card-text stat-card-text">65% last period</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="card two-thirds-widget-group__large well p-3 border-0">
-              <div class="card-body">
-                <h5 class="card-title">Recurring donors</h5>
-                <div class="stat-card mb-2">
-                  <div class="stat-card-body">
-                    <span class="stat-card-title stat-card-title--large stat-card-number-positive">
-                      75% <%= bootstrap_icon 'caret-up-fill', width: 18, height: 18, class: 'flex-shrink-0' %>
-                    </span>
-                    <span class="stat-card-text">65% last period</span>
-                  </div>
-                </div>
-                <div id="chartContainer" class="chart-wrapper" role="img" aria-describedby="chartDesc">
-                  <canvas id="barChart2" tabindex="0"  width="400" height="300" style="margin-left: 150px;"></canvas>
-                </div>
 
-                <p id="chartDesc" class="visually-hidden">
-                  We need to describe the chart here, for example 'this bar chart shows commits over the last 3 months. January had 110,988 commits, February 232,000, and March 123,989'
-                </p>
-
-              </div>
-            </div>
+              <p id="chartDesc" class="visually-hidden">
+                We need to describe the chart here, for example 'this bar chart shows commits over the last 3 months. January had 110,988 commits, February 232,000, and March 123,989'
+              </p>
+            <% end %>
           </div>
         </div>
     </div>
