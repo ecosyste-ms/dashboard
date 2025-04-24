@@ -1,6 +1,6 @@
 module WidgetHelper
 
-  def small_widget(title, current_value, previous_value, increase_good: true, symbol: nil)
+  def small_widget(title, current_value, previous_value, increase_good: true, symbol: nil, currency: false)
     stat_card_widget(
       title,
       current_value,
@@ -9,11 +9,12 @@ module WidgetHelper
       symbol: symbol,
       title_class: "small",
       card_class: "",
-      stat_size: "small"
+      stat_size: "small",
+      currency: currency
     )
   end
 
-  def stat_card_widget(title, current_value, previous_value, increase_good: true, symbol:, title_class:, card_class: "", stat_size: "large", &block)
+  def stat_card_widget(title, current_value, previous_value, increase_good: true, symbol:, title_class:, card_class: "", stat_size: "large", currency: false, &block)
     content_tag(:div, class: "card #{card_class} well p-3 border-0") do
       content_tag(:div, class: "card-body") do
         content_tag(:h5, title, class: "card-title "+ title_class) +
@@ -23,11 +24,11 @@ module WidgetHelper
 
             content_tag(:span, class: stat_class) do
               safe_join([
-                "#{number_with_delimiter(current_value)}#{symbol}".strip + ' ',
+                "#{currency ? number_to_currency(current_value, unit: symbol || '$') : "#{number_with_delimiter(current_value)}#{symbol}"}".strip + ' ',
                 caret_icon_for(current_value, previous_value, increase_good)
               ])
             end +
-            content_tag(:span, "#{number_with_delimiter(previous_value)}#{symbol} last period", class: "stat-card-text")
+            content_tag(:span, "#{currency ? number_to_currency(previous_value, unit: symbol || '$') : "#{number_with_delimiter(previous_value)}#{symbol}"} last period", class: "stat-card-text")
           end
         end +
         (block_given? ? capture(&block) : "".html_safe)
