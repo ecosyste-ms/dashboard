@@ -2,7 +2,7 @@ module WidgetHelper
   def small_widget(title, current_value, previous_value, increase_good: true, symbol: nil)
     content_tag(:div, class: "card well p-3 border-0") do
       content_tag(:div, class: "card-body") do
-        content_tag(:h5, title, class: "card-title") +
+        content_tag(:h5, title, class: "card-title small") +
         content_tag(:div, class: "stat-card mb-2") do
           content_tag(:div, class: "stat-card-body") do
             stat_class = stat_class_for(current_value, previous_value)
