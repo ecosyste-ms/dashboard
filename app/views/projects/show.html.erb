@@ -11,7 +11,6 @@
       <% end %>
       <div class="col-md-11">
         <h1 class="display-1 extra-bold"><%= @project.to_s %></h1>
-        <p>Project description might appear here</p>
         <% if @project.last_synced_at %>
           <p><%= @project.description %></p>
         <% end %>
@@ -27,7 +26,62 @@
     <div class="dashboard-layout__dboard">
         <%= render 'date_nav' %>
 
-        <div class="dashboard-grid">
+        <div class="dashboard-grid">  
+        <% if @project.repository %>
+        <div class="three-equal-widgets">
+          <div class="card well p-3 border-0">
+            <div class="card-body">
+              <h5 class="card-title small">Owner</h5>
+              <div class="stat-card mb-2">
+                <div class="stat-card-body">
+                  <span class="stat-card-text"><%= @project.repository['owner'] %></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card well p-3 border-0">
+            <div class="card-body">
+              <h5 class="card-title small">Last commit</h5>
+              <div class="stat-card mb-2">
+                <div class="stat-card-body">
+                  <span class="stat-card-text">?</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card well p-3 border-0">
+            <div class="card-body">
+              <h5 class="card-title small">Last release</h5>
+              <div class="stat-card mb-2">
+                <div class="stat-card-body">
+                  <span class="stat-card-text">?</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="one-third-widget-group">
+          <div class="card one-third-widget-group__large well p-3 border-0">
+            <div class="card-body">
+              <h5 class="card-title small">Links</h5>
+              <!-- Links content here -->
+            </div>
+          </div>
+          <div class="card one-third-widget-group__small well p-3 border-0">
+            <div class="card-body">
+              <h5 class="card-title small">Language</h5>
+              <!-- Language content here -->
+            </div>
+          </div>
+          <div class="card one-third-widget-group__small well p-3 border-0">
+            <div class="card-body">
+              <h5 class="card-title small">Licence</h5>
+              <!-- License content here -->
+            </div>
+          </div>
+        </div>
+
+        <% end %>
           <!-- Row 1: Three equal widgets -->
           <div class="three-equal-widgets">
             <div class="card well p-3 border-0">
