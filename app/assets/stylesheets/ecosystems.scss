@@ -1063,3 +1063,16 @@ body {
     height: auto;
   }
 }
+
+.project-logo {
+  max-width: 100px;
+  border-radius: 8px;
+  padding: 0.25rem;
+  background-color: $color-white;
+  @include media-breakpoint-up(md) { 
+    max-width: 100%;
+  }
+  @include media-breakpoint-up(lg) { 
+    padding: 0.5rem;
+  }
+}
