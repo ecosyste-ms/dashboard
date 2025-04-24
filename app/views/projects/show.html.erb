@@ -1,23 +1,8 @@
 <% @meta_title = "#{@project}" %>
 <% @meta_description = "Stats for #{@project}" %>
 
-<div class="project-header purple-grad-bg  mb-5 pt-4 pb-4">
-  <div class="container">
-    <div class="row">
-      <% if @project.avatar_url.present? %>
-      <div class="col-md-1 mb-3 pt-3">
-        <img src="<%= @project.avatar_url %>" alt="<%= @project.to_s %> logo" class="img-fluid fund-logo" onerror="this.style.display='none'" />
-      </div>
-      <% end %>
-      <div class="col-md-11">
-        <h1 class="display-1 extra-bold"><%= @project.to_s %></h1>
-        <% if @project.last_synced_at %>
-          <p><%= @project.description %></p>
-        <% end %>
-      </div>
-    </div>
-  </div>
-</div>
+<%= render 'project_header' %>
+
 <div class="container">
 
   <div class="dashboard-layout">

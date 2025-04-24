@@ -1,11 +1,7 @@
 <% @meta_title = "#{@project}" %>
 <% @meta_description = "Stats for #{@project}" %>
-
-<div class="container bg-body">
-
-  <h1>
-    <%= @project.to_s %>
-  </h1>
+<%= render 'project_header' %>
+<div class="container">
 
   <div class="dashboard-layout">
     <%= render 'nav' %>
