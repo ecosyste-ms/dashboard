@@ -973,8 +973,15 @@ body {
     }
   }
   @include media-breakpoint-up(lg) { 
-    grid-template-columns: 1fr 2fr; /* 1/3 for small cards, 2/3 for large card */
-    grid-template-rows: repeat(2, auto);
+      /* subtract 2 gaps (just like the 3-col layout) then split by 3
+      if we don't do this the vertical lines of the grid DON'T LINE UP
+      Thanks maths
+      */
+      grid-template-columns:
+        minmax(0, calc((100% - 2 * #{$grid-gutter-width}) / 3))
+        2fr;
+      grid-template-rows: repeat(2, auto);
+
 
     .two-thirds-widget-group__small:nth-of-type(1) {
       grid-column: 1;
@@ -995,6 +1002,52 @@ body {
   }
   
 }
+
+.one-third-widget-group {
+  display: grid;
+  gap: $grid-gutter-width;
+  grid-template-columns: 1fr;
+  
+  @include media-breakpoint-up(md) { 
+    grid-template-columns: 1fr 1fr;
+    grid-auto-flow: row dense;
+    
+    /* Make the large card span the full width on medium screens */
+    .one-third-widget-group__large {
+      grid-column: 1 / -1;
+    }
+  }
+  
+  @include media-breakpoint-up(lg) { 
+    /* subtract 2 gaps (just like the 3-col layout) then split by 3
+    if we don't do this the vertical lines of the grid DON'T LINE UP
+    Thanks maths
+    */
+    grid-template-columns:
+    minmax(0, calc((100% - 2 * #{$grid-gutter-width}) / 3))
+    2fr;
+    grid-template-rows: repeat(2, auto);
+    /* Large card spans both rows on the left */
+    .one-third-widget-group__large {
+      grid-column: 1;
+      grid-row: 1 / span 2; /* Start at row 1 and span 2 rows */
+    }
+    
+    /* First small card in top-right */
+    .one-third-widget-group__small:nth-of-type(1) {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    
+    /* Second small card in bottom-right */
+    .one-third-widget-group__small:nth-of-type(2) {
+      grid-column: 2;
+      grid-row: 2;
+    }
+  }
+}
+
+
 
 .chart-wrapper {
   position: relative;
