@@ -1,162 +1,32 @@
 <% @meta_title = "#{@project}" %>
 <% @meta_description = "Stats for #{@project}" %>
 
-<div class="container bg-body">
+<%= render 'project_header' %>
+<div class="container">
 
-  <h1>
-    <%= @project.to_s %>
-  </h1>
 
   <div class="dashboard-layout">
     <%= render 'nav' %>
 
     <div class="dashboard-layout__dboard">
-        <%= render 'date_nav' %>
+      <h1 class="mb-4">Finance</h1>
+      <%= render 'date_nav' %>
 
-        <div class="dashboard-grid">
-          <!-- Row 1: Three equal widgets -->
-          <div class="three-equal-widgets">
-            <div class="card well p-3 border-0">
-              <div class="card-body">
-                <h5 class="card-title">Recurring donors</h5>
-                <div class="stat-card mb-2">
-                  <div class="stat-card-body">
-                    <span class="stat-card-title stat-card-title--large stat-card-number-positive">
-                      75% <%= bootstrap_icon 'caret-up-fill', width: 18, height: 18, class: 'flex-shrink-0' %>
-                    </span>
-                    <span class="stat-card-text">65% last period</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="card well p-3 border-0">
-              <div class="card-body">
-                <h5 class="card-title">Recurring donors</h5>
-                <div class="stat-card mb-2">
-                  <div class="stat-card-body">
-                    <span class="stat-card-title stat-card-title--large stat-card-number-positive">
-                      75% <%= bootstrap_icon 'caret-up-fill', width: 18, height: 18, class: 'flex-shrink-0' %>
-                    </span>
-                    <span class="stat-card-text">65% last period</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="card well p-3 border-0">
-              <div class="card-body">
-                <h5 class="card-title">Recurring donors</h5>
-                <div class="stat-card mb-2">
-                  <div class="stat-card-body">
-                    <span class="stat-card-title stat-card-title--large stat-card-number-positive">
-                      75% <%= bootstrap_icon 'caret-up-fill', width: 18, height: 18, class: 'flex-shrink-0' %>
-                    </span>
-                    <span class="stat-card-text">65% last period</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- Row 2: Full-width chart -->
-          <div class="full-width-widget">
-            <div class="card well p-3 border-0">
-              <div class="card-body">
-                <h5 class="card-title">Commits</h5>
-                <div class="stat-card mb-2">
-                  <div class="stat-card-body">
-                    <span class="stat-card-title stat-card-title--large stat-card-number-negative">
-                      110,978 <%= bootstrap_icon 'caret-down-fill', width: 18, height: 18, class: 'flex-shrink-0' %>
-                    </span>
-                    <span class="stat-card-text stat-card-text">111,262 last period</span>
-                  </div>
-                </div>
-                <div class="chart-wrapper">
-                  <canvas id="commitChart2" width="600  "></canvas>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- Row 3: Two thirds widgets -->
-          <div class="two-thirds-widgets">
-            <div class="card two-thirds-widgets__large well p-3 border-0">
-              <div class="card-body">
-                <h5 class="card-title">Recurring donors</h5>
-                <div class="stat-card mb-2">
-                  <div class="stat-card-body">
-                    <span class="stat-card-title stat-card-title--large stat-card-number-positive">
-                      75% <%= bootstrap_icon 'caret-up-fill', width: 18, height: 18, class: 'flex-shrink-0' %>
-                    </span>
-                    <span class="stat-card-text">65% last period</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="card two-thirds-widgets__small well p-3 border-0">
-              <div class="card-body">
-                <h5 class="card-title">Recurring donors</h5>
-                <div class="stat-card mb-2">
-                  <div class="stat-card-body">
-                    <span class="stat-card-title stat-card-title--small stat-card-number-positive">
-                      128,123,123 <%= bootstrap_icon 'caret-up-fill', width: 18, height: 18, class: 'flex-shrink-0' %>
-                    </span>
-                    <span class="stat-card-text stat-card-text--small">128,123,127 last period</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Row 4: Two thirds widgets with double row-->
-          <div class="two-thirds-widget-group">
-            <div class="card two-thirds-widget-group__small well  p-3 border-0">
-              <div class="card-body">
-                <h5 class="card-title">Recurring donors</h5>
-                <div class="stat-card mb-2">
-                  <div class="stat-card-body">
-                    <span class="stat-card-title stat-card-title--large stat-card-number-positive">
-                      75% <%= bootstrap_icon 'caret-up-fill', width: 18, height: 18, class: 'flex-shrink-0' %>
-                    </span>
-                    <span class="stat-card-text stat-card-text">65% last period</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="card two-thirds-widget-group__small well p-3 border-0">
-              <div class="card-body">
-                <h5 class="card-title">Recurring donors</h5>
-                <div class="stat-card mb-2">
-                  <div class="stat-card-body">
-                    <span class="stat-card-title stat-card-title--large stat-card-number-positive">
-                      75% <%= bootstrap_icon 'caret-up-fill', width: 18, height: 18, class: 'flex-shrink-0' %>
-                    </span>
-                    <span class="stat-card-text stat-card-text">65% last period</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="card two-thirds-widget-group__large well p-3 border-0">
-              <div class="card-body">
-                <h5 class="card-title">Recurring donors</h5>
-                <div class="stat-card mb-2">
-                  <div class="stat-card-body">
-                    <span class="stat-card-title stat-card-title--large stat-card-number-positive">
-                      75% <%= bootstrap_icon 'caret-up-fill', width: 18, height: 18, class: 'flex-shrink-0' %>
-                    </span>
-                    <span class="stat-card-text">65% last period</span>
-                  </div>
-                </div>
-                <div id="chartContainer" class="chart-wrapper" role="img" aria-describedby="chartDesc">
-                  <canvas id="barChart2" tabindex="0"  width="400" height="300" style="margin-left: 150px;"></canvas>
-                </div>
-
-                <p id="chartDesc" class="visually-hidden">
-                  We need to describe the chart here, for example 'this bar chart shows commits over the last 3 months. January had 110,988 commits, February 232,000, and March 123,989'
-                </p>
-
-              </div>
-            </div>
-          </div>
+      <div class="dashboard-grid">
+        <div class="three-equal-widgets">
+          <%= small_widget 'Contributions', 10000, 9000, symbol: '$' %>
+          <%= small_widget 'Payments', 5000, 4000, symbol: '$' %>
+          <%= small_widget 'Balance', 5000, 5000, symbol: '$' %>
         </div>
+        <div class="two-thirds-widgets">
+          <%= small_widget 'Donors', 15, 11, symbol: '' %>
+          <%= small_widget 'Recurring donors', 75, 65, symbol: '%' %>
+        </div>
+        <div class="two-thirds-widgets">
+          <%= small_widget 'Unique payees', 11, 9, symbol: '' %>
+          <%= small_widget 'Reimbursements', 10000, 9000, symbol: '$' %>
+        </div>
+      </div>
     </div>
   </div>
 </div>
