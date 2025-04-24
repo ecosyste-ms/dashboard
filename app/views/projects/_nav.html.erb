@@ -22,4 +22,10 @@
       <a class="nav-link <%= 'active' if action_name == 'dependency' %>" href="<%= dependency_project_path(@project) %>">Dependency</a>
     </li>
   </ul>
+
+  <% if Rails.env.development? %>
+    <div class="dboard-nav__actions mt-3">
+      <a href="<%= sync_project_path(@project) %>" class="btn btn-primary">Sync Project</a>
+    </div>
+  <% end %>
 </div>

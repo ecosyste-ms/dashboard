@@ -98,4 +98,11 @@ class ProjectsController < ApplicationController
   def responsiveness
     @project = Project.find(params[:id])
   end
+
+  def sync
+    @project = Project.find(params[:id])
+    @project.sync
+    flash[:notice] = 'Project synced'
+    redirect_to project_path(@project)
+  end
 end
