@@ -19,12 +19,12 @@
           <%= small_widget 'Balance', 5000, 5000, symbol: '$' %>
         </div>
         <div class="two-thirds-widgets">
-          <%= small_widget 'Donors', 15, 11, symbol: '' %>
-          <%= small_widget 'Recurring donors', 75, 65, symbol: '%' %>
+          <%= stat_card_widget 'Donors', 15, 11, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
+          <%= stat_card_widget 'Recurring donors', 75, 65, symbol: '%', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
         </div>
         <div class="two-thirds-widgets">
-          <%= small_widget 'Unique payees', 11, 9, symbol: '' %>
-          <%= small_widget 'Reimbursements', 10000, 9000, symbol: '$' %>
+          <%= stat_card_widget 'Unique payees', 11, 9, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
+          <%= stat_card_widget 'Reimbursements', 10000, 9000, symbol: '%', title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
         </div>
       </div>
     </div>
