@@ -26,6 +26,8 @@
   <% if Rails.env.development? %>
     <div class="dboard-nav__actions mt-3">
       <a href="<%= sync_project_path(@project) %>" class="btn btn-primary">Sync Project</a>
+      <br/>
+      <small class='text-muted'>Last sync: <%= @project.last_synced_at ? @project.last_synced_at.strftime('%Y-%m-%d %H:%M') : 'Never' %></small>
     </div>
   <% end %>
 </div>
