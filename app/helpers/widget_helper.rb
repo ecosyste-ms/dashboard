@@ -25,7 +25,7 @@ module WidgetHelper
             content_tag(:span, class: stat_class) do
               safe_join([
                 "#{currency ? number_to_currency(current_value, unit: symbol || '$') : "#{number_with_delimiter(current_value)}#{symbol}"}".strip + ' ',
-                caret_icon_for(current_value, previous_value, increase_good)
+                caret_icon_for(current_value, previous_value)
               ])
             end +
             content_tag(:span, "#{currency ? number_to_currency(previous_value, unit: symbol || '$') : "#{number_with_delimiter(previous_value)}#{symbol}"} last period", class: "stat-card-text")
@@ -50,19 +50,19 @@ module WidgetHelper
       end
   end
 
-  def caret_direction_for(current_value, previous_value, increase_good = true)
+  def caret_direction_for(current_value, previous_value)
     return nil if current_value == previous_value
 
     positive = current_value > previous_value
-    if (positive && increase_good) || (!positive && !increase_good)
+    if positive 
       'caret-up-fill'
     else
       'caret-down-fill'
     end
   end
 
-  def caret_icon_for(current_value, previous_value, increase_good = true)
-    direction = caret_direction_for(current_value, previous_value, increase_good)
+  def caret_icon_for(current_value, previous_value)
+    direction = caret_direction_for(current_value, previous_value)
     if direction
       bootstrap_icon(direction, width: 18, height: 18, class: 'flex-shrink-0')
     else
