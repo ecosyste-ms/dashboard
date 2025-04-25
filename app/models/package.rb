@@ -91,4 +91,16 @@ class Package < ApplicationRecord
   def maintainers_count
     metadata['maintainers_count']
   end
+
+  def documentation_url
+    metadata['documentation_url']
+  end
+
+  def registry_url
+    metadata['registry_url']
+  end
+
+  def homepage_url
+    metadata['homepage']
+  end
 end

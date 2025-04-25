@@ -222,6 +222,11 @@ class Project < ApplicationRecord
     repository['owner']
   end
 
+  def owner
+    return unless repository.present?
+    repository['owner']
+  end
+
   def name
     return unless repository.present?
     repository['full_name'].split('/').last
@@ -529,6 +534,34 @@ class Project < ApplicationRecord
   def latest_tag_published_at
     return unless tags.present?
     latest_tag.published_at
+  end
+
+  def packages_homepage_urls
+    packages.map(&:homepage_url).compact.uniq
+  end
+
+  def homepage_url
+    return unless repository.present?
+    return unless repository['homepage'].present?
+    ([repository['homepage']] + packages_homepage_urls).compact.uniq
+  end
+
+  def documentation_urls
+    packages.map(&:documentation_url).compact.uniq
+  end
+
+  def registry_urls
+    packages.map(&:registry_url).compact.uniq
+  end
+
+  def links
+    [
+      url,
+      homepage_url,
+      documentation_urls,
+      registry_urls,
+      funding_links
+  ].flatten.compact.uniq
   end
 
   def fetch_packages

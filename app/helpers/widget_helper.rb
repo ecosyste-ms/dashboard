@@ -36,6 +36,10 @@ module WidgetHelper
     end
   end
 
+  def display_link(url)
+    url.gsub(/https?:\/\//, '').gsub(/www\./, '')
+  end
+
   def stat_class_for(current_value, previous_value, increase_good = true)
     return "stat-card-number  stat-card-number-neutral" if previous_value.nil?
     positive = current_value > previous_value
