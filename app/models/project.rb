@@ -249,6 +249,16 @@ class Project < ApplicationRecord
     !open_source_license?
   end
 
+  def dependent_packages_count
+    return 0 if packages_count.zero?
+    packages.select{|p| p.dependent_packages_count }.map{|p| p.dependent_packages_count || 0 }.sum
+  end
+
+  def dependent_repos_count
+    return 0 if packages_count.zero?
+    packages.select{|p| p.dependent_repos_count }.map{|p| p.dependent_repos_count || 0 }.sum
+  end
+
   def archived?
     return false unless repository.present?
     repository['archived']
@@ -503,7 +513,7 @@ class Project < ApplicationRecord
 
   def last_commit_at
     return unless commits.present?
-    commits.order('created_at desc').first.created_at
+    commits.order('timestamp desc').first.timestamp
   end
 
   def latest_tag

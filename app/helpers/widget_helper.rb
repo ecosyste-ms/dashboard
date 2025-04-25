@@ -14,7 +14,7 @@ module WidgetHelper
     )
   end
 
-  def stat_card_widget(title, current_value, previous_value, increase_good: true, symbol:, title_class:, card_class: "", stat_size: "large", currency: false, &block)
+  def stat_card_widget(title, current_value, previous_value, increase_good: true, symbol: nil, title_class:, card_class: "", stat_size: "large", currency: false, &block)
     content_tag(:div, class: "card #{card_class} well p-3 border-0") do
       content_tag(:div, class: "card-body") do
         content_tag(:h5, title, class: "card-title "+ title_class) +
@@ -25,10 +25,10 @@ module WidgetHelper
             content_tag(:span, class: stat_class) do
               safe_join([
                 "#{currency ? number_to_currency(current_value, unit: symbol || '$') : "#{number_with_delimiter(current_value)}#{symbol}"}".strip + ' ',
-                caret_icon_for(current_value, previous_value)
+                (previous_value.nil? ? nil : caret_icon_for(current_value, previous_value))
               ])
             end +
-            content_tag(:span, "#{currency ? number_to_currency(previous_value, unit: symbol || '$') : "#{number_with_delimiter(previous_value)}#{symbol}"} last period", class: "stat-card-text")
+            (previous_value.nil? ? "".html_safe : content_tag(:span, "#{currency ? number_to_currency(previous_value, unit: symbol || '$') : "#{number_with_delimiter(previous_value)}#{symbol}"} last period", class: "stat-card-text"))
           end
         end +
         (block_given? ? capture(&block) : "".html_safe)
@@ -37,6 +37,7 @@ module WidgetHelper
   end
 
   def stat_class_for(current_value, previous_value, increase_good = true)
+    return "stat-card-number  stat-card-number-neutral" if previous_value.nil?
     positive = current_value > previous_value
     neutral = current_value == previous_value
 
@@ -51,6 +52,7 @@ module WidgetHelper
   end
 
   def caret_direction_for(current_value, previous_value)
+    return nil if previous_value.nil?
     return nil if current_value == previous_value
 
     positive = current_value > previous_value

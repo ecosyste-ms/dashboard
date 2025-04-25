@@ -43,7 +43,11 @@
               <div class="stat-card mb-2">
                 <div class="stat-card-body">
                   <span class="stat-card-text">
+                    <% if @project.last_commit_at %>
                     <%= time_ago_in_words @project.last_commit_at %> ago
+                    <% else %>
+                      No commits found
+                    <% end %>
                   </span>
                 </div>
               </div>
@@ -101,7 +105,7 @@
           <div class="card one-third-widget-group__small well p-3 border-0">
             <div class="card-body">
               <h5 class="card-title small">Licence</h5>
-              <%= @project.licenses.map(&:upcase).join(', ') %>
+              <%= @project.licenses.map(&:upcase).uniq.join(', ') %>
             </div>
           </div>
         </div>
@@ -110,9 +114,9 @@
 
       <!-- Row 1: Three equal widgets -->
       <div class="three-equal-widgets">
-        <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", stat_size: "large" %>
-        <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", stat_size: "large" %>
-        <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", stat_size: "large" %>
+        <%= stat_card_widget 'Dependent packages', @project.dependent_packages_count, nil, title_class: "card-title", stat_size: "large" %>
+        <%= stat_card_widget 'Dependent repos', @project.dependent_repos_count, nil, title_class: "card-title", stat_size: "large" %>
+        <%= stat_card_widget 'Downloads', @project.downloads, nil, title_class: "card-title", stat_size: "large" %>
       </div>
 
       <!-- Row 2: Full-width chart -->
@@ -121,7 +125,7 @@
           <canvas id="commitChart2" width="600"></canvas>
         </div>
       <% end %>
-      
+
       <!-- Row 3: Two thirds widgets -->
       <div class="two-thirds-widgets">
         <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", card_class: " two-thirds-widgets__large" %>
