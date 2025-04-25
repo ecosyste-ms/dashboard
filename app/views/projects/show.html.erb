@@ -24,7 +24,7 @@
     <%= render 'nav' %>
 
     <div class="dashboard-layout__dboard">
-        <div class="dashboard-grid">  
+      <div class="dashboard-grid">  
         <% if @project.repository %>
         <div class="three-equal-widgets">
           <div class="card well p-3 border-0">
@@ -42,7 +42,9 @@
               <h5 class="card-title small">Last commit</h5>
               <div class="stat-card mb-2">
                 <div class="stat-card-body">
-                  <span class="stat-card-text">?</span>
+                  <span class="stat-card-text">
+                    <%= time_ago_in_words @project.last_commit_at %> ago
+                  </span>
                 </div>
               </div>
             </div>
@@ -52,7 +54,13 @@
               <h5 class="card-title small">Last release</h5>
               <div class="stat-card mb-2">
                 <div class="stat-card-body">
-                  <span class="stat-card-text">?</span>
+                  <span class="stat-card-text">
+                    <% if @project.latest_tag_name %>
+                      <%= @project.latest_tag_name %> (<%= time_ago_in_words @project.latest_tag_published_at %> ago)
+                    <% else %>
+                      No releases found
+                    <% end %>
+                  </span>
                 </div>
               </div>
             </div>
@@ -93,104 +101,47 @@
           <div class="card one-third-widget-group__small well p-3 border-0">
             <div class="card-body">
               <h5 class="card-title small">Licence</h5>
-              <!-- License content here -->
+              <%= @project.licenses.map(&:upcase).join(', ') %>
             </div>
           </div>
         </div>
 
+      <% end %>
+
+      <!-- Row 1: Three equal widgets -->
+      <div class="three-equal-widgets">
+        <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", stat_size: "large" %>
+        <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", stat_size: "large" %>
+        <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", stat_size: "large" %>
+      </div>
+
+      <!-- Row 2: Full-width chart -->
+      <%= stat_card_widget 'Commits', 110978, 111262, increase_good: false, symbol: '', title_class: "card-title", card_class: "card" do %>
+        <div class="chart-wrapper">
+          <canvas id="commitChart2" width="600"></canvas>
+        </div>
+      <% end %>
+      
+      <!-- Row 3: Two thirds widgets -->
+      <div class="two-thirds-widgets">
+        <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", card_class: " two-thirds-widgets__large" %>
+        <%= stat_card_widget 'Recurring donors', 128123123, 128123127, increase_good: true, symbol: '', title_class: "card-title", card_class: " two-thirds-widgets__small", stat_size: 'small' %>
+      </div>
+
+      <!-- Row 4: Two thirds widgets with double row-->
+      <div class="two-thirds-widget-group">
+        <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", card_class: " two-thirds-widget-group__small" %>
+        <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", card_class: " two-thirds-widget-group__small" %>
+        <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", card_class: " two-thirds-widget-group__large" do %>
+          <div id="chartContainer" class="chart-wrapper" role="img" aria-describedby="chartDesc">
+            <canvas id="barChart2" tabindex="0" width="400" height="300" style="margin-left: 150px;"></canvas>
+          </div>
+
+          <p id="chartDesc" class="visually-hidden">
+            We need to describe the chart here, for example 'this bar chart shows commits over the last 3 months. January had 110,988 commits, February 232,000, and March 123,989'
+          </p>
         <% end %>
-          <!-- Row 1: Three equal widgets -->
-          <div class="three-equal-widgets">
-            <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", stat_size: "large" %>
-            <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", stat_size: "large" %>
-            <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", stat_size: "large" %>
-          </div>
-          <!-- Row 2: Full-width chart -->
-          <%= stat_card_widget 'Commits', 110978, 111262, increase_good: false, symbol: '', title_class: "card-title", card_class: "card" do %>
-            <div class="chart-wrapper">
-              <canvas id="commitChart2" width="600"></canvas>
-            </div>
-          <% end %>
-          <!-- Row 3: Two thirds widgets -->
-          <div class="two-thirds-widgets">
-            <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", card_class: " two-thirds-widgets__large" %>
-            <%= stat_card_widget 'Recurring donors', 128123123, 128123127, increase_good: true, symbol: '', title_class: "card-title", card_class: " two-thirds-widgets__small", stat_size: 'small' %>
-          </div>
-
-          <!-- Row 4: Two thirds widgets with double row-->
-          <div class="two-thirds-widget-group">
-            <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", card_class: " two-thirds-widget-group__small" %>
-            <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", card_class: " two-thirds-widget-group__small" %>
-            <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", card_class: " two-thirds-widget-group__large" do %>
-              <div id="chartContainer" class="chart-wrapper" role="img" aria-describedby="chartDesc">
-                <canvas id="barChart2" tabindex="0" width="400" height="300" style="margin-left: 150px;"></canvas>
-              </div>
-
-              <p id="chartDesc" class="visually-hidden">
-                We need to describe the chart here, for example 'this bar chart shows commits over the last 3 months. January had 110,988 commits, February 232,000, and March 123,989'
-              </p>
-            <% end %>
-          </div>
-        </div>
+      </div>
     </div>
-
-  <% if @project.last_synced_at %>
-
-    <%= render 'project_nav' %>
-
-    <%= render 'stats/project_stats' %>
-
-    <% if @project.keywords.any? %>
-      <p>
-        <% @project.keywords.each do |keyword| %>
-          <span class="badge bg-light text-dark">
-            <%= keyword %>
-          </span>
-        <% end %>
-      </p>
-    <% end %>
-
-    <p class="card-subtitle mb-2 text-muted"><i><small>
-        Last synced: <%= distance_of_time_in_words_to_now @project.last_synced_at %> ago <br>
-        <%= link_to 'JSON representation', api_v1_project_path(@project) %>
-    </small></i></p>
-
-    <%= render 'repository' %>
-
-    <%= form_with url: request.path, method: :get do |form| %>
-      <%= form.label :range, 'Select range:' %>
-      <%= form.select :range, options_for_select([30, 90, 180, 360], @range.to_i), {}, { onchange: 'this.form.submit()' } %>
-    <% end %><br/>
-
-    <%= render 'stats' %>
-
-    <% if @project.tags.displayable.count > 0 %>
-      <%= line_chart tags_chart_path(project_ids: @project.id, chart: 'tags', period: @period, exclude_bots: @exclude_bots, range: @range, start_date: @start_date, end_date: @end_date), thousands: ",", title: 'Releases' %>
-    <% end %>
-
-    <% if @project.issues.count > 0 %>
-      <h2>Issues</h2>
-
-      <%= render 'issue_charts' %>
-    <% else %>
-      <p>
-        No issues or pull requests found within this period.
-      </p>
-    <% end %>
-
-    <% if @project.commits.count > 0 %>
-      <h2>Commits</h2>
-
-      <%= render 'commit_charts' %>
-    <% else %>
-      <p>
-        No commits found within this period.
-      </p>
-    <% end %>
-
-  <% else %>
-    <p>
-      This project has not been synced yet. Check back in a few minutes.
-      <meta http-equiv="refresh" content="10">
-    </p>
-  <% end %>
+  </div>
+</div>

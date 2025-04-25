@@ -237,8 +237,12 @@ class Project < ApplicationRecord
     repository['license'] || repository.dig('metadata', 'files', 'license')
   end
 
+  def licenses
+    (packages_licenses + [repository_license]).compact.uniq
+  end
+
   def open_source_license?
-    (packages_licenses + [repository_license]).compact.uniq.any?
+    licenses.any?
   end
 
   def no_license?
@@ -495,6 +499,26 @@ class Project < ApplicationRecord
     return unless repository['pushed_at'].present?
     Time.parse(repository['pushed_at'])
     # TODO: Use issues updated_at
+  end
+
+  def last_commit_at
+    return unless commits.present?
+    commits.order('created_at desc').first.created_at
+  end
+
+  def latest_tag
+    return unless tags.present?
+    tags.order('published_at desc').first
+  end
+
+  def latest_tag_name
+    return unless tags.present?
+    latest_tag.name
+  end
+
+  def latest_tag_published_at
+    return unless tags.present?
+    latest_tag.published_at
   end
 
   def fetch_packages
