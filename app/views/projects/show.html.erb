@@ -1,23 +1,7 @@
 <% @meta_title = "#{@project}" %>
 <% @meta_description = "Stats for #{@project}" %>
 
-<div class="project-header purple-grad-bg  mb-5 pt-4 pb-4">
-  <div class="container">
-    <div class="row">
-      <% if @project.avatar_url.present? %>
-      <div class="col-md-1 mb-3 pt-3">
-        <img src="<%= @project.avatar_url %>" alt="<%= @project.to_s %> logo" class="img-fluid fund-logo" onerror="this.style.display='none'" />
-      </div>
-      <% end %>
-      <div class="col-md-11">
-        <h1 class="display-1 extra-bold"><%= @project.to_s %></h1>
-        <% if @project.last_synced_at %>
-          <p><%= @project.description %></p>
-        <% end %>
-      </div>
-    </div>
-  </div>
-</div>
+<%= render 'project_header' %>
 <div class="container">
 
   <div class="dashboard-layout">
@@ -127,21 +111,23 @@
         <%= stat_card_widget 'Dependent repos', @project.dependent_repos_count, nil, title_class: "card-title", stat_size: "large" %>
         <%= stat_card_widget 'Downloads', @project.downloads, nil, title_class: "card-title", stat_size: "large" %>
       </div>
-
-      <!-- Row 4: Two thirds widgets with double row-->
-      <div class="two-thirds-widget-group">
-        <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", card_class: " two-thirds-widget-group__small" %>
-        <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", card_class: " two-thirds-widget-group__small" %>
-        <%= stat_card_widget 'Recurring donors', 75, 65, increase_good: true, symbol: '%', title_class: "card-title", card_class: " two-thirds-widget-group__large" do %>
-          <div id="chartContainer" class="chart-wrapper" role="img" aria-describedby="chartDesc">
-            <canvas id="barChart2" tabindex="0" width="400" height="300" style="margin-left: 150px;"></canvas>
-          </div>
-
-          <p id="chartDesc" class="visually-hidden">
-            We need to describe the chart here, for example 'this bar chart shows commits over the last 3 months. January had 110,988 commits, February 232,000, and March 123,989'
-          </p>
-        <% end %>
+      <div class="full-width-widget">
+      <%= stat_card_widget 'Commits', 882, 781, increase_good: true, symbol: '', title_class: "card-title" %>
+      </div>      
+      <div class="three-equal-widgets">
+        <%= stat_card_widget 'Committers', 75, 65, title_class: "card-title", stat_size: "large" %>
+        <%= stat_card_widget 'Open PRs', 11, 9,  increase_good: false, title_class: "card-title", stat_size: "large" %>
+        <%= stat_card_widget 'Open issues', 704, 654,  increase_good: false, title_class: "card-title", stat_size: "large" %>
+      </div>     
+      <div class="two-thirds-widgets">
+        <%= stat_card_widget 'Balance', 9822, 11877, symbol: '$', currency: true, title_class: "card-title", card_class: " two-thirds-widgets__large" %>
+        <%= stat_card_widget 'Amount spent', 15778, 11123, symbol: '$', currency: true, stat_size: "small",  title_class: "card-title", card_class: " two-thirds-widgets__small" %>
       </div>
+      <div class="two-thirds-widgets">
+        <%= stat_card_widget 'Amount received', 25600, 23000, symbol: '$', currency: true, stat_size: "small", title_class: "card-title", card_class: " two-thirds-widgets__small" %>
+        <%= stat_card_widget 'Your contributions', 75, 65, symbol: '%', title_class: "card-title", card_class: " two-thirds-widgets__large" %>
+      </div>
+
     </div>
   </div>
 </div>
