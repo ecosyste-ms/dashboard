@@ -63,6 +63,7 @@
                 <% @project.links.each do |link| %>
                   <li>
                     <a href="<%= link %>" target="_blank" rel="noopener noreferrer">
+                      <i class='icon <%= link_icon link %>>i</i>
                       <%= display_link link %>
                     </a>
                   </li>

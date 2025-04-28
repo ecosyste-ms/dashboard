@@ -75,4 +75,23 @@ module WidgetHelper
       content_tag(:span, "-", class: "extra-bold")
     end
   end
+
+  def domain_icons
+    {
+      'github.com' => 'github',
+      'gitlab.com' => 'gitlab',
+      'bitbucket.org' => 'bitbucket',
+      'pypi.org' => 'pypi',
+      'rubygems.org' => 'rubygems',
+    }
+  end
+
+  def link_icon(url)
+    # special case for github.com/sponsors
+    return 'github-sponsors' if url.include?('github.com/sponsors')
+    domain = URI.parse(url).host
+    domain_icons[domain] || 'default-link'
+  rescue
+    'default-link'
+  end
 end
