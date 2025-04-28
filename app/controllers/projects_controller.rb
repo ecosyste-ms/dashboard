@@ -89,6 +89,11 @@ class ProjectsController < ApplicationController
 
   def productivity
     @project = Project.find(params[:id])
+    @range = range
+    @period = period
+    
+    @commits_last_period = @project.commits.last_period(@range).count
+    @commits_this_period = @project.commits.this_period(@range).count
   end
 
   def finance

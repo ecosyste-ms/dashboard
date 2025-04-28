@@ -9,7 +9,7 @@ class ApplicationController < ActionController::Base
   private
 
   def range
-    (params[:range].presence || 360).to_i
+    (params[:range].presence || 30).to_i
   end
 
   def period
@@ -21,7 +21,7 @@ class ApplicationController < ActionController::Base
     when 91..366
       (params[:period].presence || 'month').to_sym
     else
-      (params[:period].presence || 'year').to_sym
+      (params[:period].presence || 'month').to_sym
     end
   end
 
