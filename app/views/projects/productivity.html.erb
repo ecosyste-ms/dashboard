@@ -13,7 +13,7 @@
 
       <div class="dashboard-grid">
         <div class="three-equal-widgets">
-          <%= small_widget 'Commits', 882, 781, symbol: '' %>
+          <%= small_widget 'Commits', @commits_this_period, @commits_last_period, symbol: '' %>
           <%= small_widget 'Releases', 32, 32, symbol: '' %>
           <%= small_widget 'Commits per author', 96, 88,  symbol: '' %>
         </div>
