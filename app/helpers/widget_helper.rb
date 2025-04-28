@@ -41,7 +41,7 @@ module WidgetHelper
   end
 
   def stat_class_for(current_value, previous_value, increase_good = true)
-    return "stat-card-number  stat-card-number-neutral" if previous_value.nil?
+    return "stat-card-number  stat-card-number-neutral" if previous_value.nil? || increase_good.nil?
     positive = current_value > previous_value
     neutral = current_value == previous_value
 
