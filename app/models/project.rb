@@ -409,7 +409,7 @@ class Project < ApplicationRecord
     end
     response = conn.get
     return unless response.success?
-    commits_list_url = JSON.parse(response.body)['commits_url'] + '?per_page=100'
+    commits_list_url = JSON.parse(response.body)['commits_url'] + '?per_page=100&sort=timestamp'
 
     page = 1
     loop do
