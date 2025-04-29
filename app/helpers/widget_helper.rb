@@ -78,20 +78,23 @@ module WidgetHelper
 
   def domain_icons
     {
+      # boxes if it's a package manager, wallet if it's for funding
       'github.com' => 'github',
-      'gitlab.com' => 'gitlab',
-      'bitbucket.org' => 'bitbucket',
-      'pypi.org' => 'pypi',
-      'rubygems.org' => 'rubygems',
+      'gitlab.com' => 'git',
+      'bitbucket.org' => 'boxes',
+      'pypi.org' => 'boxes',
+      'rubygems.org' => 'boxes',
+      'npmjs.org' => 'boxes',
+      'opencollective.com' => 'wallet',
     }
   end
 
   def link_icon(url)
     # special case for github.com/sponsors
-    return 'github-sponsors' if url.include?('github.com/sponsors')
+    return 'wallet' if url.include?('github.com/sponsors')
     domain = URI.parse(url).host
-    domain_icons[domain] || 'default-link'
+    domain_icons[domain] || 'link-45deg'
   rescue
-    'default-link'
+    'link-45deg'
   end
 end

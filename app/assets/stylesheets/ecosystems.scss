@@ -1127,3 +1127,32 @@ body {
 .dot-c {
   background-color: $color-purple-dark;
 }
+
+
+.link-with-icon {
+  display: inline-flex;
+  align-items: flex-start;    /* top-align icon and first line of text */
+  gap: 0.5em; 
+                   
+  .link-with-icon__icon {
+    flex: 0 0 18px; /* shorthand for flex-grow:0, flex-shrink:0, flex-basis:18px */
+    width: 18px;
+    height: 18px;
+    margin-top: 4px;
+  }
+
+  .link-with-icon__text {
+    display: block;
+    overflow-wrap: break-word; 
+    word-break: break-word; 
+  }
+  &:hover,
+  &:active,
+  &:focus {
+    .link-with-icon__text {
+      text-decoration: underline;
+      color: $color-purple-dark;
+    }
+  }
+}
+

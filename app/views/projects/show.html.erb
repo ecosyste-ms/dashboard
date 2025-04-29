@@ -59,18 +59,20 @@
             <div class="card-body">
               <h5 class="card-title small">Links</h5>
               
-              <ul>
+              <ul class="list-unstyled">
                 <% @project.links.each do |link| %>
-                  <li>
-                    <a href="<%= link %>" target="_blank" rel="noopener noreferrer">
-                      <i class='icon <%= link_icon link %>>i</i>
-                      <%= display_link link %>
-                    </a>
+
+                  <li class="mb-3">
+                    <%= link_to link, target: "_blank", rel: "noopener noreferrer", class: "link-with-icon text-decoration-none text-body" do %>
+                      <%= bootstrap_icon link_icon(link), width: 18, height: 18, class: "link-with-icon__icon", aria_hidden: "true" %>
+                      <span class="link-with-icon__text"><%= display_link link %></span>
+                    <% end %>
                   </li>
                 <% end %>
               </ul>
               
-
+              
+            
             </div>
           </div>
           <div class="card one-third-widget-group__small well p-3 border-0">
