@@ -86,6 +86,14 @@ module WidgetHelper
       'rubygems.org' => 'boxes',
       'npmjs.org' => 'boxes',
       'opencollective.com' => 'wallet',
+      'tidelift.com' => 'wallet',
+      'communitybridge.org' => 'wallet',
+      'ko-fi.com' => 'wallet',
+      'liberapay.com' => 'wallet',
+      'patreon.com' => 'wallet',
+      'polar.sh' => 'wallet',
+      'buymeacoffee.com' => 'wallet',
+      'thanks.dev' => 'wallet',
     }
   end
 
