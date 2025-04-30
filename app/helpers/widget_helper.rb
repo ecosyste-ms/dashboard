@@ -78,29 +78,88 @@ module WidgetHelper
 
   def domain_icons
     {
-      # boxes if it's a package manager, wallet if it's for funding
       'github.com' => 'github',
-      'gitlab.com' => 'git',
-      'bitbucket.org' => 'boxes',
-      'pypi.org' => 'boxes',
-      'rubygems.org' => 'boxes',
-      'npmjs.org' => 'boxes',
-      'opencollective.com' => 'wallet',
-      'tidelift.com' => 'wallet',
-      'communitybridge.org' => 'wallet',
-      'ko-fi.com' => 'wallet',
-      'liberapay.com' => 'wallet',
-      'patreon.com' => 'wallet',
-      'polar.sh' => 'wallet',
-      'buymeacoffee.com' => 'wallet',
-      'thanks.dev' => 'wallet',
+      'gitlab.com' => 'gitlab',
+      'bitbucket.org' => 'git',
+      'codeberg.org' => 'git',
+      'sourcehut.org' => 'git',
+      'gitea.com' => 'git',
+      'gogs.io' => 'git',
+      'salsa.debian.org' => 'git',
+      'launchpad.net' => 'git',
+      'framagit.org' => 'git',
+      'git.disroot.org' => 'git',
+      'gitlab.gnome.org' => 'git',
+      'tildegit.org' => 'git',
+      'sourceforge.net' => 'sourceforge'
     }
+  end
+
+  def funding_domains
+    [
+      "opencollective.com",
+      "ko-fi.com",
+      "liberapay.com",
+      "patreon.com",
+      "otechie.com",
+      "issuehunt.io",
+      "thanks.dev",
+      "communitybridge.org",
+      "tidelift.com",
+      "buymeacoffee.com",
+      "paypal.com",
+      "paypal.me",
+      "givebutter.com",
+      "polar.sh"
+    ]
+  end
+
+  def registry_domains
+    [
+      "anaconda.org",
+      "bioconductor.org",
+      "bower.io",
+      "cocoapods.org",
+      "conda-forge.org",
+      "cran.r-project.org",
+      "crates.io",
+      "deno.land",
+      "elpa.gnu.org",
+      "elpa.nongnu.org",
+      "forge.puppet.com",
+      "formulae.brew.sh",
+      "hackage.haskell.org",
+      "hex.pm",
+      "hub.docker.com",
+      "juliahub.com",
+      "metacpan.org",
+      "package.elm-lang.org",
+      "packages.spack.io",
+      "packagist.org",
+      "pkg.adelielinux.org",
+      "pkgs.alpinelinux.org",
+      "pkgs.postmarketos.org",
+      "pkgs.racket-lang.org",
+      "proxy.golang.org",
+      "pub.dev",
+      "pypi.org",
+      "registry.npmjs.org",
+      "repo.clojars.org",
+      "repo1.maven.org",
+      "rubygems.org",
+      "swiftpackageindex.com",
+      "vcpkg.io",
+      "www.nuget.org"
+    ]
   end
 
   def link_icon(url)
     # special case for github.com/sponsors
     return 'wallet' if url.include?('github.com/sponsors')
+    
     domain = URI.parse(url).host
+    return 'wallet' if funding_domains.include?(domain)
+    return 'boxes' if registry_domains.include?(domain)
     domain_icons[domain] || 'link-45deg'
   rescue
     'link-45deg'
