@@ -77,7 +77,7 @@
           </div>
           <div class="card one-third-widget-group__small well p-3 border-0">
             <div class="card-body">
-              <h5 class="card-title small">Language</h5>
+              <h5 class="card-title small mb-4">Language</h5>
               <div class="stacked-bar">
                 <div class="segment seg-a" style="--w: 40%"></div>
                 <div class="segment seg-b" style="--w: 30%"></div>
@@ -110,25 +110,25 @@
       <% end %>
 
       <div class="three-equal-widgets">
-        <%= stat_card_widget 'Dependent packages', @project.dependent_packages_count, nil, title_class: "card-title", stat_size: "large" %>
-        <%= stat_card_widget 'Dependent repos', @project.dependent_repos_count, nil, title_class: "card-title", stat_size: "large" %>
-        <%= stat_card_widget 'Downloads', @project.downloads, nil, title_class: "card-title", stat_size: "large" %>
+        <%= stat_card_widget 'Dependent packages', @project.dependent_packages_count, nil, title_class: "card-title small", stat_size: "large" %>
+        <%= stat_card_widget 'Dependent repos', @project.dependent_repos_count, nil, title_class: "card-title small", stat_size: "large" %>
+        <%= stat_card_widget 'Downloads', @project.downloads, nil, title_class: "card-title small", stat_size: "large" %>
       </div>
       <div class="full-width-widget">
         <%= stat_card_widget 'Commits', 882, 781, increase_good: true, symbol: '', title_class: "card-title" %>
       </div>      
       <div class="three-equal-widgets">
-        <%= stat_card_widget 'Committers', 75, 65, title_class: "card-title", stat_size: "large" %>
-        <%= stat_card_widget 'Open PRs', 11, 9,  increase_good: false, title_class: "card-title", stat_size: "large" %>
-        <%= stat_card_widget 'Open issues', 704, 654,  increase_good: false, title_class: "card-title", stat_size: "large" %>
+        <%= stat_card_widget 'Committers', 75, 65, title_class: "card-title small", stat_size: "large" %>
+        <%= stat_card_widget 'Open PRs', 11, 9,  increase_good: false, title_class: "card-title small", stat_size: "large" %>
+        <%= stat_card_widget 'Open issues', 704, 654,  increase_good: false, title_class: "card-title small", stat_size: "large" %>
       </div>     
       <div class="two-thirds-widgets">
-        <%= stat_card_widget 'Balance', 9822, 11877, symbol: '$', increase_good: nil,  currency: true, title_class: "card-title", card_class: " two-thirds-widgets__large" %>
-        <%= stat_card_widget 'Amount spent', 15778, 11123, symbol: '$', increase_good: nil,  currency: true, stat_size: "small",  title_class: "card-title", card_class: " two-thirds-widgets__small" %>
+        <%= stat_card_widget 'Balance', 9822, 11877, symbol: '$', increase_good: nil,  currency: true, title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
+        <%= stat_card_widget 'Amount spent', 15778, 11123, symbol: '$', increase_good: nil,  currency: true, stat_size: "small",  title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
       </div>
       <div class="two-thirds-widgets">
-        <%= stat_card_widget 'Amount received', 25600, 23000, symbol: '$', increase_good: nil,  currency: true, stat_size: "small", title_class: "card-title", card_class: " two-thirds-widgets__small" %>
-        <%= stat_card_widget 'Your contributions', 75, 35, symbol: '$', currency: true, title_class: "card-title", card_class: " two-thirds-widgets__large" %>
+        <%= stat_card_widget 'Amount received', 25600, 23000, symbol: '$', increase_good: nil,  currency: true, stat_size: "small", title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
+        <%= stat_card_widget 'Your contributions', 75, 35, symbol: '$', currency: true, title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
       </div>
 
     </div>
