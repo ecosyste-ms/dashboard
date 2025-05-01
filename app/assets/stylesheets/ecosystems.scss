@@ -1096,6 +1096,7 @@ body {
 .seg-a { background: $color-orange-dark; }
 .seg-b { background: $color-green-dark; }
 .seg-c { background: $color-purple; }
+.seg-d { background: $color-orange-light; }
 
 .graph-key {
   display: flex;
@@ -1126,6 +1127,10 @@ body {
 
 .dot-c {
   background-color: $color-purple-dark;
+}
+
+.dot-d {
+  background-color: $color-orange-light;
 }
 
 
