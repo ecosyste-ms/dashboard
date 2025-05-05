@@ -77,6 +77,7 @@ class ProjectsController < ApplicationController
 
   def adoption
     @project = Project.find(params[:id])
+    @top_package = @project.packages.order_by_rankings.first
   end
 
   def engagement

@@ -11,22 +11,24 @@
       <h1 class="mb-4">Adoption</h1>
 
       <div class="dashboard-grid">
-      <div class="full-width-widget">
+        <% if @project.packages.any? %>
+          <div class="full-width-widget">
             <div class="card well p-3 border-0">
               <div class="card-body">
                 <h5 class="card-title">Ranking 
-                <a href="#" aria-labelledby="ranking-help">
-                  <%= bootstrap_icon 'question-circle',
-                  width: 18, height: 18, aria_hidden: 'true', focusable: 'false', role: 'img', class: 'mb-1', title: 'what is ranking?'
-                  %>
-                  <span id="ranking-help" class="visually-hidden">What is ranking?</span>
-                 </a></h5>
+                  <a href="#" aria-labelledby="ranking-help">
+                    <%= bootstrap_icon 'question-circle',
+                    width: 18, height: 18, aria_hidden: 'true', focusable: 'false', role: 'img', class: 'mb-1', title: 'what is ranking?'
+                    %>
+                    <span id="ranking-help" class="visually-hidden">What is ranking?</span>
+                  </a>
+                </h5>
                 <div class="stat-card mb-2">
                   <div class="stat-card-body">
                     <div class="stat-card-body">
-                      <span class="stat-card-title stat-card-title--large stat-card-number stat-card-number-positive">Top 3%</span>
+                      <span class="stat-card-title stat-card-title--large stat-card-number stat-card-number-positive">Top <%= @top_package.rankings['average'].round(1) %>%</span>
                       <span class="stat-card-text">
-                        on npmjs.org
+                        on <%= @top_package.registry_name %>
                       </span>
                     </div>
                   </div>
@@ -34,11 +36,13 @@
               </div>
             </div>
           </div>
+
           <div class="three-equal-widgets">
             <%= stat_card_widget 'Dependent packages', @project.dependent_packages_count, nil, title_class: "card-title small", stat_size: "large" %>
             <%= stat_card_widget 'Dependent repos', @project.dependent_repos_count, nil, title_class: "card-title small", stat_size: "large" %>
             <%= stat_card_widget 'Downloads', @project.downloads, nil, title_class: "card-title small", stat_size: "large" %>
           </div>
+          <% end %>
 
           <div class="three-equal-widgets">
             <%= stat_card_widget 'Watchers', @project.watchers, nil, increase_good: true, symbol: '', title_class: "card-title small", stat_size: "large" %>
