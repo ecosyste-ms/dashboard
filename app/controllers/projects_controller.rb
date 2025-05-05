@@ -132,6 +132,25 @@ class ProjectsController < ApplicationController
 
   def responsiveness
     @project = Project.find(params[:id])
+
+    @range = range
+    @period = period
+
+    @time_to_close_prs_last_period = (@project.issues.pull_request.closed_last_period(@range)
+      .average('EXTRACT(EPOCH FROM (closed_at - created_at))') || 0) / 86400.0
+    @time_to_close_prs_last_period = @time_to_close_prs_last_period.round(1)
+
+    @time_to_close_prs_this_period = (@project.issues.pull_request.closed_this_period(@range)
+      .average('EXTRACT(EPOCH FROM (closed_at - created_at))') || 0) / 86400.0
+    @time_to_close_prs_this_period = @time_to_close_prs_this_period.round(1)
+
+    @time_to_close_issues_last_period = (@project.issues.issue.closed_last_period(@range)
+      .average('EXTRACT(EPOCH FROM (closed_at - created_at))') || 0) / 86400.0
+    @time_to_close_issues_last_period = @time_to_close_issues_last_period.round(1)
+
+    @time_to_close_issues_this_period = (@project.issues.issue.closed_this_period(@range)
+      .average('EXTRACT(EPOCH FROM (closed_at - created_at))') || 0) / 86400.0
+    @time_to_close_issues_this_period = @time_to_close_issues_this_period.round(1)
   end
 
   def sync
