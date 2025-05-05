@@ -7,6 +7,8 @@ class Project < ApplicationRecord
   has_many :packages, dependent: :delete_all
   has_many :advisories, dependent: :delete_all
 
+  belongs_to :collective, optional: true
+
   validates :url, presence: true, uniqueness: { case_sensitive: false }
 
   scope :active, -> { where("(repository ->> 'archived') = ?", 'false') }
@@ -101,6 +103,7 @@ class Project < ApplicationRecord
       sync_issues
       sync_commits     
       fetch_dependencies 
+      fetch_collective
     end
     return if destroyed?
     update_column(:last_synced_at, Time.now) 
@@ -901,5 +904,20 @@ class Project < ApplicationRecord
   def transitive_dependencies
     return [] if dependencies.blank?
     all_dependencies.select{|d| d['direct'] == false }
+  end
+
+  def fetch_collective
+    return unless funding_links.any?{|f| f.include?('opencollective.com') }
+    return if collective_id.present?
+    
+    slug = funding_links.find{|f| f.include?('opencollective.com') }.split('/').last
+
+    c = Collective.find_or_create_by(slug: slug) 
+
+    if c.persisted?
+      c.sync_async 
+      self.collective_id = c.id
+      save
+    end
   end
 end
