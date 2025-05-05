@@ -81,6 +81,25 @@ class ProjectsController < ApplicationController
 
   def engagement
     @project = Project.find(params[:id])
+
+    @range = range
+    @period = period
+
+    @active_contributors_last_period = @project.issues.last_period(@range).group(:user).count.length
+    @active_contributors_this_period = @project.issues.this_period(@range).group(:user).count.length
+
+    @contributions_last_period = @project.issues.last_period(@range).count
+    @contributions_this_period = @project.issues.this_period(@range).count
+
+    @issue_authors_last_period = @project.issues.last_period(@range).group(:user).count.length
+    @issue_authors_this_period = @project.issues.this_period(@range).group(:user).count.length
+
+    @pr_authors_last_period = @project.issues.pull_request.last_period(@range).group(:user).count.length
+    @pr_authors_this_period = @project.issues.pull_request.this_period(@range).group(:user).count.length
+
+    @contributor_role_breakdown_this_period = @project.issues.this_period(@range).group(:author_association).count
+
+    @all_time_contributors = @project.issues.group(:user).count.length
   end
 
   def dependency
@@ -128,6 +147,9 @@ class ProjectsController < ApplicationController
 
   def finance
     @project = Project.find(params[:id])
+
+    @range = range
+    @period = period
   end
 
   def responsiveness

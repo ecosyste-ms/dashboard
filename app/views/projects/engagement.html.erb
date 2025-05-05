@@ -13,47 +13,39 @@
 
       <div class="dashboard-grid">
         <div class="two-thirds-widgets">
-          <%= stat_card_widget 'Active contributors', 99, 45, symbol: '', increase_good: true, stat_size: "large", title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
+          <%= stat_card_widget 'Active contributors', @active_contributors_this_period, @active_contributors_last_period, symbol: '', increase_good: true, stat_size: "large", title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
+
            <div class="card two-thirds-widgets__large well p-3 border-0">
             <div class="card-body">
               <h5 class="card-title small mb-4">Contributor breakdown</h5>
               <div class="stacked-bar">
-                <div class="segment seg-a" style="--w: 10%"></div>
-                <div class="segment seg-b" style="--w: 40%"></div>
-                <div class="segment seg-c" style="--w: 25%"></div>
-                <div class="segment seg-d" style="--w: 25%"></div>
+                <% total = @contributor_role_breakdown_this_period.values.sum.to_f %>
+                <% @contributor_role_breakdown_this_period.each_with_index do |(role, count), index| %>
+                  <% percent = ((count / total) * 100).round(1) %>
+                  <div class="segment seg-<%= ('a'.ord + index).chr %>" style="--w: <%= percent %>%"></div>
+                <% end %>
               </div>
               <div class="graph-key py-3">
-                <div class="graph-key__item">
-                  <span class="dot dot-a"></span>
-                  <span class="label">Maintainers 10%</span>
-                </div>
-                <div class="graph-key__item">
-                  <span class="dot dot-b"></span>
-                  <span class="label">Core 40%</span>
-                </div>
-                <div class="graph-key__item">
-                  <span class="dot dot-c"></span>
-                  <span class="label">Occasional 25%</span>
-                </div>
-                <div class="graph-key__item">
-                  <span class="dot dot-d"></span>
-                  <span class="label">Community 25%</span>
-                </div>
+                <% @contributor_role_breakdown_this_period.each_with_index do |(role, count), index| %>
+                  <% percent = ((count / total) * 100).round(1) %>
+                  <div class="graph-key__item">
+                    <span class="dot dot-<%= ('a'.ord + index).chr %>"></span>
+                    <% display_role = role == "NONE" ? "Community" : role.capitalize %>
+                    <span class="label"><%= display_role %> <%= percent %>%</span>
+                  </div>
+                <% end %>
               </div>
 
             </div>
           </div>
         </div>
         <div class="three-equal-widgets">
-          <%= stat_card_widget 'Contributions', 1122,1111, title_class: "card-title small", stat_size: "large" %>
-          <%= stat_card_widget 'Issue authors', 12, 11,  increase_good: true, title_class: "card-title small", stat_size: "large" %>
-          <%= stat_card_widget 'PR authors', 8, 4,  increase_good: true, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Contributions', @contributions_this_period, @contributions_last_period, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Issue authors', @issue_authors_this_period, @issue_authors_last_period,  increase_good: true, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'PR authors', @pr_authors_this_period, @pr_authors_last_period,  increase_good: true, title_class: "card-title small", stat_size: "large" %>
         </div>  
         <div class="three-equal-widgets">
-         
-          <%= stat_card_widget 'All time contributors', 145, nil,  increase_good: nil, title_class: "card-title small", stat_size: "large" %>
-
+          <%= stat_card_widget 'All time contributors', @all_time_contributors, nil,  increase_good: nil, title_class: "card-title small", stat_size: "large" %>
         </div>  
       </div>
     </div>
