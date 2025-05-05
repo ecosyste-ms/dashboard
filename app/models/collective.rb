@@ -202,7 +202,6 @@ class Collective < ApplicationRecord
     fetch_account_details
     sync_transactions
     if account_type == 'COLLECTIVE' && !duplicate?
-      load_projects
       sync_owner
       ping_owner
     end
@@ -411,7 +410,7 @@ class Collective < ApplicationRecord
       req.body = { query: query }.to_json
     end
 
-    json = JSON.parse(resp.body)
+    JSON.parse(resp.body)
   end
 
   def sync_transactions
@@ -434,7 +433,9 @@ class Collective < ApplicationRecord
           currency: node['amount']['currency'],
           account: node['type'] == 'DEBIT' ? node['toAccount']['slug'] : node['fromAccount']['slug'],
           created_at: node['createdAt'],
-          description: node['description']
+          description: node['description'],
+          from_account: node['fromAccount'] ? node['fromAccount']['slug'] : nil,
+          to_account: node['toAccount'] ? node['toAccount']['slug'] : nil
         }
       end
       Transaction.upsert_all(transactions, unique_by: :uuid)

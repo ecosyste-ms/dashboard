@@ -24,7 +24,7 @@
             <%= stat_card_widget 'Recurring donors', 75, 65, symbol: '%', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
           </div>
           <div class="two-thirds-widgets">
-            <%= stat_card_widget 'Unique payees', 11, 9, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
+            <%= stat_card_widget 'Unique payees', @payees_this_period, @payees_last_period, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
             <%= stat_card_widget 'Reimbursements', 10000, 9000, symbol: '$', currency: true, stat_size: "small",  title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
           </div>
           <div class="full-width-widget">

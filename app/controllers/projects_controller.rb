@@ -167,8 +167,11 @@ class ProjectsController < ApplicationController
       @balance_last_period = 0 # TODO: Fix this
       @balance_this_period = 0 # TODO: Fix this
 
-      @donors_last_period =  0 # TODO: @project.collective.transactions.donations.last_period(@range).group(:from_collective).count.length
-      @donors_this_period =  0 # TODO: @project.collective.transactions.donations.this_period(@range).group(:from_collective).count.length
+      @donors_last_period =  @project.collective.transactions.donations.last_period(@range).group(:from_account).count.length
+      @donors_this_period =  @project.collective.transactions.donations.this_period(@range).group(:from_account).count.length
+
+      @payees_last_period = @project.collective.transactions.expenses.last_period(@range).group(:to_account).count.length
+      @payees_this_period = @project.collective.transactions.expenses.this_period(@range).group(:to_account).count.length
     end
   end
 

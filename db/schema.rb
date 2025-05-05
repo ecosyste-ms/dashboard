@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_05_131449) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_05_145850) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -172,6 +172,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_05_131449) do
     t.datetime "updated_at", null: false
     t.string "transaction_kind"
     t.string "transaction_expense_type"
+    t.string "from_account"
+    t.string "to_account"
     t.index ["collective_id"], name: "index_transactions_on_collective_id"
     t.index ["uuid"], name: "index_transactions_on_uuid", unique: true
   end
