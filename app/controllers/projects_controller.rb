@@ -94,6 +94,36 @@ class ProjectsController < ApplicationController
     
     @commits_last_period = @project.commits.last_period(@range).count
     @commits_this_period = @project.commits.this_period(@range).count
+
+    @tags_last_period = @project.tags.last_period(@range).count
+    @tags_this_period = @project.tags.this_period(@range).count
+
+    commits_last = @project.commits.last_period(@range)
+    commits_this = @project.commits.this_period(@range)
+
+    authors_last = commits_last.select(:author).distinct.count
+    authors_this = commits_this.select(:author).distinct.count
+
+    @avg_commits_per_author_last_period = authors_last.zero? ? 0 : (commits_last.count.to_f / authors_last).round(1)
+    @avg_commits_per_author_this_period = authors_this.zero? ? 0 : (commits_this.count.to_f / authors_this).round(1)
+
+    @new_issues_last_period = @project.issues.issue.last_period(@range).count
+    @new_issues_this_period = @project.issues.issue.this_period(@range).count
+
+    @open_isues_last_period = @project.issues.issue.open_last_period(@range).count
+    @open_isues_this_period = @project.issues.issue.open_this_period(@range).count
+
+    @advisories_last_period = @project.advisories.last_period(@range).count
+    @advisories_this_period = @project.advisories.this_period(@range).count
+
+    @new_prs_last_period = @project.issues.pull_request.last_period(@range).count
+    @new_prs_this_period = @project.issues.pull_request.this_period(@range).count
+
+    @open_prs_last_period = @project.issues.pull_request.open_last_period(@range).count
+    @open_prs_this_period = @project.issues.pull_request.open_this_period(@range).count
+
+    @merged_prs_last_period = @project.issues.pull_request.merged_last_period(@range).count
+    @merged_prs_this_period = @project.issues.pull_request.merged_this_period(@range).count
   end
 
   def finance

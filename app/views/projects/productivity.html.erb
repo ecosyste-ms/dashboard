@@ -14,19 +14,19 @@
       <div class="dashboard-grid">
         <div class="three-equal-widgets">
           <%= small_widget 'Commits', @commits_this_period, @commits_last_period, symbol: '' %>
-          <%= small_widget 'Releases', 32, 32, symbol: '' %>
-          <%= small_widget 'Commits per author', 96, 88,  symbol: '' %>
+          <%= small_widget 'Releases', @tags_this_period, @tags_last_period, symbol: '' %>
+          <%= small_widget 'Commits per author', @avg_commits_per_author_this_period, @avg_commits_per_author_last_period,  symbol: '' %>
         </div>
         <div class="three-equal-widgets">
-          <%= small_widget 'New issues', 96, 88,  symbol: '', increase_good: false %>
-          <%= small_widget 'Open issues', 192, 112,  symbol: '', increase_good: false %>
-          <%= small_widget 'Vulnerabilities', 11, 9, symbol: '', increase_good: false  %>
+          <%= small_widget 'New issues', @new_issues_this_period, @new_issues_last_period,  symbol: '', increase_good: false %>
+          <%= small_widget 'Open issues', @open_isues_this_period, @open_isues_last_period,  symbol: '', increase_good: false %>
+          <%= small_widget 'Vulnerabilities', @advisories_this_period, @advisories_last_period, symbol: '', increase_good: false  %>
         </div>
         <div class="three-equal-widgets">
           
-          <%= small_widget 'New PRs', 32, 32, symbol: '' %>
-          <%= small_widget 'Open PRs', 96, 88,  symbol: '', increase_good: false %>
-          <%= small_widget 'Merged PRs', 1, 112, symbol: '' %>
+          <%= small_widget 'New PRs', @new_prs_last_period, @new_prs_this_period, symbol: '' %>
+          <%= small_widget 'Open PRs', @open_prs_this_period, @open_prs_last_period,  symbol: '', increase_good: false %>
+          <%= small_widget 'Merged PRs', @merged_prs_this_period, @merged_prs_last_period, symbol: '' %>
         </div>
         <div class="three-equal-widgets">
           

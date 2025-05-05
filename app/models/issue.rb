@@ -11,6 +11,7 @@ class Issue < ApplicationRecord
   scope :with_author_association, -> { where.not(author_association: nil) }
   scope :merged, -> { where.not(merged_at: nil) }
   scope :not_merged, -> { where(merged_at: nil).where.not(closed_at: nil) }
+  scope :open, -> { where(closed_at: nil) }
   scope :closed, -> { where.not(closed_at: nil) }
   scope :created_after, ->(date) { where('issues.created_at > ?', date) }
   scope :created_before, ->(date) { where('issues.created_at < ?', date) }
@@ -34,6 +35,11 @@ class Issue < ApplicationRecord
   scope :not_merged_this_period, ->(period) { where('issues.closed_at > ?', period.days.ago).where(merged_at: nil) }
   scope :not_merged_last_period, ->(period) { where('issues.closed_at > ?', (period*2).days.ago).where('issues.closed_at < ?', period.days.ago).where(merged_at: nil) }
   scope :not_merged_between, ->(start_date, end_date) { where('issues.closed_at > ?', start_date).where('issues.closed_at < ?', end_date).where(merged_at: nil) }
+
+  scope :open_this_period, ->(period) { where('issues.created_at > ?', period.days.ago).where(closed_at: nil) }
+  scope :open_last_period, ->(period) { where('issues.created_at > ?', (period*2).days.ago).where('issues.created_at < ?', period.days.ago).where(closed_at: nil) }
+  scope :open_between, ->(start_date, end_date) { where('issues.created_at > ?', start_date).where('issues.created_at < ?', end_date).where(closed_at: nil) }
+
 
   def to_param
     number.to_s
