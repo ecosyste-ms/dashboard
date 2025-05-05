@@ -10,8 +10,6 @@
     <div class="dashboard-layout__dboard">
       <h1 class="mb-4">Adoption</h1>
 
-      <%= render 'date_nav' %>
-
       <div class="dashboard-grid">
       <div class="full-width-widget">
             <div class="card well p-3 border-0">
@@ -41,15 +39,12 @@
             <%= stat_card_widget 'Dependent repos', @project.dependent_repos_count, nil, title_class: "card-title small", stat_size: "large" %>
             <%= stat_card_widget 'Downloads', @project.downloads, nil, title_class: "card-title small", stat_size: "large" %>
           </div>
-      <div class="two-thirds-widgets">
-          <%= stat_card_widget 'Downloads', 100289, 98002, increase_good: true, symbol: '', title_class: "card-title small", stat_size: "small", card_class: " two-thirds-widgets__large" %>
-          <%= stat_card_widget 'Package downloads', 75, 65, increase_good: true, symbol: '%', title_class: "card-title small", stat_size: "large" %>
-        </div>
-        <div class="three-equal-widgets">
-          <%= stat_card_widget 'Watchers', 1672, 1232, increase_good: true, symbol: '', title_class: "card-title small", stat_size: "small" %>
-          <%= stat_card_widget 'Forks', 75, 65, increase_good: true, symbol: '', title_class: "card-title small", stat_size: "large" %>
-          <%= stat_card_widget 'Stars', 75, 65, increase_good: true, symbol: '', title_class: "card-title small", stat_size: "large" %>
-        </div>
+
+          <div class="three-equal-widgets">
+            <%= stat_card_widget 'Watchers', @project.watchers, nil, increase_good: true, symbol: '', title_class: "card-title small", stat_size: "large" %>
+            <%= stat_card_widget 'Forks', @project.forks, nil, increase_good: true, symbol: '', title_class: "card-title small", stat_size: "large" %>
+            <%= stat_card_widget 'Stars', @project.stars, nil, increase_good: true, symbol: '', title_class: "card-title small", stat_size: "large" %>
+          </div>
         
         </div>
       </div>
