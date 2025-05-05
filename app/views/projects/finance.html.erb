@@ -12,24 +12,26 @@
       <h1 class="mb-4">Finance</h1>
       <%= render 'date_nav' %>
 
-      <div class="dashboard-grid">
-        <div class="three-equal-widgets">
-          <%= small_widget 'Contributions', 10000, 9000, symbol: '$', currency: true %>
-          <%= small_widget 'Payments', 5000, 4000, symbol: '$', currency: true %>
-          <%= small_widget 'Balance', 5000, 5000, symbol: '$', currency: true %>
+      <% if @project.collective.present? %>
+        <div class="dashboard-grid">
+          <div class="three-equal-widgets">
+            <%= small_widget 'Contributions', @contributions_this_period, @contributions_last_period, symbol: '$', currency: true %>
+            <%= small_widget 'Payments', @payments_this_period, @payments_last_period, symbol: '$', currency: true %>
+            <%= small_widget 'Balance', @balance_this_period, @balance_last_period, symbol: '$', currency: true %>
+          </div>
+          <div class="two-thirds-widgets">
+            <%= stat_card_widget 'Donors', @donors_this_period, @donors_last_period, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
+            <%= stat_card_widget 'Recurring donors', 75, 65, symbol: '%', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
+          </div>
+          <div class="two-thirds-widgets">
+            <%= stat_card_widget 'Unique payees', 11, 9, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
+            <%= stat_card_widget 'Reimbursements', 10000, 9000, symbol: '$', currency: true, stat_size: "small",  title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
+          </div>
+          <div class="full-width-widget">
+           <%= stat_card_widget 'Your contribution', 882, 781, increase_good: true, currency: true, symbol: '$', title_class: "card-title" %>
+          </div> 
         </div>
-        <div class="two-thirds-widgets">
-          <%= stat_card_widget 'Donors', 15, 11, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
-          <%= stat_card_widget 'Recurring donors', 75, 65, symbol: '%', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
-        </div>
-        <div class="two-thirds-widgets">
-          <%= stat_card_widget 'Unique payees', 11, 9, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
-          <%= stat_card_widget 'Reimbursements', 10000, 9000, symbol: '$', currency: true, stat_size: "small",  title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
-        </div>
-        <div class="full-width-widget">
-        <%= stat_card_widget 'Your contribution', 882, 781, increase_good: true, currency: true, symbol: '$', title_class: "card-title" %>
-      </div> 
-      </div>
+      <% end %>
     </div>
   </div>
 </div>
