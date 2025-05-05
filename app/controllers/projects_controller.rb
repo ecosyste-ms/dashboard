@@ -97,7 +97,7 @@ class ProjectsController < ApplicationController
     @pr_authors_last_period = @project.issues.pull_request.last_period(@range).group(:user).count.length
     @pr_authors_this_period = @project.issues.pull_request.this_period(@range).group(:user).count.length
 
-    @contributor_role_breakdown_this_period = @project.issues.this_period(@range).group(:author_association).count
+    @contributor_role_breakdown_this_period = @project.issues.this_period(@range).group(:author_association).count.sort_by { |_role, count| -count }.to_h
 
     @all_time_contributors = @project.issues.group(:user).count.length
   end
