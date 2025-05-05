@@ -105,6 +105,9 @@ class ProjectsController < ApplicationController
 
   def dependency
     @project = Project.find(params[:id])
+    @direct_dependencies = @project.direct_dependencies.length
+    @development_dependencies = @project.development_dependencies.length
+    @transitive_dependencies = @project.transitive_dependencies.length
   end
 
   def productivity

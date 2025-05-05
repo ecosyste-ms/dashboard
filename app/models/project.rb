@@ -99,7 +99,8 @@ class Project < ApplicationRecord
       sync_tags
       sync_advisories
       sync_issues
-      sync_commits      
+      sync_commits     
+      fetch_dependencies 
     end
     return if destroyed?
     update_column(:last_synced_at, Time.now) 
@@ -866,5 +867,39 @@ class Project < ApplicationRecord
 
   def maintainers(range: 30)
     
+  end
+
+  def fetch_dependencies
+    return unless repository.present?
+    conn = Faraday.new(url: repository['manifests_url']) do |faraday|
+      faraday.response :follow_redirects
+      faraday.adapter Faraday.default_adapter
+    end
+    response = conn.get
+    return unless response.success?
+    self.dependencies = JSON.parse(response.body)
+    self.save
+  rescue
+    puts "Error fetching dependencies for #{url}"
+  end
+
+  def all_dependencies
+    return [] if dependencies.blank?
+    dependencies.map{|m| m['dependencies'] }.flatten.compact
+  end
+
+  def direct_dependencies
+    return [] if dependencies.blank?
+    all_dependencies.select{|d| d['direct'] == true }
+  end
+
+  def development_dependencies
+    return [] if dependencies.blank?
+    all_dependencies.select{|d| ['development', 'dev', 'test', 'build'].include? d['kind']  }
+  end
+
+  def transitive_dependencies
+    return [] if dependencies.blank?
+    all_dependencies.select{|d| d['direct'] == false }
   end
 end

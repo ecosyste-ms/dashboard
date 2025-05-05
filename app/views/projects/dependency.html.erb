@@ -9,12 +9,11 @@
 
     <div class="dashboard-layout__dboard">
       <h1 class="mb-4">Dependency</h1>
-        <%= render 'date_nav' %>
         <div class="dashboard-grid">
           <div class="three-equal-widgets">
-            <%= stat_card_widget 'Direct dependencies', 23, nil, title_class: "card-title small", stat_size: "large" %>
-            <%= stat_card_widget 'Development dependencies', 39, nil, title_class: "card-title small", stat_size: "large" %>
-            <%= stat_card_widget 'Downloads', @project.downloads, nil, title_class: "card-title small", stat_size: "large" %>
+            <%= stat_card_widget 'Direct dependencies', @project.direct_dependencies.length, nil, title_class: "card-title small", stat_size: "large" %>
+            <%= stat_card_widget 'Development dependencies', @project.development_dependencies.length, nil, title_class: "card-title small", stat_size: "large" %>
+            <%= stat_card_widget 'Transitive dependencies', @project.transitive_dependencies.length, nil, title_class: "card-title small", stat_size: "large" %>
           </div>
     </div>
   </div>
