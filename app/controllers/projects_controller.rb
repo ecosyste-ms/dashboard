@@ -5,6 +5,7 @@ class ProjectsController < ApplicationController
     @period = period
     etag_data = [@project, @range, @period]
     fresh_when(etag: etag_data, public: true)
+    @top_package = @project.packages.order_by_rankings.first
   end
 
   def index
