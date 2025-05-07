@@ -1,5 +1,5 @@
-<% @meta_title = "Projects" %>
-<% @meta_description = "Project dashboards" %>
+<% @meta_title = "Collections" %>
+<% @meta_description = "Open Source Collections" %>
 
 <div class="container-md">
 
@@ -15,6 +15,6 @@
     </form>
   </div>
 
-  <%= render @projects %>
+  <%= render @collections %>
   <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
 </div>

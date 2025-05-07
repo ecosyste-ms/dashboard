@@ -1,6 +1,9 @@
 class Project < ApplicationRecord
   include Stats
 
+  has_many :collection_projects, dependent: :destroy
+  has_many :collections, through: :collection_projects
+
   has_many :issues, dependent: :delete_all
   has_many :commits, dependent: :delete_all
   has_many :tags, dependent: :delete_all
@@ -547,7 +550,7 @@ class Project < ApplicationRecord
 
   def latest_tag_published_at
     return unless tags.present?
-    latest_tag.published_at
+    latest_tag.try(:published_at)
   end
 
   def packages_homepage_urls

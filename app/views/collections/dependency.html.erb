@@ -1,0 +1,20 @@
+<% @meta_title = "#{@collection}" %>
+<% @meta_description = "Dependency Stats for #{@collection}" %>
+<%= render 'collection_header' %>
+
+<div class="container">
+
+  <div class="dashboard-layout">
+    <%= render 'nav' %>
+
+    <div class="dashboard-layout__dboard">
+      <h1 class="mb-4">Dependency</h1>
+        <div class="dashboard-grid">
+          <div class="three-equal-widgets">
+            <%= stat_card_widget 'Direct dependencies', @collection.direct_dependencies.length, nil, title_class: "card-title small", stat_size: "large" %>
+            <%= stat_card_widget 'Development dependencies', @collection.development_dependencies.length, nil, title_class: "card-title small", stat_size: "large" %>
+            <%= stat_card_widget 'Transitive dependencies', @collection.transitive_dependencies.length, nil, title_class: "card-title small", stat_size: "large" %>
+          </div>
+    </div>
+  </div>
+</div>

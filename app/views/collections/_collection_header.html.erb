@@ -1,0 +1,20 @@
+<div class="project-header purple-grad-bg  mb-5 pt-4 pb-4">
+  <div class="container">
+    <div class="row">
+      <% if @collection.avatar_url.present? %>
+      <div class="col-md-1 mb-3 pt-3">
+        <img src="<%= @collection.avatar_url %>" alt="<%= @collection.to_s %> logo" class="img-fluid project-logo" onerror="this.style.display='none'" />
+      </div>
+      <% end %>
+      <div class="col-md-11">
+        <h1 class="display-1 extra-bold">
+          Collection:
+          <%= @collection.to_s %>
+        </h1>
+        <% if @collection.last_synced_at %>
+          <p><%= @collection.description %></p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

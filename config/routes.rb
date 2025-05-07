@@ -7,6 +7,7 @@ Sidekiq::Web.use Rack::Auth::Basic do |username, password|
 end if Rails.env.production?
 
 Rails.application.routes.draw do
+
   
   mount Rswag::Ui::Engine => '/docs'
   mount Rswag::Api::Engine => '/docs'
@@ -25,6 +26,25 @@ Rails.application.routes.draw do
           get :ping
         end
       end
+    end
+  end
+
+  resources :collections, only: [:index, :show] do
+    member do
+      get :projects
+      get :packages
+      get :issues
+      get :releases
+      get :commits
+      get :advisories
+
+      get :productivity
+      get :responsiveness
+      get :finance
+      get :engagement
+      get :adoption
+      get :dependency
+
     end
   end
 

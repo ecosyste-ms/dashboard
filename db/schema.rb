@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_05_145850) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_07_132130) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -36,6 +36,20 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_05_145850) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.float "blast_radius"
+  end
+
+  create_table "collection_projects", force: :cascade do |t|
+    t.bigint "collection_id", null: false
+    t.bigint "project_id", null: false
+    t.index ["collection_id"], name: "index_collection_projects_on_collection_id"
+    t.index ["project_id"], name: "index_collection_projects_on_project_id"
+  end
+
+  create_table "collections", force: :cascade do |t|
+    t.string "name"
+    t.string "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "collectives", force: :cascade do |t|
@@ -177,4 +191,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_05_145850) do
     t.index ["collective_id"], name: "index_transactions_on_collective_id"
     t.index ["uuid"], name: "index_transactions_on_uuid", unique: true
   end
+
+  add_foreign_key "collection_projects", "collections"
+  add_foreign_key "collection_projects", "projects"
 end

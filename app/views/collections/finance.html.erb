@@ -1,7 +1,7 @@
-<% @meta_title = "#{@project}" %>
-<% @meta_description = "Finance Stats for #{@project}" %>
+<% @meta_title = "#{@collection}" %>
+<% @meta_description = "Stats for #{@collection}" %>
 
-<%= render 'project_header' %>
+<%= render 'collection_header' %>
 <div class="container">
 
 
@@ -12,7 +12,7 @@
       <h1 class="mb-4">Finance</h1>
       <%= render 'date_nav' %>
 
-      <% if @project.collective.present? %>
+      <% if @collection.collective.present? %>
         <div class="dashboard-grid">
           <div class="three-equal-widgets">
             <%= small_widget 'Contributions', @contributions_this_period, @contributions_last_period, symbol: '$', currency: true %>
