@@ -8,7 +8,7 @@
     <%= render 'nav' %>
 
     <div class="dashboard-layout__dboard">
-      <h1 class="mb-4">Engagement </h1>
+      <h1 class="mb-4">Engagement</h1>
       <%= render 'date_nav' %>
 
       <div class="dashboard-grid">
@@ -39,11 +39,87 @@
             </div>
           </div>
         </div>
-        <div class="three-equal-widgets">
-          <%= stat_card_widget 'Contributions', @contributions_this_period, @contributions_last_period, title_class: "card-title small", stat_size: "large" %>
+        <div class="two-thirds-widget-group two-thirds-widget-group--reverse">
           <%= stat_card_widget 'Issue authors', @issue_authors_this_period, @issue_authors_last_period,  increase_good: true, title_class: "card-title small", stat_size: "large" %>
           <%= stat_card_widget 'PR authors', @pr_authors_this_period, @pr_authors_last_period,  increase_good: true, title_class: "card-title small", stat_size: "large" %>
-        </div>  
+          <!-- <%= stat_card_widget 'Contributions', @contributions_this_period, @contributions_last_period, card_class: "two-thirds-widget-group__large", title_class: "card-title small", stat_size: "large" %>-->
+          <div class="card two-thirds-widget-group__large well p-3 border-0">
+            <div class="card-body">
+              <h5 class="card-title small mb-4">Contributions</h5>
+              <div class="stat-card-body">
+                <span class="stat-card-title stat-card-title--large stat-card-number stat-card-number-neutral"> <%= @contributions_this_period %>  <span class="extra-bold">-</span></span>
+                <span class="stat-card-text"><%= @contributions_last_period %>  last period</span>
+              </div>
+             
+              
+              <div id="chartContainer" class="chart-wrapper" role="img" aria-describedby="chartDesc">
+              <canvas id="barChart" tabindex="0"  width="400" height="300" style="margin-left: 150px;"></canvas>
+            </div>
+
+            <p id="chartDesc" class="visually-hidden">
+              We need to describe the chart here, for example 'this bar chart shows commits over the last 3 months. January had 110,988 commits, February 232,000, and March 123,989'
+            </p>
+
+          </div>
+            <script type="text/javascript">
+            // Bar Chart
+            const ctx4 = document.getElementById('barChart').getContext('2d');
+            const data = {
+              labels: ['Label 1', 'Label 2', 'Label 3', 'Label 4', 'Label 5', 'Label 6'],
+              datasets: [{
+                data: [65, 45, 80, 50, 95, 90],
+                backgroundColor: [
+                  esPurpleLight,
+                  esPurpleLight,
+                  esPurpleLight,
+                  esPurpleLight,
+                  esPurpleLight,
+                  esPurpleDark
+                ],
+                hoverBackgroundColor: [
+                  esPurple,  // Hover color for the first bar
+                  esPurple,  // Hover color for the second bar
+                  esPurple,
+                  esPurple,
+                  esPurple,
+                  esPurple   // Hover color for the last bar
+                ],
+                borderWidth: 0,
+                borderRadius: 1
+              }]
+            };
+
+            const myBarChart = new Chart(ctx4, {
+              type: 'bar',
+              data: data,
+              options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                  legend: { display: false },
+                  tooltip: { enabled: true }
+                },
+                scales: {
+                  x: {
+                    display: false,
+                    grid: { display: false }
+                  },
+                  y: {
+                    display: false,
+                    grid: { display: false },
+                    beginAtZero: true
+                  }
+                },
+                layout: {
+                  padding: { top: 10, right: 10, bottom: 10, left: 10 }
+                }
+              }
+            });  
+            </script>
+       
+          </div>             
+        </div> 
+
         <div class="three-equal-widgets">
           <%= stat_card_widget 'All time contributors', @all_time_contributors, nil,  increase_good: nil, title_class: "card-title small", stat_size: "large" %>
         </div>  
