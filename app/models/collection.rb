@@ -50,9 +50,7 @@ class Collection < ApplicationRecord
     nil
   end
 
-  def stars
-    projects.map(&:stars).compact.sum
-  end
+
 
   def last_commit_at
     projects.map(&:last_commit_at).compact.max
@@ -79,15 +77,15 @@ class Collection < ApplicationRecord
   end
 
   def watchers
-    projects.sum(&:watchers)
+    projects.map(&:watchers).compact.sum
   end
 
   def forks
-    projects.sum(&:forks)
+    projects.map(&:forks).compact.sum
   end
 
   def stars
-    projects.sum(&:stars)
+    projects.map(&:stars).compact.sum
   end
 
   def direct_dependencies
