@@ -927,6 +927,10 @@ body {
 }
 
 .three-equal-widgets {
+  /* 
+   * Three widgets, same size, one column each wide, one row each deep
+   * | 1 | 2 | 3 |
+   */
   display: grid;
   gap: $grid-gutter-width;
   @include media-breakpoint-up(md) { 
@@ -948,6 +952,12 @@ body {
 }
 
 .two-thirds-widgets {
+  /* 
+   * Two widgets of different widths, split into 1/3 and 2/3, one row each deep.
+   * | 1 |  2   |
+   * The largest widget is the one with the class .two-thirds-widgets__large
+   * It uses source order 
+   */
   display: grid;
   gap: $grid-gutter-width;
   grid-template-columns: 1fr;
@@ -960,6 +970,14 @@ body {
 }
 
 .two-thirds-widget-group {
+  /* 
+   * Three widgets of different widths, split into 1/3 and 2/3
+   * Two small widgets one row deep stacked on the left, a large widget 2x2 on the right
+   * | 1 |  3  |
+   * | 2 |     |
+   * The largest widget is the one with the class .two-thirds-widgets__large
+   * It uses source order 
+   */
   display: grid;
   gap: $grid-gutter-width;
   grid-template-columns: 1fr;
@@ -1000,10 +1018,47 @@ body {
       grid-row: 1 / span 2; /* Start at row 1 and span 2 rows */
     }
   }
-  
+
+  &--reverse {
+    @include media-breakpoint-up(lg) {
+     /*
+      * Reverses the layout, stacks the small widgets on the right
+      * |  3  | 1 |
+      * |     | 2 |
+      */
+      grid-template-columns: 
+        2fr
+        minmax(0, calc((100% - 2 * #{$grid-gutter-width}) / 3));
+
+      .two-thirds-widget-group__large {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+      }
+
+      .two-thirds-widget-group__small:nth-of-type(1) {
+        grid-column: 2;
+        grid-row: 1;
+      }
+
+      .two-thirds-widget-group__small:nth-of-type(2) {
+        grid-column: 2;
+        grid-row: 2;
+      }
+    }
+  }
 }
 
+
+
 .one-third-widget-group {
+  /* 
+   * Three widgets of different widths, split into 1/3 and 2/3
+   * One widget 1x2 on the left, two widgets 2x1 stacked on the right
+   * | 1 |  2  |
+   * |   |  3  |
+   * The largest widget is the one with the class .two-thirds-widgets__large
+   * It doesn't use source order 
+   */
   display: grid;
   gap: $grid-gutter-width;
   grid-template-columns: 1fr;
