@@ -102,6 +102,12 @@ class ProjectsController < ApplicationController
     @contributor_role_breakdown_this_period = @project.issues.this_period(@range).group(:author_association).count.sort_by { |_role, count| -count }.to_h
 
     @all_time_contributors = @project.issues.group(:user).count.length
+
+    if period == :year
+      @contributions_per_period = @project.issues.group_by_year(:created_at, format: '%Y-%m', last: 6, expand_range: true, default_value: 0).count
+    else
+      @contributions_per_period = @project.issues.group_by_month(:created_at, format: '%Y-%m', last: 6, expand_range: true, default_value: 0).count
+    end
   end
 
   def dependency

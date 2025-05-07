@@ -65,9 +65,9 @@
             // Bar Chart
             const ctx4 = document.getElementById('barChart').getContext('2d');
             const data = {
-              labels: ['Label 1', 'Label 2', 'Label 3', 'Label 4', 'Label 5', 'Label 6'],
+              labels: <%= @contributions_per_period.map(&:first).to_json.html_safe %>,
               datasets: [{
-                data: [65, 45, 80, 50, 95, 90],
+                data: <%= @contributions_per_period.map(&:last).to_json %>,
                 backgroundColor: [
                   esPurpleLight,
                   esPurpleLight,
