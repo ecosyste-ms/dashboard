@@ -47,7 +47,7 @@
                 <li class="mb-3">
                   <%= link_to '#', target: "_blank", rel: "noopener noreferrer", class: "link-with-icon text-decoration-none text-body" do %>
                     <%= bootstrap_icon 'tag', width: 18, height: 18, class: "link-with-icon__icon", aria_hidden: "true" %>
-                    <span class="link-with-icon__text">Tags: <%= @project.repository['last_synced_at'] %></span>
+                    <span class="link-with-icon__text">Tags: <%= @project.repository['last_synced_at']  %></span>
                   <% end %>
                 </li>
                 <li class="mb-3">
@@ -56,6 +56,7 @@
                     <span class="link-with-icon__text">Collective: <%= @project.collective ? @project.collective.try(:last_synced_at) : 'N/A' %></span>
                   <% end %>
                 </li>
+                <% if @project.packages.any? %>
                 <li class="mb-3">
                   <%= link_to '#', target: "_blank", rel: "noopener noreferrer", class: "link-with-icon text-decoration-none text-body" do %>
                     <%= bootstrap_icon 'boxes', width: 18, height: 18, class: "link-with-icon__icon", aria_hidden: "true" %>
@@ -72,7 +73,7 @@
                     <% end %>
                   </ul>
                 </li>
-
+                <% end %>
 
                 
               </ul>
