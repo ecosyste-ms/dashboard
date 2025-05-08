@@ -210,4 +210,8 @@ class ProjectsController < ApplicationController
     flash[:notice] = 'Project synced'
     redirect_to project_path(@project)
   end
+
+  def meta
+    @project = Project.find(params[:id])
+  end
 end

@@ -67,6 +67,7 @@ Rails.application.routes.draw do
       get :dependency
 
       get :sync
+      get :meta
     end
   end
   

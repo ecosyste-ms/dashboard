@@ -1,0 +1,27 @@
+<% @meta_title = "#{@project}" %>
+<% @meta_description = "Stats for #{@project}" %>
+
+<%= render 'project_header' %>
+<div class="container">
+
+  <div class="dashboard-layout">
+    <%= render 'nav' %>
+
+    <div class="dashboard-layout__dboard">
+      <div class="dashboard-grid">  
+        <div class="three-equal-widgets">
+          <%= stat_card_widget 'Packages', @project.packages.count, nil, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Issues', @project.issues.issue.count, nil, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Pull requests', @project.issues.pull_request.count, nil, title_class: "card-title small", stat_size: "large" %>
+        </div>
+        <div class="three-equal-widgets">
+          <%= stat_card_widget 'Commits', @project.commits.count, nil, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Tags', @project.tags.count, nil, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Transactions', @project.collective.try(:transactions).try(:count) || 0, nil, title_class: "card-title small", stat_size: "large" %>
+        </div>
+
+
+      </div>
+    </div>
+  </div>
+</div>
