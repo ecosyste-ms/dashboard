@@ -140,4 +140,10 @@ class CollectionsController < ApplicationController
       .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
     @time_to_close_issues_this_period = @time_to_close_issues_this_period.round(1)
   end
+
+  def projects
+    @collection = Collection.find(params[:id])
+    @projects = @collection.projects
+    @pagy, @projects = pagy(@projects)
+  end
 end
