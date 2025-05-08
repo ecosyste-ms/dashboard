@@ -19,6 +19,7 @@ $color-white: #FFFFFF;
 $color-grey-light: #F5F5FF;
 $color-grey: #DCDCE0;
 $color-grey-dark: #4C4C61;
+$color-grey-cold: #F0F0F0;
 
 /* Tokens to override bootstrap colours */
 $primary: $color-purple;
@@ -78,6 +79,7 @@ $badge-padding-y: 0.4em;
   --es-grey-light: #{$color-grey-light};
   --es-grey: #{$color-grey};
   --es-grey-dark: #{$color-grey-dark};
+  --es-grey-cold: #{$color-grey-cold};
 }
 
 @import "bootstrap"; 
@@ -527,6 +529,15 @@ body {
 .well {
   background-color: $color-grey-light;
   border-radius: $border-radius;
+}
+
+.well--grey {
+  background-color: $color-grey-cold;
+}
+
+.well--empty {
+  background-color: transparent;
+  border: 1px solid $color-purple-light;
 }
 
 .page-content {
