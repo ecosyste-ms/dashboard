@@ -103,4 +103,8 @@ class Package < ApplicationRecord
   def homepage_url
     metadata['homepage']
   end
+
+  def last_synced_at
+    metadata['last_synced_at']
+  end
 end

@@ -385,6 +385,8 @@ class Project < ApplicationRecord
     end
     response = conn.get
     return unless response.success?
+    self.issues_last_synced_at = JSON.parse(response.body)['last_synced_at']
+    self.save
     issues_list_url = JSON.parse(response.body)['issues_url'] + '?per_page=100'
 
     page = 1
@@ -410,6 +412,7 @@ class Project < ApplicationRecord
       page += 1
       break if page > 50 # Stop if there are too many issues
     end
+    
   rescue
     puts "Error fetching issues for #{repository_url}"
   end
