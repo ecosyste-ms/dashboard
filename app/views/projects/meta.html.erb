@@ -19,7 +19,7 @@
           <%= stat_card_widget 'Tags', @project.tags.count, nil, title_class: "card-title small", stat_size: "large" %>
           <%= stat_card_widget 'Transactions', @project.collective.try(:transactions).try(:count) || 0, nil, title_class: "card-title large", stat_size: "large" %>
         </div>
-        <div class="two-thirds-widget-group">
+        <div class="two-thirds-widget-group two-thirds-widget-group--reverse">
           <div class="card two-thirds-widget-group__large well p-3 border-0">
             <div class="card-body">
               <h5 class="card-title mb-3">Sync Status</h5>
