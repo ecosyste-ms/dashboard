@@ -8,6 +8,7 @@
     <%= render 'nav' %>
 
     <div class="dashboard-layout__dboard">
+    <h1 class="mb-4">Dashboard metadata</h1>
       <div class="dashboard-grid">  
         <div class="three-equal-widgets">
           <%= stat_card_widget 'Packages', @project.packages.count, nil, title_class: "card-title small", stat_size: "large" %>
