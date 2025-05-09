@@ -1227,3 +1227,20 @@ body {
   }
 }
 
+.dboard-collection-bar {
+  .container {
+    border-bottom: 3px solid $color-purple;
+  }
+
+}
+
+a.project-badge {
+  &:hover,
+  &:active,
+  &:focus {
+    color: $color-white !important;
+    background-color: $color-purple !important;
+    text-decoration: none;
+  }
+}
+
