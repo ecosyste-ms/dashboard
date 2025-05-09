@@ -13,11 +13,11 @@
         <div class="dashboard-grid">
           <!-- Row 1: Three equal widgets -->
           <div class="three-equal-widgets">
-            <%= small_widget 'Time to close PRs', @time_to_close_prs_this_period, @time_to_close_prs_last_period, symbol: ' days' %>
+            <%= small_widget 'Time to close PRs', @time_to_close_prs_this_period, @time_to_close_prs_last_period, symbol: ' days', increase_good: false %>
             <%= small_widget 'Time to acknowledge PRs', 2.1, 1.3, symbol: ' days' %>
           </div>
           <div class="three-equal-widgets">
-             <%= small_widget 'Time to close issues', @time_to_close_issues_this_period, @time_to_close_issues_last_period, symbol: ' days' %>
+             <%= small_widget 'Time to close issues', @time_to_close_issues_this_period, @time_to_close_issues_last_period, symbol: ' days', increase_good: false %>
             <%= small_widget 'Time to acknowledge issues', 2.1, 1.3, symbol: ' days' %>
           </div>
         </div>
