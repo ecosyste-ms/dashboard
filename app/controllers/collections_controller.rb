@@ -13,6 +13,19 @@ class CollectionsController < ApplicationController
     # @top_package = @collection.packages.order_by_rankings.first
   end
 
+  def new
+    @collection = Collection.new
+  end
+
+  def create
+    @collection = Collection.new(collection_params)
+    if @collection.save
+      redirect_to @collection, notice: 'Collection was successfully created.'
+    else
+      render :new
+    end
+  end
+
   def adoption
     @collection = Collection.find(params[:id])
     @top_package = @collection.packages.order_by_rankings.first
@@ -145,5 +158,10 @@ class CollectionsController < ApplicationController
     @collection = Collection.find(params[:id])
     @projects = @collection.projects
     @pagy, @projects = pagy(@projects)
+  end
+
+  private
+  def collection_params
+    params.require(:collection).permit(:name, :description, :url, :visibility)
   end
 end

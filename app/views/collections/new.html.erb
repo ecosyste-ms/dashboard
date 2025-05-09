@@ -1,0 +1,39 @@
+<% @meta_title = "New Collection" %>
+<% @meta_description = "Create a new collection" %>
+
+<div class="container">
+  <div class="dashboard-layout">
+    <div class="dashboard-layout__dboard">
+    </div>
+    <div class="dashboard-grid">
+      <div class="full-width-widget">
+        <div class="card well p-3 border-0">
+          <div class="card-body">
+            <h5 class="card-title small">Create a new collection</h5>
+            <%= form_with model: @collection, local: true do |f| %>
+              <div class="form-group mb-3">
+                <%= f.label :name, "Collection Name" %>
+                <%= f.text_field :name, class: "form-control", placeholder: "Enter collection name" %>
+              </div>
+              <div class="form-group mb-3">
+                <%= f.label :description, "Description" %>
+                <%= f.text_area :description, class: "form-control", placeholder: "Enter description" %>
+              </div>
+              <div class="form-group mb-3">
+                <%= f.label :url, "URL" %>
+                <%= f.text_field :url, class: "form-control", placeholder: "Enter URL" %>
+              </div>
+              <div class="form-group mb-3">
+                <%= f.label :visibility, "Visibility" %>
+                <%= f.select :visibility, options_for_select([['Public', 'public'], ['Private', 'private']]), {}, class: "form-control" %>
+              </div>
+              <div class="form-group">
+                <%= f.submit "Create Collection", class: "btn btn-primary" %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

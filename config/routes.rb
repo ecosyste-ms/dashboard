@@ -29,7 +29,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :collections, only: [:index, :show] do
+  resources :collections do
     member do
       get :projects
       get :packages
