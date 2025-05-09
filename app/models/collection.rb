@@ -11,31 +11,48 @@ class Collection < ApplicationRecord
 
   validates :name, presence: true
 
-  def self.import_github_org(org_name)
+  after_create :import_projects_from_url
 
+  def import_projects_from_url
+    return if url.blank?
+    # if url is a github org, import all repos
+    if url =~ /github\.com\/([^\/]+)/
+      org_name = $1
+      import_github_org(org_name)
+    else
+      # TODO open collective url 
+      # TODO single repo (dependencies)
+      # TODO ecosystem fund url 
+    end
+  end
+
+  def self.import_github_org(org_name)
     collection = Collection.find_or_create_by(name: org_name) do |collection|
       collection.name = org_name
       collection.description = "Collection of repositories for #{org_name}"
     end
+    collection.import_github_org(org_name)
+  end
 
+  def import_github_org(org_name)
     page = 1
     loop do
       resp = Faraday.get("https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/#{org_name}/repositories?per_page=100&page=#{page}")
       break unless resp.status == 200
 
       data = JSON.parse(resp.body)
-      break if data.empty? # Stop if there are no more repositories
+      break if data.empty?
 
       urls = data.map{|p| p['html_url'] }.uniq.reject(&:blank?)
       urls.each do |url|
         puts url
         project = Project.find_or_create_by(url: url)
         project.sync_async unless project.last_synced_at.present?
-        collection.collection_projects.find_or_create_by(project: project)
+        collection_projects.find_or_create_by(project: project)
       end
 
       page += 1
-    end    
+    end
   end
 
   def to_s
@@ -49,8 +66,6 @@ class Collection < ApplicationRecord
   def last_synced_at
     nil
   end
-
-
 
   def last_commit_at
     projects.map(&:last_commit_at).compact.max
