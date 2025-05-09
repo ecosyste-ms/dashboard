@@ -23,7 +23,7 @@
     <h2 class="h4 mb-3">Showing</h2>
     <div class="row">
       <div class="col">
-        <% @collection.projects.first(5).each do |project| %>
+        <% @collection.projects.with_repository.first(5).each do |project| %>
           <span class="project-badge badge text-bg-light d-inline-flex align-items-center align-middle py-2 px-3 me-2 mb-2">
             <img src="<%= project.avatar_url %>" height="24" width="24" class="me-2"/> 
             <a href="<%= project_path(project) %>" class="text-decoration-none text-dark">
@@ -31,7 +31,7 @@
             </a>
           </span>
         <% end %>
-        <% projects_count = @collection.projects.count %>
+        <% projects_count = @collection.projects.with_repository.count %>
         <% if projects_count > 5 %>
           <a href="<%= projects_collection_path(@collection) %>" class="project-badge badge text-bg-light d-inline-flex align-items-center align-middle py-2 px-3 me-2 mb-2" style="min-height: 40px">
             and <%= projects_count - 5 %> more&hellip;

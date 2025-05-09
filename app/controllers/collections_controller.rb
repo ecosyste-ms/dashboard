@@ -1,6 +1,6 @@
 class CollectionsController < ApplicationController
   def index
-    scope = Collection.all
+    scope = Collection.visible.all
     @pagy, @collections = pagy(scope)
   end
 

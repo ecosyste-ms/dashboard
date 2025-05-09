@@ -8,6 +8,7 @@ class Collection < ApplicationRecord
   has_many :packages, through: :projects
   has_many :advisories, through: :projects
 
+  scope :visible, -> { where(visibility: 'public') }
 
   validates :name, presence: true
 
