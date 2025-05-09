@@ -115,4 +115,16 @@ class Collection < ApplicationRecord
   def transitive_dependencies
     projects.map(&:transitive_dependencies).flatten.uniq
   end
+
+  def dependent_packages_count
+    projects.map(&:dependent_packages_count).compact.sum
+  end
+
+  def dependent_repos_count
+    projects.map(&:dependent_repos_count).compact.sum
+  end
+
+  def downloads
+    projects.map(&:downloads).compact.sum
+  end
 end

@@ -10,7 +10,7 @@ class CollectionsController < ApplicationController
     @period = period
     etag_data = [@collection, @range, @period]
     fresh_when(etag: etag_data, public: true)
-    # @top_package = @collection.packages.order_by_rankings.first
+    @top_package = @collection.packages.order_by_rankings.first
   end
 
   def new
