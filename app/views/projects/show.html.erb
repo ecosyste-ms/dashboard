@@ -138,7 +138,71 @@
           </div>
         <% end %>
       <div class="full-width-widget">
-        <%= stat_card_widget 'Commits', 882, 781, increase_good: true, symbol: '', title_class: "card-title" %>
+        <!-- <%= stat_card_widget 'Commits', 882, 781, increase_good: true, symbol: '', title_class: "card-title" %> -->
+        <div class="full-width-widget">
+          <div class="card well p-3 border-0">
+            <div class="card-body">
+              <h5 class="card-title">Commits</h5>
+              <div class="stat-card mb-2">
+                <div class="stat-card-body">
+                  <span class="stat-card-title stat-card-title--large stat-card-number-negative">
+                    110,978 <%= bootstrap_icon 'caret-down-fill', width: 18, height: 18, class: 'flex-shrink-0' %>
+                  </span>
+                  <span class="stat-card-text stat-card-text">111,262 last period</span>
+                </div>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="commitChart" width="600  "></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+          
+        <script type="text/javascript">
+          
+          // Commit Chart (Line Chart)
+          const ctx3 = document.getElementById('commitChart').getContext('2d');
+          const commitChart = new Chart(ctx3, {
+            type: 'line',
+            data: {
+              labels: ['January', 'February', 'March', 'April', 'May', 'June'],
+              datasets: [{
+                label: 'Commits',
+                data: [90000, 100000, 110000, 120000, 115000, 110000],
+                borderColor: esOrangeDark,
+                borderWidth: 3,
+                pointRadius: 3,
+                tension: 0.4,
+                fill: true,
+                backgroundColor: 'rgba(239, 83, 80, 0.1)'
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              scales: {
+                x: {
+                  display: false,
+                  grid: { display: false }
+                },
+                y: {
+                  display: false,
+                  grid: { display: false },
+                  beginAtZero: false,
+                  max: 121000
+                }
+              },
+              plugins: {
+                legend: {
+                  display: false,
+                  usePointStyle: true
+                },
+                tooltip: { enabled: true }
+              }
+            }
+          });
+
+        </script>
       </div>      
       <div class="three-equal-widgets">
         <%= stat_card_widget 'Committers', 75, 65, title_class: "card-title small", stat_size: "large" %>
