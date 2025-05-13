@@ -378,6 +378,9 @@ body {
 .dark-section {
   background-color: $color-purple-dark;
   color: $color-white;
+  .text-muted {
+    color: rgba(255,255,255,0.666) !important;
+  }
   a {
     color: $color-white;
     &:hover,
@@ -573,6 +576,9 @@ body {
   background-color: $color-purple-dark;
   background: linear-gradient(0deg, $color-purple-dark 0%, $color-purple 50%);
   color: $color-white;
+  .text-muted {
+    color: rgba(255,255,255,0.666) !important;
+  }
 }
 
 

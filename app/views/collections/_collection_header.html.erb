@@ -2,7 +2,7 @@
   <div class="container">
     <div class="row">
       
-      <div class="col-md-1 mb-3 pt-3">
+      <div class="col-md-1 mb-3 pt-1">
       <% if @collection.avatar_url.present? %>
         <img src="<%= @collection.avatar_url %>" alt="<%= @collection.to_s %> logo" class="img-fluid project-logo" onerror="this.style.display='none'" />
       <% else %>
@@ -12,8 +12,8 @@
       </div>
   
       <div class="col-md-11">
+        <p class="h3 mb-0 text-muted">Collection</p>
         <h1 class="display-1 extra-bold">
-          Collection:
           <%= @collection.to_s %>
         </h1>
         <% if @collection.last_synced_at %>
