@@ -1183,17 +1183,20 @@ body {
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .graph-key__item {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .dot {
   display: inline-block;
   width: 1rem;
+  min-width: 1rem; //stop it from going oval on small widths
   height: 1rem;
   border-radius: 50%;
 }
