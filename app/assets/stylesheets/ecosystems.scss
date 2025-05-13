@@ -5,14 +5,20 @@ $color-purple: #7878EF;
 $color-purple-light: #BBBBFF;
 $color-purple-dark: #5C5CCF;
 
+$color-purple-transparent: rgba($color-purple, 0.1);
+
 $color-orange: #FF807D;
 $color-orange-light: #FEBDB9;
 $color-orange-dark: #DE5858;
+
+$color-orange-transparent: rgba($color-orange, 0.1);
 
 $color-green: #45E56E;
 $color-green-light: #87F5AA;
 $color-green-dark: #2EAF6B;
 $color-green-darker: #189654;
+
+$color-green-transparent: rgba($color-green, 0.1);
 
 $color-black: #1D1D28;
 $color-white: #FFFFFF;
@@ -67,13 +73,16 @@ $badge-padding-y: 0.4em;
   --es-purple: #{$color-purple};
   --es-purple-light: #{$color-purple-light};
   --es-purple-dark: #{$color-purple-dark};
+  --es-purple-transparent: #{$color-purple-transparent};
   --es-orange: #{$color-orange};
   --es-orange-light: #{$color-orange-light};
   --es-orange-dark: #{$color-orange-dark};
+  --es-orange-transparent: #{$color-orange-transparent};
   --es-green: #{$color-green};
   --es-green-light: #{$color-green-light};
   --es-green-dark: #{$color-green-dark};
   --es-green-darker: #{$color-green-darker};
+  --es-green-transparent: #{$color-green-transparent};
   --es-black: #{$color-black};
   --es-white: #{$color-white};
   --es-grey-light: #{$color-grey-light};
