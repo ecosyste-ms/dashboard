@@ -18,3 +18,28 @@ const esPurpleDark  = rootStyles.getPropertyValue('--es-purple-dark').trim();
 Chart.defaults.font.family = "'Inter', sans-serif";
 Chart.defaults.font.size = 14;
 Chart.defaults.color = esBlack;
+
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Create a ResizeObserver to monitor changes in .chart-wrapper elements
+  const resizeObserver = new ResizeObserver(entries => {
+    entries.forEach(entry => {
+      // Within each observed .chart-wrapper, find all canvas elements
+      entry.target.querySelectorAll('canvas').forEach(canvas => {
+        // Retrieve the Chart instance tied to this canvas
+        const chartInstance = Chart.getChart(canvas);
+        if (chartInstance) {
+          // Resize the chart instance to match the parent container
+          chartInstance.resize();
+        }
+      });
+    });
+  });
+
+  // Attach the ResizeObserver to every element with the class .chart-wrapper
+  document.querySelectorAll('.chart-wrapper').forEach(wrapper => {
+    resizeObserver.observe(wrapper);
+  });
+}); 
