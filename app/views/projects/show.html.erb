@@ -31,7 +31,7 @@
                     <%= time_ago_in_words @project.last_commit_at %> ago
                     <% else %>
                       No commits found
-                    <% end %>
+                    <% end %> 
                   </span>
                 </div>
               </div>
@@ -182,7 +182,7 @@
               maintainAspectRatio: true,
               scales: {
                 x: {
-                  display: false,
+                  display: true,
                   grid: { display: false }
                 },
                 y: {
