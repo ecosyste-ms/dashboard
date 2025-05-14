@@ -54,9 +54,9 @@ class CollectionsController < ApplicationController
     @all_time_contributors = @collection.issues.group(:user).count.length
 
     if period == :year
-      @contributions_per_period = @collection.issues.group_by_year(:created_at, format: '%Y-%m', last: 6, expand_range: true, default_value: 0).count
+      @contributions_per_period = @collection.issues.group_by_year(:created_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
     else
-      @contributions_per_period = @collection.issues.group_by_month(:created_at, format: '%Y-%m', last: 6, expand_range: true, default_value: 0).count
+      @contributions_per_period = @collection.issues.group_by_month(:created_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
     end
   end
 
