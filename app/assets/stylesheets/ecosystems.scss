@@ -217,6 +217,17 @@ $badge-padding-y: 0.4em;
   }
 }
 
+.btn-primary,
+.btn-success,
+.btn-danger,
+.btn-warning,
+.btn-info,
+.btn-dark {
+  &:active {
+    color: rgba($color-white, 0.8) !important;
+  }
+}
+
 .alert {
   border: 0;
 }
