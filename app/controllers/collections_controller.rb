@@ -1,4 +1,6 @@
 class CollectionsController < ApplicationController
+  before_action :set_period_vars, only: [:engagement, :productivity, :finance, :responsiveness]
+
   def index
     scope = Collection.visible.all
     @pagy, @collections = pagy(scope)
@@ -33,27 +35,24 @@ class CollectionsController < ApplicationController
 
   def engagement
     @collection = Collection.find(params[:id])
+    
+    @active_contributors_last_period = @collection.issues.between(@last_period_range.begin, @last_period_range.end).group(:user).count.length
+    @active_contributors_this_period = @collection.issues.between(@this_period_range.begin, @this_period_range.end).group(:user).count.length
 
-    @range = range
-    @period = period
+    @contributions_last_period = @collection.issues.between(@last_period_range.begin, @last_period_range.end).count
+    @contributions_this_period = @collection.issues.between(@this_period_range.begin, @this_period_range.end).count
 
-    @active_contributors_last_period = @collection.issues.last_period(@range).group(:user).count.length
-    @active_contributors_this_period = @collection.issues.this_period(@range).group(:user).count.length
+    @issue_authors_last_period = @collection.issues.between(@last_period_range.begin, @last_period_range.end).group(:user).count.length
+    @issue_authors_this_period = @collection.issues.between(@this_period_range.begin, @this_period_range.end).group(:user).count.length
 
-    @contributions_last_period = @collection.issues.last_period(@range).count
-    @contributions_this_period = @collection.issues.this_period(@range).count
+    @pr_authors_last_period = @collection.issues.pull_request.between(@last_period_range.begin, @last_period_range.end).group(:user).count.length
+    @pr_authors_this_period = @collection.issues.pull_request.between(@this_period_range.begin, @this_period_range.end).group(:user).count.length
 
-    @issue_authors_last_period = @collection.issues.last_period(@range).group(:user).count.length
-    @issue_authors_this_period = @collection.issues.this_period(@range).group(:user).count.length
-
-    @pr_authors_last_period = @collection.issues.pull_request.last_period(@range).group(:user).count.length
-    @pr_authors_this_period = @collection.issues.pull_request.this_period(@range).group(:user).count.length
-
-    @contributor_role_breakdown_this_period = @collection.issues.this_period(@range).group(:author_association).count.sort_by { |_role, count| -count }.to_h
+    @contributor_role_breakdown_this_period = @collection.issues.between(@this_period_range.begin, @this_period_range.end).group(:author_association).count.sort_by { |_role, count| -count }.to_h
 
     @all_time_contributors = @collection.issues.group(:user).count.length
 
-    if period == :year
+    if @range == 'year'
       @contributions_per_period = @collection.issues.group_by_year(:created_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
     else
       @contributions_per_period = @collection.issues.group_by_month(:created_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
@@ -69,17 +68,15 @@ class CollectionsController < ApplicationController
 
   def productivity
     @collection = Collection.find(params[:id])
-    @range = range
-    @period = period
     
-    @commits_last_period = @collection.commits.last_period(@range).count
-    @commits_this_period = @collection.commits.this_period(@range).count
+    @commits_last_period = @collection.commits.between(@last_period_range.begin, @last_period_range.end).count
+    @commits_this_period = @collection.commits.between(@this_period_range.begin, @this_period_range.end).count
 
-    @tags_last_period = @collection.tags.last_period(@range).count
-    @tags_this_period = @collection.tags.this_period(@range).count
+    @tags_last_period = @collection.tags.between(@last_period_range.begin, @last_period_range.end).count
+    @tags_this_period = @collection.tags.between(@this_period_range.begin, @this_period_range.end).count
 
-    commits_last = @collection.commits.last_period(@range)
-    commits_this = @collection.commits.this_period(@range)
+    commits_last = @collection.commits.between(@last_period_range.begin, @last_period_range.end)
+    commits_this = @collection.commits.between(@this_period_range.begin, @this_period_range.end)
 
     authors_last = commits_last.select(:author).distinct.count
     authors_this = commits_this.select(:author).distinct.count
@@ -87,81 +84,114 @@ class CollectionsController < ApplicationController
     @avg_commits_per_author_last_period = authors_last.zero? ? 0 : (commits_last.count.to_f / authors_last).round(1)
     @avg_commits_per_author_this_period = authors_this.zero? ? 0 : (commits_this.count.to_f / authors_this).round(1)
 
-    @new_issues_last_period = @collection.issues.issue.last_period(@range).count
-    @new_issues_this_period = @collection.issues.issue.this_period(@range).count
+    @new_issues_last_period = @collection.issues.issue.between(@last_period_range.begin, @last_period_range.end).count
+    @new_issues_this_period = @collection.issues.issue.between(@this_period_range.begin, @this_period_range.end).count
 
-    @open_isues_last_period = @collection.issues.issue.open_last_period(@range).count
-    @open_isues_this_period = @collection.issues.issue.open_this_period(@range).count
+    @open_isues_last_period = @collection.issues.issue.open_between(@last_period_range.begin, @last_period_range.end).count
+    @open_isues_this_period = @collection.issues.issue.open_between(@this_period_range.begin, @this_period_range.end).count
 
-    @advisories_last_period = @collection.advisories.last_period(@range).count
-    @advisories_this_period = @collection.advisories.this_period(@range).count
+    @advisories_last_period = @collection.advisories.between(@last_period_range.begin, @last_period_range.end).count
+    @advisories_this_period = @collection.advisories.between(@this_period_range.begin, @this_period_range.end).count
 
-    @new_prs_last_period = @collection.issues.pull_request.last_period(@range).count
-    @new_prs_this_period = @collection.issues.pull_request.this_period(@range).count
+    @new_prs_last_period = @collection.issues.pull_request.between(@last_period_range.begin, @last_period_range.end).count
+    @new_prs_this_period = @collection.issues.pull_request.between(@this_period_range.begin, @this_period_range.end).count
 
-    @open_prs_last_period = @collection.issues.pull_request.open_last_period(@range).count
-    @open_prs_this_period = @collection.issues.pull_request.open_this_period(@range).count
+    @open_prs_last_period = @collection.issues.pull_request.open_between(@last_period_range.begin, @last_period_range.end).count
+    @open_prs_this_period = @collection.issues.pull_request.open_between(@this_period_range.begin, @this_period_range.end).count
 
-    @merged_prs_last_period = @collection.issues.pull_request.merged_last_period(@range).count
-    @merged_prs_this_period = @collection.issues.pull_request.merged_this_period(@range).count
+    @merged_prs_last_period = @collection.issues.pull_request.merged_between(@last_period_range.begin, @last_period_range.end).count
+    @merged_prs_this_period = @collection.issues.pull_request.merged_between(@this_period_range.begin, @this_period_range.end).count
   end
 
   def finance
     @collection = Collection.find(params[:id])
 
-    @range = range
-    @period = period
-
     if @collection.collective.present?
 
-      @contributions_last_period = @collection.collective.transactions.donations.last_period(@range).count
-      @contributions_this_period = @collection.collective.transactions.donations.this_period(@range).count
+      @contributions_last_period = @collection.collective.transactions.donations.between(@last_period_range.begin, @last_period_range.end).count
+      @contributions_this_period = @collection.collective.transactions.donations.between(@this_period_range.begin, @this_period_range.end).count
 
-      @payments_last_period = @collection.collective.transactions.expenses.last_period(@range).count
-      @payments_this_period = @collection.collective.transactions.expenses.this_period(@range).count
+      @payments_last_period = @collection.collective.transactions.expenses.between(@last_period_range.begin, @last_period_range.end).count
+      @payments_this_period = @collection.collective.transactions.expenses.between(@this_period_range.begin, @this_period_range.end).count
 
       @balance_last_period = 0 # TODO: Fix this
       @balance_this_period = 0 # TODO: Fix this
 
-      @donors_last_period =  @collection.collective.transactions.donations.last_period(@range).group(:from_account).count.length
-      @donors_this_period =  @collection.collective.transactions.donations.this_period(@range).group(:from_account).count.length
+      @donors_last_period =  @collection.collective.transactions.donations.between(@last_period_range.begin, @last_period_range.end).group(:from_account).count.length
+      @donors_this_period =  @collection.collective.transactions.donations.between(@this_period_range.begin, @this_period_range.end).group(:from_account).count.length
 
-      @payees_last_period = @collection.collective.transactions.expenses.last_period(@range).group(:to_account).count.length
-      @payees_this_period = @collection.collective.transactions.expenses.this_period(@range).group(:to_account).count.length
+      @payees_last_period = @collection.collective.transactions.expenses.between(@last_period_range.begin, @last_period_range.end).group(:to_account).count.length
+      @payees_this_period = @collection.collective.transactions.expenses.between(@this_period_range.begin, @this_period_range.end).group(:to_account).count.length
     end
   end
 
   def responsiveness
     @collection = Collection.find(params[:id])
 
-    @range = range
-    @period = period
-
-    @time_to_close_prs_last_period = (@collection.issues.pull_request.closed_last_period(@range)
+    @time_to_close_prs_last_period = (@collection.issues.pull_request.closed_between(@last_period_range.begin, @last_period_range.end)
       .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
     @time_to_close_prs_last_period = @time_to_close_prs_last_period.round(1)
 
-    @time_to_close_prs_this_period = (@collection.issues.pull_request.closed_this_period(@range)
+    @time_to_close_prs_this_period = (@collection.issues.pull_request.closed_between(@this_period_range.begin, @this_period_range.end)
       .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
     @time_to_close_prs_this_period = @time_to_close_prs_this_period.round(1)
 
-    @time_to_close_issues_last_period = (@collection.issues.issue.closed_last_period(@range)
+    @time_to_close_issues_last_period = (@collection.issues.issue.closed_between(@last_period_range.begin, @last_period_range.end)
       .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
     @time_to_close_issues_last_period = @time_to_close_issues_last_period.round(1)
 
-    @time_to_close_issues_this_period = (@collection.issues.issue.closed_this_period(@range)
+    @time_to_close_issues_this_period = (@collection.issues.issue.closed_between(@this_period_range.begin, @this_period_range.end)
       .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
     @time_to_close_issues_this_period = @time_to_close_issues_this_period.round(1)
   end
 
   def projects
     @collection = Collection.find(params[:id])
-    @projects = @collection.projects
-    @pagy, @projects = pagy(@projects)
+    @collections = @collection.projects
+    @pagy, @collections = pagy(@collections)
   end
 
   private
+
   def collection_params
     params.require(:collection).permit(:name, :description, :url, :visibility)
+  end
+
+  def set_period_vars
+    @range = range
+    @year = year
+    @month = month
+    @period_date = period_date
+
+    @this_period_range =
+      if @range == 'year'
+        @period_date.beginning_of_year..@period_date.end_of_year
+      else
+        @period_date.beginning_of_month..@period_date.end_of_month
+      end
+
+    @last_period_range =
+      if @range == 'year'
+        (@period_date - 1.year).beginning_of_year..(@period_date - 1.year).end_of_year
+      else
+        (@period_date - 1.month).beginning_of_month..(@period_date - 1.month).end_of_month
+      end
+  end
+
+  def range
+    params[:range].in?(%w[month year]) ? params[:range] : 'month'
+  end
+
+  def year
+    (params[:year] || Time.current.year).to_i
+  end
+
+  def month
+    range == 'month' ? (params[:month] || Time.current.month).to_i : nil
+  end
+
+  def period_date
+    return Date.new(year) if range == 'year'
+    Date.new(year, month)
   end
 end

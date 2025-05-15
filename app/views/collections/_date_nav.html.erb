@@ -1,19 +1,22 @@
-      <div class="dboard-filter-controls d-flex align-items-center  justify-content-md-between well p-2 mb-4">
-        <div class="me-3" role="group">
-          <button type="button" class="btn btn-link ">All time</button>
-          <button type="button" class="btn btn-link">Year</button>
-          <button type="button" class="btn btn-link active">Month</button>
-        </div>
-        
-        <div class="dropdown">
-          <button class="btn btn-link dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-            December 2025 <i class="fas fa-chevron-down ms-1"></i>
-          </button>
-          <ul class="dropdown-menu" aria-labelledby="periodDropdown">
-            <li><a href="#" class="dropdown-item">November 2025</a></li>
-            <li><a href="#" class="dropdown-item">October 2025</a></li>
-            <li><a href="#" class="dropdown-item">September 2025</a></li>
-            <li><a href="#" class="dropdown-item">August 2025</a></li>
-          </ul>
-        </div>
-      </div>
+<div class="dboard-filter-controls d-flex align-items-center  justify-content-md-between well p-2 mb-4">
+  <div class="me-3" role="group">
+    <%= link_to "Year", url_for(request.query_parameters.merge(range: 'year', year: Time.current.year, month: nil)), class: "btn btn-link #{'active' if @range == 'year'}" %>
+    <%= link_to "Month", url_for(request.query_parameters.merge(range: 'month', year: Time.current.year, month: Time.current.month)), class: "btn btn-link #{'active' if @range == 'month'}" %>
+  </div>
+  
+  <div class="dropdown">
+    <button class="btn btn-link dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+      <%= period_label(@year, @range == 'month' ? @month : nil) %> <i class="fas fa-chevron-down ms-1"></i>
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="periodDropdown">
+      <% 10.times do |i| %>
+        <% date = Time.current - i.send(@range == 'year' ? :years : :months) %>
+        <% year = date.year %>
+        <% month = @range == 'month' ? date.month : nil %>
+        <li>
+          <%= link_to period_label(year, month), url_for(request.query_parameters.merge(year: year, month: month)), class: "dropdown-item" %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+</div>

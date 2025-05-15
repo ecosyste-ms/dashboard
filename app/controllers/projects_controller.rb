@@ -86,9 +86,6 @@ class ProjectsController < ApplicationController
   def engagement
     @project = Project.find(params[:id])
 
-    @range = range
-    @period = period
-
     @active_contributors_last_period = @project.issues.between(@last_period_range.begin, @last_period_range.end).group(:user).count.length
     @active_contributors_this_period = @project.issues.between(@this_period_range.begin, @this_period_range.end).group(:user).count.length
 
@@ -105,7 +102,7 @@ class ProjectsController < ApplicationController
 
     @all_time_contributors = @project.issues.group(:user).count.length
 
-    if period == :year
+    if @range == 'year'
       @contributions_per_period = @project.issues.group_by_year(:created_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
     else
       @contributions_per_period = @project.issues.group_by_month(:created_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
@@ -182,19 +179,19 @@ class ProjectsController < ApplicationController
     @project = Project.find(params[:id])
 
     @time_to_close_prs_last_period = (@project.issues.pull_request.closed_between(@last_period_range.begin, @last_period_range.end)
-      .average('EXTRACT(EPOCH FROM (closed_at - created_at))') || 0) / 86400.0
+      .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
     @time_to_close_prs_last_period = @time_to_close_prs_last_period.round(1)
 
     @time_to_close_prs_this_period = (@project.issues.pull_request.closed_between(@this_period_range.begin, @this_period_range.end)
-      .average('EXTRACT(EPOCH FROM (closed_at - created_at))') || 0) / 86400.0
+      .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
     @time_to_close_prs_this_period = @time_to_close_prs_this_period.round(1)
 
     @time_to_close_issues_last_period = (@project.issues.issue.closed_between(@last_period_range.begin, @last_period_range.end)
-      .average('EXTRACT(EPOCH FROM (closed_at - created_at))') || 0) / 86400.0
+      .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
     @time_to_close_issues_last_period = @time_to_close_issues_last_period.round(1)
 
     @time_to_close_issues_this_period = (@project.issues.issue.closed_between(@this_period_range.begin, @this_period_range.end)
-      .average('EXTRACT(EPOCH FROM (closed_at - created_at))') || 0) / 86400.0
+      .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
     @time_to_close_issues_this_period = @time_to_close_issues_this_period.round(1)
   end
 

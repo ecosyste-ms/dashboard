@@ -89,7 +89,7 @@ class Collection < ApplicationRecord
   end
 
   def collective
-    nil
+    nil # TODO: Fix this 🐉
   end
 
   def watchers
