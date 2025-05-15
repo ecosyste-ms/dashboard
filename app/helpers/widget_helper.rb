@@ -17,7 +17,7 @@ module WidgetHelper
   def stat_card_widget(title, current_value, previous_value, increase_good: true, symbol: nil, title_class:, card_class: "", stat_size: "large", currency: false, &block)
     content_tag(:div, class: "card #{card_class} well p-3 border-0") do
       content_tag(:div, class: "card-body") do
-        content_tag(:h5, title, class: "card-title "+ title_class) +
+        stat_card_header(title, title_class) +
         content_tag(:div, class: "stat-card mb-2") do
           content_tag(:div, class: "stat-card-body") do
             stat_class = "stat-card-title stat-card-title--#{stat_size} #{stat_class_for(current_value, previous_value, increase_good)}"
@@ -35,6 +35,28 @@ module WidgetHelper
       end
     end
   end
+
+def stat_card_header(title, title_class)
+  id = (title+' help').parameterize
+  puts title + " #" +id
+  content_tag(:h5, class: "card-title #{title_class}") do
+    safe_join([
+      title,
+      content_tag(:a, href: glossary_path(anchor: id), aria: { labelledby: id}) do
+        bootstrap_icon('question-circle',
+          width: 18,
+          height: 18,
+          aria_hidden: 'true',
+          focusable: 'false',
+          role: 'img',
+          class: 'mb-1 ms-2',
+          title: "What is #{title}?",
+        ) +
+        content_tag(:span, "What is #{title}?", id: id, class: "visually-hidden")
+      end
+    ])
+  end
+end
 
   def display_link(url)
     url.gsub(/https?:\/\//, '').gsub(/www\./, '')
