@@ -1,5 +1,9 @@
 @import "ecosystems";
 
+html {
+  scroll-behavior: smooth;
+}
+
 .text-decoration-hover{
   text-decoration: none;
   &:hover{
@@ -17,4 +21,12 @@
     right: 5px;
     color: #ccc;
   }
+}
+
+#glossary h3:target {
+  background-color: #fff3cd; /* Bootstrap warning background */
+  border-left: 4px solid #ffc107;
+  padding-left: 0.75rem;
+  scroll-margin-top: 4rem; /* keeps it from hiding under navbars */
+  transition: background-color 0.3s;
 }
