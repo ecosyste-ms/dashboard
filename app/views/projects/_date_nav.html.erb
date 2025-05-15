@@ -9,7 +9,7 @@
       <%= period_label(@year, @range == 'month' ? @month : nil) %> <i class="fas fa-chevron-down ms-1"></i>
     </button>
     <ul class="dropdown-menu" aria-labelledby="periodDropdown">
-      <% 6.times do |i| %>
+      <% 10.times do |i| %>
         <% date = Time.current - i.send(@range == 'year' ? :years : :months) %>
         <% year = date.year %>
         <% month = @range == 'month' ? date.month : nil %>
