@@ -27,9 +27,6 @@
             <%= stat_card_widget 'Unique payees', @payees_this_period, @payees_last_period, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
             <%= stat_card_widget 'Reimbursements', 10000, 9000, symbol: '$', currency: true, stat_size: "small",  title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
           </div>
-          <div class="full-width-widget">
-           <%= stat_card_widget 'Your contribution', 882, 781, increase_good: true, currency: true, symbol: '$', title_class: "card-title" %>
-          </div> 
         </div>
       <% end %>
     </div>
