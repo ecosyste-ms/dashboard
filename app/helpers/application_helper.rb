@@ -25,6 +25,13 @@ module ApplicationHelper
     end.join('@')
   end
 
+  def period_label(year, month = nil)
+    return year.to_s unless month
+    Date.new(year, month).strftime("%B %Y")
+  rescue ArgumentError
+    "Invalid date"
+  end
+
   def distance_of_time_in_words_if_present(time)
     return 'N/A' unless time
     distance_of_time_in_words(time)
