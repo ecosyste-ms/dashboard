@@ -23,6 +23,14 @@
         <span class="me-3"><%= number_with_delimiter collection.stars %></span>
       </div>
     </div>
+    <div class="mt-3 listing__details">
+      <a href="#" class="me-4"><%= bootstrap_icon 'pencil',
+        width: 16, height: 16, aria_hidden: 'true', focusable: 'false', role: 'img',  title: '', class: 'flex-shrink-0 me-1'
+        %>Edit</a> 
+      <a href="#"> <%= bootstrap_icon 'trash3',
+        width: 16, height: 16, aria_hidden: 'true', focusable: 'false', role: 'img',  title: '', class: 'flex-shrink-0 me-1'
+        %>Delete</a>
+    </div>
   </div>
 </div>
 
