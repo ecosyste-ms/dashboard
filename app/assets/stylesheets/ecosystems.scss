@@ -933,6 +933,13 @@ body {
         background-color: $color-purple-dark;
       }
     }
+    &.dropdown-toggle {
+      background-color: darken($color-grey-light, 3%);
+      &:hover,
+      &:active {
+        background-color: darken($color-grey-light, 6%);
+      }
+    }
   }
   .dropdown-item {
     font-size: $font-size-small;

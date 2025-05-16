@@ -20,3 +20,43 @@
     </ul>
   </div>
 </div>
+
+<div class="dboard-filter-controls d-flex align-items-center  justify-content-md-between well p-2 mb-4">
+  <div class="me-3" role="group">
+    <%= link_to "Year", url_for(request.query_parameters.merge(range: 'year', year: Time.current.year, month: nil)), class: "btn btn-link #{'active' if @range == 'year'}" %>
+    <%= link_to "Month", url_for(request.query_parameters.merge(range: 'month', year: Time.current.year, month: Time.current.month)), class: "btn btn-link #{'active' if @range == 'month'}" %>
+  </div>
+  <div class="dropdown">
+    <span class="small">Comparing</span>
+    <button class="btn btn-link dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+      2023
+    </button>
+    <span class="small">with</span>
+    <button class="btn btn-link dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+      2023
+    </button>
+  </div>
+</div>
+
+<div class="dboard-filter-controls d-flex align-items-center  justify-content-md-between well p-2 mb-4">
+  <div class="me-3" role="group">
+    <%= link_to "Year", url_for(request.query_parameters.merge(range: 'year', year: Time.current.year, month: nil)), class: "btn btn-link #{'active' if @range == 'year'}" %>
+    <%= link_to "Month", url_for(request.query_parameters.merge(range: 'month', year: Time.current.year, month: Time.current.month)), class: "btn btn-link #{'active' if @range == 'month'}" %>
+  </div>
+  <div class="dropdown">
+    <span class="small">Comparing</span>
+    <button class="btn btn-link btn-light dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+      August
+    </button>
+    <button class="btn btn-link btn-filter-control dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+      2025
+    </button>
+    <span class="small">with</span>
+    <button class="btn btn-link btn-filter-control dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+      August
+    </button>
+    <button class="btn btn-link btn-filter-control dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+      2023
+    </button>
+  </div>
+</div>
