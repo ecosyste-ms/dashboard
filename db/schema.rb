@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_09_112706) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_19_111044) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -154,6 +154,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_09_112706) do
     t.json "dependencies"
     t.datetime "issues_last_synced_at"
     t.datetime "tags_last_synced_at"
+    t.json "github_sponsors", default: {}
     t.index ["collective_id"], name: "index_projects_on_collective_id"
     t.index ["url"], name: "index_projects_on_url", unique: true
   end
