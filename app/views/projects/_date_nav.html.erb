@@ -69,9 +69,8 @@
           <% 10.times do |i| %>
             <% date = Time.current - i.years %>
             <% year = date.year %>
-            <% month = @range == 'month' ? date.month : nil %>
             <li>
-              <%= link_to year, url_for(request.query_parameters.merge(previous_year: year, previous_month: month)), class: "dropdown-item" %>
+              <%= link_to year, url_for(request.query_parameters.merge(previous_year: year, previous_month: @previous_month)), class: "dropdown-item" %>
             </li>
           <% end %>
         </ul>
@@ -95,9 +94,8 @@
           <% 10.times do |i| %>
             <% date = Time.current - i.years %>
             <% year = date.year %>
-            <% month = @range == 'month' ? date.month : nil %>
             <li>
-              <%= link_to year, url_for(request.query_parameters.merge(year: year, month: month)), class: "dropdown-item" %>
+              <%= link_to year, url_for(request.query_parameters.merge(year: year, month: @month)), class: "dropdown-item" %>
             </li>
           <% end %>
         </ul>

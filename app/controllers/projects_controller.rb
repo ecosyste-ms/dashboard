@@ -219,7 +219,7 @@ class ProjectsController < ApplicationController
     @year = year
     @month = month
     @period_date = period_date
-    @previous_year = @range == 'year' ? (params[:previous_year] || @year - 1).to_i : @year
+    @previous_year = @range == 'year' ? (params[:previous_year] || @year - 1).to_i : (params[:previous_year] || @year).to_i
     @previous_month = @month ? (params[:previous_month] || @month - 1).to_i : nil
 
     @this_period_range =
