@@ -107,6 +107,7 @@ class Project < ApplicationRecord
       sync_commits     
       fetch_dependencies 
       fetch_collective
+      fetch_github_sponsors
     end
     return if destroyed?
     update_column(:last_synced_at, Time.now) 
@@ -925,5 +926,27 @@ class Project < ApplicationRecord
       self.collective_id = c.id
       save
     end
+  end
+
+  def fetch_github_sponsors
+    return unless funding_links.any?{|f| f.include?('github.com/sponsors') }
+    
+    slug = funding_links.find{|f| f.include?('github.com/sponsors') }.split('/').last
+
+    url = "https://sponsors.ecosyste.ms/api/v1/accounts/#{slug}"
+
+    conn = Faraday.new(url: url) do |faraday|
+      faraday.response :follow_redirects
+      faraday.adapter Faraday.default_adapter
+    end
+
+    response = conn.get
+    return unless response.success?
+      
+    json = JSON.parse(response.body)
+
+    update_column(:github_sponsors, json) if json.present?
+  rescue
+    puts "Error fetching github sponsors for #{repository_url}"
   end
 end
