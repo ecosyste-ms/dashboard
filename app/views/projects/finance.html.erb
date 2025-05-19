@@ -14,7 +14,10 @@
 
       <% if @project.collective.present? %>
         <%= render 'date_nav' %>
-        <h2>Open Collective</h2>
+        <div class="d-md-flex justify-content-between align-items-center mb-2 mt-5">
+          <h2>Open Collective</h2>
+          <a href="#" class="spesh-link">View on Open Collective</a>
+        </div>
 
         <div class="dashboard-grid mb-5">
           <div class="three-equal-widgets">
@@ -34,7 +37,10 @@
       <% end %>
 
       <% if @project.github_sponsors.present? %>
-        <h2>GitHub Sponsors</h2>
+        <div class="d-md-flex justify-content-between align-items-center mb-2">
+          <h2>Github Sponsors</h2>
+          <a href="#" class="spesh-link">View on Github Sponsors</a>
+        </div>
 
         <div class="dashboard-grid">
           <div class="three-equal-widgets">
