@@ -213,6 +213,8 @@ class ProjectsController < ApplicationController
     @year = year
     @month = month
     @period_date = period_date
+    @previous_year = (params[:previous_year] || @year - 1).to_i
+    @previous_month = @month ? (params[:previous_month] || @month - 1).to_i : nil
 
     @this_period_range =
       if @range == 'year'
@@ -223,9 +225,9 @@ class ProjectsController < ApplicationController
 
     @last_period_range =
       if @range == 'year'
-        (@period_date - 1.year).beginning_of_year..(@period_date - 1.year).end_of_year
+        Date.new(@previous_year).beginning_of_year..Date.new(@previous_year).end_of_year
       else
-        (@period_date - 1.month).beginning_of_month..(@period_date - 1.month).end_of_month
+        Date.new(@previous_year, @previous_month).beginning_of_month..Date.new(@previous_year, @previous_month).end_of_month
       end
   end
 

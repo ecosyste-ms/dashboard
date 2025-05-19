@@ -1,51 +1,107 @@
-<div class="dboard-filter-controls d-lg-flex align-items-lg-center  justify-content-md-between well p-2 mb-4">
-  <div class="dboard-filter-controls__section" role="group">
-    <span class="small hide-large mt-2 mb-1">Period</span>
-    <%= link_to "Year", url_for(request.query_parameters.merge(range: 'year', year: Time.current.year, month: nil)), class: "btn btn-link #{'active' if @range == 'year'}" %>
-    <%= link_to "Month", url_for(request.query_parameters.merge(range: 'month', year: Time.current.year, month: Time.current.month)), class: "btn btn-link #{'active' if @range == 'month'}" %>
-  </div>
-  <div class="dboard-filter-controls__comparison">
-    <div class="dboard-filter-controls__section">
-      <span class="small mt-3 mt-lg-0 mb-1 mb-lg-0">Comparing</span>
-      <button class="btn btn-link btn-link--d dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-        August
-      </button>
-      <button class="btn btn-link dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-        2025
-      </button>
+<% if params[:range] == 'year' %>
+  <div class="dboard-filter-controls d-lg-flex align-items-lg-center  justify-content-md-between well p-2 mb-4">
+    <div class="dboard-filter-controls__section" role="group">
+      <span class="small hide-large mt-2 mb-1">Period</span>
+      <%= link_to "Year", url_for(request.query_parameters.merge(range: 'year', year: Time.current.year, month: nil)), class: "btn btn-link #{'active' if @range == 'year'}" %>
+      <%= link_to "Month", url_for(request.query_parameters.merge(range: 'month', year: Time.current.year, month: Time.current.month)), class: "btn btn-link #{'active' if @range == 'month'}" %>
     </div>
-    <div class="dboard-filter-controls__section">
-      <span class="small mt-3 mt-lg-0 mb-1 mb-lg-0">with</span>
-      <button class="btn btn-link dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-        August
-      </button>
-      <button class="btn btn-link dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-        2023
-      </button>
-    </div>
-  </div>
-</div>
-
-<div class="dboard-filter-controls d-lg-flex align-items-lg-center  justify-content-md-between well p-2 mb-4">
-  <div class="dboard-filter-controls__section" role="group">
-    <span class="small hide-large mt-2 mb-1">Period</span>
-    <%= link_to "Year", url_for(request.query_parameters.merge(range: 'year', year: Time.current.year, month: nil)), class: "btn btn-link #{'active' if @range == 'year'}" %>
-    <%= link_to "Month", url_for(request.query_parameters.merge(range: 'month', year: Time.current.year, month: Time.current.month)), class: "btn btn-link #{'active' if @range == 'month'}" %>
-  </div>
-  <div class="dboard-filter-controls__comparison">
-    <div class="dboard-filter-controls__section">
-      <span class="small mt-3 mt-lg-0 mb-1 mb-lg-0">Comparing</span>
-      
-      <button class="btn btn-link dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-        2025
-      </button>
-    </div>
-    <div class="dboard-filter-controls__section">
-      <span class="small mt-3 mt-lg-0 mb-1 mb-lg-0">with</span>
-      
-      <button class="btn btn-link dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-        2023
-      </button>
+    <div class="dboard-filter-controls__comparison">
+      <div class="dboard-filter-controls__section">
+        <span class="small mt-3 mt-lg-0 mb-1 mb-lg-0">Comparing</span>
+        
+        <button class="btn btn-link dropdown-toggle" type="button" id="previousPeriodYearDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <%= @previous_year %>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="previousPeriodYearDropdown">
+          <% 10.times do |i| %>
+            <% date = Time.current - i.years %>
+            <% year = date.year %>
+            <% month = @range == 'month' ? date.month : nil %>
+            <li>
+              <%= link_to period_label(year, month), url_for(request.query_parameters.merge(previous_year: year, previous_month: month)), class: "dropdown-item" %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+      <div class="dboard-filter-controls__section">
+        <span class="small mt-3 mt-lg-0 mb-1 mb-lg-0">with</span>
+        
+        <button class="btn btn-link dropdown-toggle" type="button" id="currentPeriodYearDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <%= @year %>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="currentPeriodYearDropdown">
+          <% 10.times do |i| %>
+            <% date = Time.current - i.years %>
+            <% year = date.year %>
+            <% month = @range == 'month' ? date.month : nil %>
+            <li>
+              <%= link_to period_label(year, month), url_for(request.query_parameters.merge(year: year, month: month)), class: "dropdown-item" %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
     </div>
   </div>
-</div>
+<% else %>
+  <div class="dboard-filter-controls d-lg-flex align-items-lg-center  justify-content-md-between well p-2 mb-4">
+    <div class="dboard-filter-controls__section" role="group">
+      <span class="small hide-large mt-2 mb-1">Period</span>
+      <%= link_to "Year", url_for(request.query_parameters.merge(range: 'year', year: Time.current.year, month: nil)), class: "btn btn-link #{'active' if @range == 'year'}" %>
+      <%= link_to "Month", url_for(request.query_parameters.merge(range: 'month', year: Time.current.year, month: Time.current.month)), class: "btn btn-link #{'active' if @range == 'month'}" %>
+    </div>
+    <div class="dboard-filter-controls__comparison">
+      <div class="dboard-filter-controls__section">
+        <span class="small mt-3 mt-lg-0 mb-1 mb-lg-0">Comparing</span>
+        <button class="btn btn-link btn-link--d dropdown-toggle" type="button" id="previousPeriodMonthDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <%= Date::MONTHNAMES[@previous_month] %>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="previousPeriodMonthDropdown">
+          <% 12.times do |i| %>
+            <li>
+              <%= link_to Date::MONTHNAMES[i+1], url_for(request.query_parameters.merge(previous_year: @previous_year, previous_month: i + 1)), class: "dropdown-item #{'active' if (i + 1) == @previous_month}" %>
+            </li>
+          <% end %>
+        </ul>
+        <button class="btn btn-link dropdown-toggle" type="button" id="previousPeriodYearDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <%= @previous_year %>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="previousPeriodYearDropdown">
+          <% 10.times do |i| %>
+            <% date = Time.current - i.years %>
+            <% year = date.year %>
+            <% month = @range == 'month' ? date.month : nil %>
+            <li>
+              <%= link_to year, url_for(request.query_parameters.merge(previous_year: year, previous_month: month)), class: "dropdown-item" %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+      <div class="dboard-filter-controls__section">
+        <span class="small mt-3 mt-lg-0 mb-1 mb-lg-0">with</span>
+        <button class="btn btn-link dropdown-toggle" type="button" id="currentPeriodMonthDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <%= Date::MONTHNAMES[@month] %>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="currentPeriodMonthDropdown">
+          <% 12.times do |i| %>
+            <li>
+              <%= link_to Date::MONTHNAMES[i+1], url_for(request.query_parameters.merge(year: @year, month: i + 1)), class: "dropdown-item #{'active' if (i + 1) == @month}" %>
+            </li>
+          <% end %>
+        </ul>
+        <button class="btn btn-link dropdown-toggle" type="button" id="currentPeriodYearDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <%= @year %>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="currentPeriodYearDropdown">
+          <% 10.times do |i| %>
+            <% date = Time.current - i.years %>
+            <% year = date.year %>
+            <% month = @range == 'month' ? date.month : nil %>
+            <li>
+              <%= link_to year, url_for(request.query_parameters.merge(year: year, month: month)), class: "dropdown-item" %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    </div>
+  </div>
+<% end %>
