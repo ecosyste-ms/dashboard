@@ -10,10 +10,13 @@
 
     <div class="dashboard-layout__dboard">
       <h1 class="mb-4">Finance</h1>
-      <%= render 'date_nav' %>
+      
 
       <% if @project.collective.present? %>
-        <div class="dashboard-grid">
+        <%= render 'date_nav' %>
+        <h2>Open Collective</h2>
+
+        <div class="dashboard-grid mb-5">
           <div class="three-equal-widgets">
             <%= small_widget 'Contributions', @contributions_this_period, @contributions_last_period, symbol: '$', currency: true %>
             <%= small_widget 'Payments', @payments_this_period, @payments_last_period, symbol: '$', currency: true %>
@@ -26,6 +29,18 @@
           <div class="two-thirds-widgets">
             <%= stat_card_widget 'Unique payees', @payees_this_period, @payees_last_period, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
             <%= stat_card_widget 'Reimbursements', 10000, 9000, symbol: '$', currency: true, stat_size: "small",  title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
+          </div>
+        </div>
+      <% end %>
+
+      <% if @project.github_sponsors.present? %>
+        <h2>GitHub Sponsors</h2>
+
+        <div class="dashboard-grid">
+          <div class="three-equal-widgets">
+            <%= small_widget 'Current sponsors', @current_sponsors, nil %>
+            <%= small_widget 'Past sponsors', @past_sponsors, nil %>
+            <%= small_widget 'Total sponsors', @total_sponsors, nil %>
           </div>
         </div>
       <% end %>

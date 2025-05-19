@@ -949,4 +949,18 @@ class Project < ApplicationRecord
   rescue
     puts "Error fetching github sponsors for #{repository_url}"
   end
+
+  def current_github_sponsors_count
+    return 0 unless github_sponsors.present?
+    github_sponsors['active_sponsors_count'] || 0
+  end
+
+  def total_github_sponsors_count
+    return 0 unless github_sponsors.present?
+    github_sponsors['sponsors_count'] || 0
+  end
+
+  def past_github_sponsors_count
+    total_github_sponsors_count - current_github_sponsors_count
+  end
 end

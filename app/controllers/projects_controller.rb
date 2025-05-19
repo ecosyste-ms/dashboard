@@ -173,6 +173,12 @@ class ProjectsController < ApplicationController
       @payees_last_period = @project.collective.transactions.expenses.between(@last_period_range.begin, @last_period_range.end).group(:to_account).count.length
       @payees_this_period = @project.collective.transactions.expenses.between(@this_period_range.begin, @this_period_range.end).group(:to_account).count.length
     end
+
+    if @project.github_sponsors.present?
+      @current_sponsors = @project.current_github_sponsors_count
+      @total_sponsors = @project.total_github_sponsors_count
+      @past_sponsors = @project.past_github_sponsors_count
+    end
   end
 
   def responsiveness
