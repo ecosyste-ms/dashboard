@@ -1,62 +1,51 @@
-<div class="dboard-filter-controls d-flex align-items-center  justify-content-md-between well p-2 mb-4">
-  <div class="me-3" role="group">
+<div class="dboard-filter-controls d-lg-flex align-items-lg-center  justify-content-md-between well p-2 mb-4">
+  <div class="dboard-filter-controls__section" role="group">
+    <span class="small hide-large mt-2 mb-1">Period</span>
     <%= link_to "Year", url_for(request.query_parameters.merge(range: 'year', year: Time.current.year, month: nil)), class: "btn btn-link #{'active' if @range == 'year'}" %>
     <%= link_to "Month", url_for(request.query_parameters.merge(range: 'month', year: Time.current.year, month: Time.current.month)), class: "btn btn-link #{'active' if @range == 'month'}" %>
   </div>
-  
-  <div class="dropdown">
-    <button class="btn btn-link dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-      <%= period_label(@year, @range == 'month' ? @month : nil) %> <i class="fas fa-chevron-down ms-1"></i>
-    </button>
-    <ul class="dropdown-menu" aria-labelledby="periodDropdown">
-      <% 10.times do |i| %>
-        <% date = Time.current - i.send(@range == 'year' ? :years : :months) %>
-        <% year = date.year %>
-        <% month = @range == 'month' ? date.month : nil %>
-        <li>
-          <%= link_to period_label(year, month), url_for(request.query_parameters.merge(year: year, month: month)), class: "dropdown-item" %>
-        </li>
-      <% end %>
-    </ul>
+  <div class="dboard-filter-controls__comparison">
+    <div class="dboard-filter-controls__section">
+      <span class="small mt-3 mt-lg-0 mb-1 mb-lg-0">Comparing</span>
+      <button class="btn btn-link btn-link--d dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        August
+      </button>
+      <button class="btn btn-link dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        2025
+      </button>
+    </div>
+    <div class="dboard-filter-controls__section">
+      <span class="small mt-3 mt-lg-0 mb-1 mb-lg-0">with</span>
+      <button class="btn btn-link dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        August
+      </button>
+      <button class="btn btn-link dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        2023
+      </button>
+    </div>
   </div>
 </div>
 
-<div class="dboard-filter-controls d-flex align-items-center  justify-content-md-between well p-2 mb-4">
-  <div class="me-3" role="group">
+<div class="dboard-filter-controls d-lg-flex align-items-lg-center  justify-content-md-between well p-2 mb-4">
+  <div class="dboard-filter-controls__section" role="group">
+    <span class="small hide-large mt-2 mb-1">Period</span>
     <%= link_to "Year", url_for(request.query_parameters.merge(range: 'year', year: Time.current.year, month: nil)), class: "btn btn-link #{'active' if @range == 'year'}" %>
     <%= link_to "Month", url_for(request.query_parameters.merge(range: 'month', year: Time.current.year, month: Time.current.month)), class: "btn btn-link #{'active' if @range == 'month'}" %>
   </div>
-  <div class="dropdown">
-    <span class="small">Comparing</span>
-    <button class="btn btn-link dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-      2023
-    </button>
-    <span class="small">with</span>
-    <button class="btn btn-link dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-      2023
-    </button>
-  </div>
-</div>
-
-<div class="dboard-filter-controls d-flex align-items-center  justify-content-md-between well p-2 mb-4">
-  <div class="me-3" role="group">
-    <%= link_to "Year", url_for(request.query_parameters.merge(range: 'year', year: Time.current.year, month: nil)), class: "btn btn-link #{'active' if @range == 'year'}" %>
-    <%= link_to "Month", url_for(request.query_parameters.merge(range: 'month', year: Time.current.year, month: Time.current.month)), class: "btn btn-link #{'active' if @range == 'month'}" %>
-  </div>
-  <div class="dropdown">
-    <span class="small">Comparing</span>
-    <button class="btn btn-link btn-light dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-      August
-    </button>
-    <button class="btn btn-link btn-filter-control dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-      2025
-    </button>
-    <span class="small">with</span>
-    <button class="btn btn-link btn-filter-control dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-      August
-    </button>
-    <button class="btn btn-link btn-filter-control dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-      2023
-    </button>
+  <div class="dboard-filter-controls__comparison">
+    <div class="dboard-filter-controls__section">
+      <span class="small mt-3 mt-lg-0 mb-1 mb-lg-0">Comparing</span>
+      
+      <button class="btn btn-link dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        2025
+      </button>
+    </div>
+    <div class="dboard-filter-controls__section">
+      <span class="small mt-3 mt-lg-0 mb-1 mb-lg-0">with</span>
+      
+      <button class="btn btn-link dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        2023
+      </button>
+    </div>
   </div>
 </div>
