@@ -928,6 +928,10 @@ class Project < ApplicationRecord
     end
   end
 
+  def collective_url
+    collective&.html_url
+  end
+
   def fetch_github_sponsors
     return unless funding_links.any?{|f| f.include?('github.com/sponsors') }
     
@@ -962,5 +966,10 @@ class Project < ApplicationRecord
 
   def past_github_sponsors_count
     total_github_sponsors_count - current_github_sponsors_count
+  end
+
+  def github_sponsors_url
+    return unless github_sponsors.present?
+    github_sponsors['sponsors_url']
   end
 end
