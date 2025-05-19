@@ -1,25 +1,25 @@
 <div class="dashboard-layout__navigation">
   <ul class="nav nav-pills flex-column dboard-nav me-4">
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'show' %>" href="<%= collection_path(@collection) %>">Overview</a>
+      <a class="nav-link <%= 'active' if action_name == 'show' %>" href="<%= collection_path(@collection, request.query_parameters) %>">Overview</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'productivity' %>" aria-current="page" href="<%= productivity_collection_path(@collection) %>">Productivity</a>
+      <a class="nav-link <%= 'active' if action_name == 'productivity' %>" aria-current="page" href="<%= productivity_collection_path(@collection, request.query_parameters) %>">Productivity</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'responsiveness' %>" href="<%= responsiveness_collection_path(@collection) %>">Responsiveness</a>
+      <a class="nav-link <%= 'active' if action_name == 'responsiveness' %>" href="<%= responsiveness_collection_path(@collection, request.query_parameters) %>">Responsiveness</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'finance' %>" href="<%= finance_collection_path(@collection) %>">Finance</a>
+      <a class="nav-link <%= 'active' if action_name == 'finance' %>" href="<%= finance_collection_path(@collection, request.query_parameters) %>">Finance</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'engagement' %>" href="<%= engagement_collection_path(@collection) %>">Engagement</a>
+      <a class="nav-link <%= 'active' if action_name == 'engagement' %>" href="<%= engagement_collection_path(@collection, request.query_parameters) %>">Engagement</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'adoption' %>" href="<%= adoption_collection_path(@collection) %>">Adoption</a>
+      <a class="nav-link <%= 'active' if action_name == 'adoption' %>" href="<%= adoption_collection_path(@collection, request.query_parameters) %>">Adoption</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'dependency' %>" href="<%= dependency_collection_path(@collection) %>">Dependency</a>
+      <a class="nav-link <%= 'active' if action_name == 'dependency' %>" href="<%= dependency_collection_path(@collection, request.query_parameters) %>">Dependency</a>
     </li>
   </ul>
 </div>
