@@ -1,7 +1,8 @@
 <% if params[:range] == 'year' %>
-  <div class="dboard-filter-controls d-lg-flex align-items-lg-center  justify-content-md-between well p-2 mb-4">
-    <div class="dboard-filter-controls__section" role="group">
-      <span class="small hide-large mt-2 mb-1">Period</span>
+  <fieldset class="dboard-filter-controls d-lg-flex align-items-lg-center justify-content-md-between well p-2 mb-4">
+    <legend class="visually-hidden">Date comparison selection</legend>
+    <div class="dboard-filter-controls__section">
+      <span class="small hide-large mt-2 mb-1" aria-hidden="true">Period</span>
       <%= link_to "Year", url_for(request.query_parameters.merge(range: 'year', year: Time.current.year, month: nil)), class: "btn btn-link #{'active' if @range == 'year'}" %>
       <%= link_to "Month", url_for(request.query_parameters.merge(range: 'month', year: Time.current.year, month: Time.current.month)), class: "btn btn-link #{'active' if @range == 'month'}" %>
     </div>
@@ -9,7 +10,7 @@
       <div class="dboard-filter-controls__section">
         <span class="small mt-3 mt-lg-0 mb-1 mb-lg-0">Comparing</span>
         
-        <button class="btn btn-link dropdown-toggle" type="button" id="previousPeriodYearDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <button class="btn btn-link dropdown-toggle" type="button" id="previousPeriodYearDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
           <%= @previous_year %>
         </button>
         <ul class="dropdown-menu" aria-labelledby="previousPeriodYearDropdown">
@@ -25,8 +26,8 @@
       </div>
       <div class="dboard-filter-controls__section">
         <span class="small mt-3 mt-lg-0 mb-1 mb-lg-0">with</span>
-        
-        <button class="btn btn-link dropdown-toggle" type="button" id="currentPeriodYearDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            
+        <button class="btn btn-link dropdown-toggle" type="button" id="currentPeriodYearDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
           <%= @year %>
         </button>
         <ul class="dropdown-menu" aria-labelledby="currentPeriodYearDropdown">
@@ -41,9 +42,10 @@
         </ul>
       </div>
     </div>
-  </div>
+  </fieldset>
 <% else %>
-  <div class="dboard-filter-controls d-lg-flex align-items-lg-center  justify-content-md-between well p-2 mb-4">
+  <fieldset class="dboard-filter-controls d-lg-flex align-items-lg-center  justify-content-md-between well p-2 mb-4">
+    <legend class="visually-hidden">Date comparison selection</legend>
     <div class="dboard-filter-controls__section" role="group">
       <span class="small hide-large mt-2 mb-1">Period</span>
       <%= link_to "Year", url_for(request.query_parameters.merge(range: 'year', year: Time.current.year, month: nil)), class: "btn btn-link #{'active' if @range == 'year'}" %>
@@ -52,7 +54,7 @@
     <div class="dboard-filter-controls__comparison">
       <div class="dboard-filter-controls__section">
         <span class="small mt-3 mt-lg-0 mb-1 mb-lg-0">Comparing</span>
-        <button class="btn btn-link btn-link--d dropdown-toggle" type="button" id="previousPeriodMonthDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <button class="btn btn-link btn-link--d dropdown-toggle" type="button" id="previousPeriodMonthDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
           <%= Date::MONTHNAMES[@previous_month] %>
         </button>
         <ul class="dropdown-menu" aria-labelledby="previousPeriodMonthDropdown">
@@ -62,7 +64,7 @@
             </li>
           <% end %>
         </ul>
-        <button class="btn btn-link dropdown-toggle" type="button" id="previousPeriodYearDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <button class="btn btn-link dropdown-toggle" type="button" id="previousPeriodYearDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
           <%= @previous_year %>
         </button>
         <ul class="dropdown-menu" aria-labelledby="previousPeriodYearDropdown">
@@ -77,7 +79,7 @@
       </div>
       <div class="dboard-filter-controls__section">
         <span class="small mt-3 mt-lg-0 mb-1 mb-lg-0">with</span>
-        <button class="btn btn-link dropdown-toggle" type="button" id="currentPeriodMonthDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <button class="btn btn-link dropdown-toggle" type="button" id="currentPeriodMonthDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
           <%= Date::MONTHNAMES[@month] %>
         </button>
         <ul class="dropdown-menu" aria-labelledby="currentPeriodMonthDropdown">
@@ -87,7 +89,7 @@
             </li>
           <% end %>
         </ul>
-        <button class="btn btn-link dropdown-toggle" type="button" id="currentPeriodYearDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <button class="btn btn-link dropdown-toggle" type="button" id="currentPeriodYearDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
           <%= @year %>
         </button>
         <ul class="dropdown-menu" aria-labelledby="currentPeriodYearDropdown">
@@ -101,5 +103,5 @@
         </ul>
       </div>
     </div>
-  </div>
+  </fieldset>
 <% end %>
