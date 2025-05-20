@@ -23,10 +23,22 @@ html {
   }
 }
 
-#glossary h3:target {
-  background-color: #fff3cd; /* Bootstrap warning background */
-  border-left: 4px solid #ffc107;
-  padding-left: 0.75rem;
-  scroll-margin-top: 4rem; /* keeps it from hiding under navbars */
-  transition: background-color 0.3s;
+.glossary {
+  :target {
+    background-color: $color-purple-transparent;
+    padding: 1rem 1.75rem 0;
+    scroll-margin-top: 4rem; 
+    transition: background-color 0.3s;
+    color: $color-purple-dark;
+    margin-bottom: 0;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    & + p {
+      background-color: $color-purple-transparent;
+      border-bottom: 3px solid $color-purple;
+      padding: 0.5rem 1.75rem 1.5rem;
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+  }
 }
