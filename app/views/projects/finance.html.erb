@@ -49,6 +49,11 @@
             <%= small_widget 'Total sponsors', @total_sponsors, nil %>
           </div>
 
+          <div class="two-thirds-widgets">
+            <%= small_widget 'Minimum sponsorship', 14, nil, symbol: '$', currency: true %>
+            <%= no_data_widget 'Missing Data', card_class: "well--grey two-thirds-widgets__large" %>
+          </div>
+
           <div class="three-equal-widgets">
             <%= no_data_widget "Contributions" %>
             <%= no_data_widget "Payments" %>
