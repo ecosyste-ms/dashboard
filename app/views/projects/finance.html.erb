@@ -65,10 +65,12 @@
       <% end %>
 
       <% if @project.other_funding_links.present? %>
-        <div class="card one-third-widget-group__small well p-3 my-4 border-0">
+        <div class="d-md-flex justify-content-between align-items-center mt-4 mb-2">
+          <h2>Other Funding links</h2>
+        </div>
+        <div class="card one-third-widget-group__small well p-3 border-0">
           <div class="card-body">
-            <h5 class="card-title small">Other Funding links</h5>
-            
+
             <ul class="list-unstyled">
               <% @project.other_funding_links.each do |link| %>
 
