@@ -26,10 +26,14 @@ module WidgetHelper
               content_tag(:span, class: stat_class) do
                 safe_join([
                   "#{currency ? number_to_currency(current_value, unit: symbol || '$') : "#{number_with_delimiter(current_value)}#{symbol}"}".strip + ' ',
-                  caret_icon_for(current_value, previous_value)
+                  previous_value.present? ? caret_icon_for(current_value, previous_value) : "".html_safe,
                 ])
               end +
-              content_tag(:span, "#{currency ? number_to_currency(previous_value, unit: symbol || '$') : "#{number_with_delimiter(previous_value)}#{symbol}"} last period", class: "stat-card-text")
+              if previous_value.present?
+                content_tag(:span, "#{currency ? number_to_currency(previous_value, unit: symbol || '$') : "#{number_with_delimiter(previous_value)}#{symbol}"} last period", class: "stat-card-text")
+              else
+                "".html_safe
+              end
             end
           end
         else
@@ -62,12 +66,16 @@ module WidgetHelper
     end
   end
 
-  def no_data_widget(title, message = "Data unavailable")
-    stat_card_widget(title, nil, nil, increase_good: true, symbol: nil, title_class: "small", card_class: "well--grey", stat_size: "large") do
-      content_tag(:span, class: "stat-card-title stat-card-title--large stat-card-number stat-card-number-negative") do
-        content_tag(:span, "?", class: "extra-bold")
-      end + 
-      content_tag(:span, message, class: "stat-card-text") 
+  def no_data_widget(title, message = "Data unavailable", card_class: "well--grey", &block)
+    stat_card_widget(title, nil, nil, increase_good: true, symbol: nil, title_class: "small", card_class: card_class, stat_size: "large") do
+      if block_given? 
+        capture(&block)
+      else
+        content_tag(:span, class: "stat-card-title stat-card-title--large stat-card-number stat-card-number-negative") do
+          content_tag(:span, "?", class: "extra-bold")
+        end + 
+        content_tag(:span, message, class: "stat-card-text") 
+      end
     end
   end
 
