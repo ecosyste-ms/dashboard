@@ -66,12 +66,16 @@ module WidgetHelper
     end
   end
 
-  def no_data_widget(title, message = "Data unavailable", card_class: "well--grey")
-    stat_card_widget(title, nil, nil, increase_good: true, symbol: nil, title_class: "small", card_class: "well--grey", stat_size: "large") do
-      content_tag(:span, class: "stat-card-title stat-card-title--large stat-card-number stat-card-number-negative") do
-        content_tag(:span, "?", class: "extra-bold")
-      end + 
-      content_tag(:span, message, class: "stat-card-text") 
+  def no_data_widget(title, message = "Data unavailable", card_class: "well--grey", &block)
+    stat_card_widget(title, nil, nil, increase_good: true, symbol: nil, title_class: "small", card_class: card_class, stat_size: "large") do
+      if block_given? 
+        capture(&block)
+      else
+        content_tag(:span, class: "stat-card-title stat-card-title--large stat-card-number stat-card-number-negative") do
+          content_tag(:span, "?", class: "extra-bold")
+        end + 
+        content_tag(:span, message, class: "stat-card-text") 
+      end
     end
   end
 
