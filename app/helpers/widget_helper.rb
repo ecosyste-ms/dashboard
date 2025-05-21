@@ -18,45 +18,58 @@ module WidgetHelper
     content_tag(:div, class: "card #{card_class} well p-3 border-0") do
       content_tag(:div, class: "card-body") do
         stat_card_header(title, title_class) +
-        content_tag(:div, class: "stat-card mb-2") do
-          content_tag(:div, class: "stat-card-body") do
-            stat_class = "stat-card-title stat-card-title--#{stat_size} #{stat_class_for(current_value, previous_value, increase_good)}"
-
-            content_tag(:span, class: stat_class) do
-              safe_join([
-                "#{currency ? number_to_currency(current_value, unit: symbol || '$') : "#{number_with_delimiter(current_value)}#{symbol}"}".strip + ' ',
-                (previous_value.nil? ? nil : caret_icon_for(current_value, previous_value))
-              ])
-            end +
-            (previous_value.nil? ? "".html_safe : content_tag(:span, "#{currency ? number_to_currency(previous_value, unit: symbol || '$') : "#{number_with_delimiter(previous_value)}#{symbol}"} last period", class: "stat-card-text"))
+        if current_value.present? || previous_value.present?
+          content_tag(:div, class: "stat-card mb-2") do
+            content_tag(:div, class: "stat-card-body") do
+              stat_class = "stat-card-title stat-card-title--#{stat_size} #{stat_class_for(current_value, previous_value, increase_good)}"
+            
+              content_tag(:span, class: stat_class) do
+                safe_join([
+                  "#{currency ? number_to_currency(current_value, unit: symbol || '$') : "#{number_with_delimiter(current_value)}#{symbol}"}".strip + ' ',
+                  caret_icon_for(current_value, previous_value)
+                ])
+              end +
+              content_tag(:span, "#{currency ? number_to_currency(previous_value, unit: symbol || '$') : "#{number_with_delimiter(previous_value)}#{symbol}"} last period", class: "stat-card-text")
+            end
           end
+        else
+          "".html_safe
         end +
         (block_given? ? capture(&block) : "".html_safe)
       end
     end
   end
 
-def stat_card_header(title, title_class)
-  id = (title+' help').parameterize
-  puts title + " #" +id
-  content_tag(:h5, class: "card-title #{title_class}") do
-    safe_join([
-      title,
-      content_tag(:a, href: glossary_path(anchor: id), aria: { labelledby: id}) do
-        bootstrap_icon('question-circle',
-          width: 18,
-          height: 18,
-          aria_hidden: 'true',
-          focusable: 'false',
-          role: 'img',
-          class: 'mb-1 ms-2',
-          title: "What is #{title}?",
-        ) +
-        content_tag(:span, "What is #{title}?", id: id, class: "visually-hidden")
-      end
-    ])
+  def stat_card_header(title, title_class)
+    id = (title+' help').parameterize
+    puts title + " #" +id
+    content_tag(:h5, class: "card-title #{title_class}") do
+      safe_join([
+        title,
+        content_tag(:a, href: glossary_path(anchor: id), aria: { labelledby: id}) do
+          bootstrap_icon('question-circle',
+            width: 18,
+            height: 18,
+            aria_hidden: 'true',
+            focusable: 'false',
+            role: 'img',
+            class: 'mb-1 ms-2',
+            title: "What is #{title}?",
+          ) +
+          content_tag(:span, "What is #{title}?", id: id, class: "visually-hidden")
+        end
+      ])
+    end
   end
-end
+
+  def no_data_widget(title, message = "Data unavailable")
+    stat_card_widget(title, nil, nil, increase_good: true, symbol: nil, title_class: "small", card_class: "well--grey", stat_size: "large") do
+      content_tag(:span, class: "stat-card-title stat-card-title--large stat-card-number stat-card-number-negative") do
+        content_tag(:span, "?", class: "extra-bold")
+      end + 
+      content_tag(:span, message, class: "stat-card-text") 
+    end
+  end
 
   def display_link(url)
     url.gsub(/https?:\/\//, '').gsub(/www\./, '')

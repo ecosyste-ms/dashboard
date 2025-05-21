@@ -48,6 +48,12 @@
             <%= small_widget 'Past sponsors', @past_sponsors, nil %>
             <%= small_widget 'Total sponsors', @total_sponsors, nil %>
           </div>
+
+          <div class="three-equal-widgets">
+            <%= no_data_widget "Contributions" %>
+            <%= no_data_widget "Payments" %>
+            <%= no_data_widget "Balance" %>
+          </div>
         </div>
       <% end %>
     </div>
