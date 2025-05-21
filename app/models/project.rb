@@ -968,6 +968,11 @@ class Project < ApplicationRecord
     total_github_sponsors_count - current_github_sponsors_count
   end
 
+  def github_minimum_sponsorship_amount
+    return 1 unless github_sponsors.present?
+    github_sponsors['minimum_sponsorship_amount'] || 1
+  end
+
   def github_sponsors_url
     return unless github_sponsors.present?
     github_sponsors['sponsors_url']
