@@ -7,20 +7,28 @@
     <%= render 'nav' %>
 
     <div class="dashboard-layout__dboard">
-    <h1 class="mb-4">Responsiveness</h1>
-        <%= render 'date_nav' %>
-
-        <div class="dashboard-grid">
-          <!-- Row 1: Three equal widgets -->
-          <div class="three-equal-widgets">
-            <%= small_widget 'Time to close PRs', @time_to_close_prs_this_period, @time_to_close_prs_last_period, symbol: ' days', increase_good: false %>
-            <%= small_widget 'Time to acknowledge PRs', 2.1, 1.3, symbol: ' days' %>
-          </div>
-          <div class="three-equal-widgets">
-             <%= small_widget 'Time to close issues', @time_to_close_issues_this_period, @time_to_close_issues_last_period, symbol: ' days', increase_good: false  %>
-            <%= small_widget 'Time to acknowledge issues', 2.1, 1.3, symbol: ' days' %>
-          </div>
+     <div class="d-md-flex justify-content-between align-items-center mb-4">
+        <h1>Responsiveness</h1>
+        <div class="form-check form-switch form-check-reverse bot-check fs-3">
+          <label class="form-check-label" for="botToggle"><span class="visually-hidden">Bot data</span> <%= bootstrap_icon 'robot',
+            width: 24, height: 24, aria_hidden: 'true', focusable: 'false', role: 'img', class: 'mb-1', title: 'what is ranking?'
+          %></label>
+          <input class="form-check-input " type="checkbox" role="switch" id="botToggle" checked>
         </div>
+      </div>
+      <%= render 'date_nav' %>
+
+      <div class="dashboard-grid">
+        <!-- Row 1: Three equal widgets -->
+        <div class="three-equal-widgets">
+          <%= small_widget 'Time to close PRs', @time_to_close_prs_this_period, @time_to_close_prs_last_period, symbol: ' days', increase_good: false %>
+          <%= small_widget 'Time to acknowledge PRs', 2.1, 1.3, symbol: ' days' %>
+        </div>
+        <div class="three-equal-widgets">
+            <%= small_widget 'Time to close issues', @time_to_close_issues_this_period, @time_to_close_issues_last_period, symbol: ' days', increase_good: false  %>
+          <%= small_widget 'Time to acknowledge issues', 2.1, 1.3, symbol: ' days' %>
+        </div>
+      </div>
     </div>
   </div>
 </div>
