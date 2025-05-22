@@ -111,6 +111,14 @@ $badge-padding-y: 0.4em;
   }
 }
 
+.extra-bold {
+  font-weight: 900;
+}
+
+.extra-small {
+  @include font-size(0.778rem);
+}
+
 /* Global selection style */
 ::selection {
   background-color: $color-purple-light;
@@ -124,6 +132,7 @@ $badge-padding-y: 0.4em;
   cursor: pointer;
 }
 
+/* General reusable elements */
 .btn-primary {
   background: linear-gradient(180deg, $color-purple 0%, $color-purple-dark 100%);
   color: $color-white;
@@ -255,6 +264,72 @@ hr {
   text-decoration: none;
   &:hover{
     text-decoration: underline;
+  }
+}
+
+.dark-section {
+  background-color: $color-purple-dark;
+  color: $color-white;
+  .text-muted {
+    color: rgba(255,255,255,0.666) !important;
+  }
+  a {
+    color: $color-white;
+    &:hover,
+    &:active,
+    &:focus, 
+    &:visited {
+      color: $color-white;
+    }
+  }
+}
+
+.grey-grad-bg  {
+  background: linear-gradient(180deg, $color-white 0%, $color-grey-light 100%);
+}
+
+.ecosystems-pattern {
+  background-color: lighten($color-purple-light, 8%);
+  background-image: asset-url('ecosystems-pattern.svg');
+  background-repeat: repeat;
+  background-size: calc(696px/2) calc(238px/2);
+  background-attachment: fixed;
+}
+
+.purple-grad-bg  {
+  background-color: $color-purple-dark;
+  background: linear-gradient(0deg, $color-purple-dark 0%, $color-purple 50%);
+  color: $color-white;
+  .text-muted {
+    color: rgba(255,255,255,0.666) !important;
+  }
+}
+
+/* Put an icon next to a link and make the whole lockup clickable */
+.link-with-icon {
+  display: inline-flex;
+  align-items: flex-start;    /* top-align icon and first line of text */
+  gap: 0.5em; 
+                   
+  .link-with-icon__icon {
+    flex: 0 0 18px; /* shorthand for flex-grow:0, flex-shrink:0, flex-basis:18px */
+    width: 18px;
+    height: 18px;
+    margin-top: 4px;
+  }
+
+  .link-with-icon__text {
+    display: block;
+    overflow-wrap: break-word; 
+    word-break: break-word; 
+  }
+  &:hover,
+  &:active,
+  &:focus {
+    .link-with-icon__text {
+      text-decoration: underline;
+      color: $color-purple-dark;
+    }
   }
 }
 
@@ -395,31 +470,6 @@ body {
   }
 }
 
-.dark-section {
-  background-color: $color-purple-dark;
-  color: $color-white;
-  .text-muted {
-    color: rgba(255,255,255,0.666) !important;
-  }
-  a {
-    color: $color-white;
-    &:hover,
-    &:active,
-    &:focus, 
-    &:visited {
-      color: $color-white;
-    }
-    
-  }
-}
-.extra-bold {
-  font-weight: 900;
-}
-
-.extra-small {
-  @include font-size(0.778rem);
-}
-
 .table a {
   @include spesh-link();
 }
@@ -455,9 +505,12 @@ body {
     text-decoration: none;
   }
 }
+
 .lead {
   @include font-size(1.625rem);
 }
+
+/* Homepage */
 
 /* Hero */
 .hero {
@@ -478,10 +531,6 @@ body {
 .label {
   display: block;
   @include font-size(0.875rem);
-}
-
-.grey-grad-bg  {
-  background: linear-gradient(180deg, #FFFFFF 0%, #F5F5FF 100%);
 }
 
 .block-link {
@@ -563,6 +612,35 @@ body {
   border: 1px solid $color-purple-light;
 }
 
+.logo-grid {
+  img {
+    max-height: 60px; 
+    width: auto;
+    object-fit: contain;
+  }
+}
+  
+.logo-grid {
+	display: flex;
+	justify-content: space-around;
+	align-items: center; /* Align logos vertically */
+	flex-wrap: wrap;
+	gap: 2rem 2rem;
+	@include media-breakpoint-up(xl) { 
+	  flex-wrap: nowrap;
+	  justify-content: space-between; 
+	}
+	a {
+	  display: block;
+	}
+}
+  
+.logo-grid__logo {
+	max-width: 150px;
+}
+
+/* Text content pages */
+
 .page-content {
   h2, h3, h4, h5 {
     margin-top: 2rem;
@@ -576,31 +654,12 @@ body {
 
 .page-content__title {
   margin-bottom: 3rem;
-  
 }
 
 .page-content__title + .lead {
   margin-top: -1rem;
   margin-bottom: 1rem;
 }
-
-.ecosystems-pattern {
-  background-color: lighten($color-purple-light, 8%);
-  background-image: asset-url('ecosystems-pattern.svg');
-  background-repeat: repeat;
-  background-size: calc(696px/2) calc(238px/2);
-  background-attachment: fixed;
-}
-
-.purple-grad-bg  {
-  background-color: $color-purple-dark;
-  background: linear-gradient(0deg, $color-purple-dark 0%, $color-purple 50%);
-  color: $color-white;
-  .text-muted {
-    color: rgba(255,255,255,0.666) !important;
-  }
-}
-
 
 /* Error pages */
 .error-bg {
@@ -703,7 +762,7 @@ body {
 		table {
 		  --bs-table-bg: transparent;
 		}
-	  }
+	}
 }
 
 .table {
@@ -746,37 +805,13 @@ body {
 	max-width: 400px !important; 
 	text-align: left; 
 }
-  
-.logo-grid {
-  img {
-    max-height: 60px; 
-    width: auto;
-    object-fit: contain;
-  }
-}
-  
-.logo-grid {
-	display: flex;
-	justify-content: space-around;
-	align-items: center; /* Align logos vertically */
-	flex-wrap: wrap;
-	gap: 2rem 2rem;
-	@include media-breakpoint-up(xl) { 
-	  flex-wrap: nowrap;
-	  justify-content: space-between; 
-	}
-	a {
-	  display: block;
-	}
-}
-  
-.logo-grid__logo {
-	max-width: 150px;
-}
+
 
 .bg-secondary {
 	color: $color-black;
 }
+
+/* Listing - used for search results or filterable elements, such as on advisories */
 
 .listing {
 	border: 0;
@@ -784,7 +819,6 @@ body {
 	border-bottom: 3px solid $color-purple-light;
 	padding: 0;
 }
-  
   
 .listing__title {
 	@include font-size(1rem);
@@ -846,6 +880,7 @@ body {
 	line-break: anywhere;
 }
 
+/* Used for search input field/go button lockups */
 .rounded-input-group {
 	.form-control {
 		border-top-left-radius: 800px; //magic number, but it's consistent with bootstrap
@@ -857,8 +892,7 @@ body {
 	}
 }
 
-
-// Form validation
+/* Form validation */
 .invalid-feedback {
 	color: $color-orange-dark;
 }
@@ -872,6 +906,7 @@ body {
 	color: $color-green-darker;
 }
 
+/* Sidebar with complentary info, used on filterable listing pages */
 .sidebar {
 	background-color: $color-grey-light;
 	p { 
@@ -879,7 +914,6 @@ body {
 	}
 	h2 {
 		@include font-size(1.25rem);
-
     border-top: 1px solid $color-purple-light;
     padding-top: 1rem;
     &:first-of-type {
@@ -887,16 +921,12 @@ body {
       padding-top: 0;
     }
 	}
-
 	h3 {
 		@include font-size(1rem);
-    
 	}
-
   code {
     color: $color-purple-dark;
   }
-
   a {
     @include spesh-link();
     line-break: anywhere;
@@ -904,7 +934,6 @@ body {
 }
 
 /* Dashboard */
-
 .dashboard-layout {
   display: grid;
   grid-template-columns: 100%;
@@ -953,8 +982,7 @@ body {
   }
   @include media-breakpoint-up(lg) { 
       display: inline;
-      margin-bottom: 0;
-      
+      margin-bottom: 0;  
   }
   .small {
     grid-column: -1/1;
@@ -988,7 +1016,6 @@ body {
   }
 }
 
-
 .dboard-nav {
   .nav-link {
     color: $color-black;
@@ -1004,6 +1031,7 @@ body {
     }
   }
 }
+/* Layouts used for dashboard only. These don't use Bootstrap's layout system but share variables */
 
 .dashboard-grid {
   display: grid;
@@ -1078,27 +1106,21 @@ body {
     }
   }
   @include media-breakpoint-up(lg) { 
-      /* subtract 2 gaps (just like the 3-col layout) then split by 3
-      if we don't do this the vertical lines of the grid DON'T LINE UP
-      Thanks maths
-      */
-      grid-template-columns:
-        minmax(0, calc((100% - 2 * #{$grid-gutter-width}) / 3))
-        2fr;
-      grid-template-rows: repeat(2, auto);
-
-
+    /* subtract 2 gaps (just like the 3-col layout) then split by 3
+    if we don't do this the vertical lines of the grid DON'T LINE UP
+    Thanks maths
+    */
+    grid-template-columns: minmax(0, calc((100% - 2 * #{$grid-gutter-width}) / 3)) 2fr;
+    grid-template-rows: repeat(2, auto);
     .two-thirds-widget-group__small:nth-of-type(1) {
       grid-column: 1;
       grid-row: 1;
     }
-    
     /* Second small card in bottom-left */
     .two-thirds-widget-group__small:nth-of-type(2) {
       grid-column: 1;
       grid-row: 2;
     }
-    
     /* Large card spans both rows on the right */
     .two-thirds-widget-group__large {
       grid-column: 2;
@@ -1113,20 +1135,15 @@ body {
       * |  3  | 1 |
       * |     | 2 |
       */
-      grid-template-columns: 
-        2fr
-        minmax(0, calc((100% - 2 * #{$grid-gutter-width}) / 3));
-
+      grid-template-columns: 2fr minmax(0, calc((100% - 2 * #{$grid-gutter-width}) / 3));
       .two-thirds-widget-group__large {
         grid-column: 1;
         grid-row: 1 / span 2;
       }
-
       .two-thirds-widget-group__small:nth-of-type(1) {
         grid-column: 2;
         grid-row: 1;
       }
-
       .two-thirds-widget-group__small:nth-of-type(2) {
         grid-column: 2;
         grid-row: 2;
@@ -1134,8 +1151,6 @@ body {
     }
   }
 }
-
-
 
 .one-third-widget-group {
   /* 
@@ -1153,7 +1168,6 @@ body {
   @include media-breakpoint-up(md) { 
     grid-template-columns: 1fr 1fr;
     grid-auto-flow: row dense;
-    
     /* Make the large card span the full width on medium screens */
     .one-third-widget-group__large {
       grid-column: 1 / -1;
@@ -1165,22 +1179,18 @@ body {
     if we don't do this the vertical lines of the grid DON'T LINE UP
     Thanks maths
     */
-    grid-template-columns:
-    minmax(0, calc((100% - 2 * #{$grid-gutter-width}) / 3))
-    2fr;
+    grid-template-columns: minmax(0, calc((100% - 2 * #{$grid-gutter-width}) / 3)) 2fr;
     grid-template-rows: repeat(2, auto);
     /* Large card spans both rows on the left */
     .one-third-widget-group__large {
       grid-column: 1;
       grid-row: 1 / span 2; /* Start at row 1 and span 2 rows */
     }
-    
     /* First small card in top-right */
     .one-third-widget-group__small:nth-of-type(1) {
       grid-column: 2;
       grid-row: 1;
     }
-    
     /* Second small card in bottom-right */
     .one-third-widget-group__small:nth-of-type(2) {
       grid-column: 2;
@@ -1189,8 +1199,6 @@ body {
   }
 }
 
-
-
 .chart-wrapper {
   position: relative;
   width: 100%;
@@ -1198,7 +1206,6 @@ body {
   position: relative;
   min-height: 200px; /* Fallback for SSR */
   aspect-ratio: 16/9; /* Modern aspect control */
-
   canvas {
     max-width: 100%;
     height: auto;
@@ -1218,6 +1225,7 @@ body {
   }
 }
 
+/* We use chart.js for all charts, except this simple horizontal stacked bar graph */
 .stacked-bar {
   display: flex;
   width: 100%;
@@ -1277,39 +1285,10 @@ body {
   background-color: $color-orange-light;
 }
 
-
-.link-with-icon {
-  display: inline-flex;
-  align-items: flex-start;    /* top-align icon and first line of text */
-  gap: 0.5em; 
-                   
-  .link-with-icon__icon {
-    flex: 0 0 18px; /* shorthand for flex-grow:0, flex-shrink:0, flex-basis:18px */
-    width: 18px;
-    height: 18px;
-    margin-top: 4px;
-  }
-
-  .link-with-icon__text {
-    display: block;
-    overflow-wrap: break-word; 
-    word-break: break-word; 
-  }
-  &:hover,
-  &:active,
-  &:focus {
-    .link-with-icon__text {
-      text-decoration: underline;
-      color: $color-purple-dark;
-    }
-  }
-}
-
 .dboard-collection-bar {
   .container {
     border-bottom: 3px solid $color-purple;
   }
-
 }
 
 a.project-badge {
@@ -1321,6 +1300,3 @@ a.project-badge {
     background-color: $color-purple !important;
   }
 }
-
-
-
