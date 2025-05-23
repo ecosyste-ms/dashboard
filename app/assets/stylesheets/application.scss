@@ -43,8 +43,49 @@ html {
   }
 }
 
-.bot-check,
-.bot-check label,
-.bot-check input {
-  cursor: pointer;
+.custom-switch-link {
+  position: relative;
+  display: inline-block;
+  padding-right: 3em;
+  text-decoration: none;
+  color: $color-black;
+  &:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40px;
+    height: 26px;
+    background: linear-gradient(0, $color-grey 80%, darken($color-grey, 5%) 100%);
+    border-radius: 24px; 
+    transition: background-position .15s ease-in-out; 
+    text-decoration: none; 
+
+  }
+  
+
+  &:before {
+    content: "";
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: 50%;
+    transition: transform 0.15s ease-in-out;
+    z-index: 100;
+    transform: translateX(-14px);
+    box-shadow: 1px 2px 3px rgba(0,0,0,0.1);
+  }
+
+  &.active {
+    &:after {
+      background-color: $color-purple;
+      background: linear-gradient(0, $color-purple 80%, $color-purple-dark 100%);
+    }
+    &:before {
+      transform: translateX(0px);
+    }
+  }
 }
