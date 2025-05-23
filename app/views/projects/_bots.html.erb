@@ -1,0 +1,8 @@
+<a href="
+  <%= url_for(request.query_parameters.merge(exclude_bots: request.query_parameters.key?(:exclude_bots) ? nil : 'true')) %>" 
+  class="custom-form-check-input custom-switch-link <%= "active" if !params[:exclude_bots].present? %>" role="switch">
+  <span class="visually-hidden">Show bots</span>
+  <%= bootstrap_icon 'robot',
+  width: 24, height: 24, aria_hidden: 'true', focusable: 'false', role: 'img', class: 'mb-1', title: ''
+  %>
+</a>
