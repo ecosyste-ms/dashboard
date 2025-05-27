@@ -46,7 +46,6 @@ module WidgetHelper
 
   def stat_card_header(title, title_class)
     id = (title+' help').parameterize
-    puts title + " #" +id
     content_tag(:h5, class: "card-title #{title_class}") do
       safe_join([
         title,
