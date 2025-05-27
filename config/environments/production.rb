@@ -86,6 +86,8 @@ Rails.application.configure do
     logger           = ActiveSupport::Logger.new(STDOUT)
     logger.formatter = config.log_formatter
     config.logger    = ActiveSupport::TaggedLogging.new(logger)
+
+    config.log_level = :debug # Set to debug for more detailed logs in production
   end
 
   # Do not dump schema after migrations.
