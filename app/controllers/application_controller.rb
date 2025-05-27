@@ -1,9 +1,26 @@
 class ApplicationController < ActionController::Base
-  skip_forgery_protection
+  # protect_from_forgery with: :exception
   include Pagy::Backend
 
   def default_url_options(options = {})
     Rails.env.production? ? { :protocol => "https" }.merge(options) : options
+  end
+
+  helper_method :current_user
+
+  def current_user
+    @current_user ||= User.find_by(id: session[:user_id])
+  end
+
+  def require_login
+    unless current_user
+      redirect_to root_path, alert: "You must be logged in to access this section"
+    end
+  end
+
+  helper_method :logged_in?
+  def logged_in?
+    current_user.present?
   end
 
   private
