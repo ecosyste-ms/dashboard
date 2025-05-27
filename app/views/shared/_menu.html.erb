@@ -2,16 +2,16 @@
   <ul class="nav">
     <% if logged_in? %>
       <li class="nav-item">  
-        <a class="nav-link" href="/" target="_blank">
+        <a class="nav-link" href="/collections" >
           <%= current_user.name %>
         </a>
       </li>
       <li class="nav-item">  
-        <a class="nav-link" href="/logout" target="_blank">Logout</a>
+        <a class="nav-link" href="/logout">Logout</a>
       </li>
     <% else %>
       <li class="nav-item">  
-        <a class="nav-link" href="/login" target="_blank">Login</a>
+        <a class="nav-link" href="/login">Login</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="https://opencollective.com/ecosystems" target="_blank">Support</a>
