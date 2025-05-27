@@ -43,6 +43,8 @@ gem 'packageurl-ruby', require: 'package_url'
 gem 'dalli'
 gem 'csv'
 gem 'ostruct'
+gem "omniauth-github"
+gem "omniauth-rails_csrf_protection"
 
 group :development, :test do
   gem "debug", platforms: %i[ mri mingw x64_mingw ]

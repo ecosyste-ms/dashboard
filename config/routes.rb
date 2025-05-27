@@ -84,5 +84,9 @@ Rails.application.routes.draw do
 
   get '/glossary', to: 'projects#glossary', as: :glossary
 
+  get '/login', to: 'sessions#new', as: :login
+  get '/auth/:provider/callback', to: 'sessions#create'
+  get '/logout', to: 'sessions#destroy'
+
   root "projects#index"
 end
