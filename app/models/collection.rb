@@ -14,6 +14,10 @@ class Collection < ApplicationRecord
 
   after_create :import_projects_from_url
 
+  def to_param
+    uuid
+  end
+
   def import_projects_from_url
     return if url.blank?
     # if url is a github org, import all repos
