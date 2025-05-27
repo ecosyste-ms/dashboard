@@ -145,8 +145,8 @@ class CollectionsController < ApplicationController
 
   def projects
     @collection = Collection.find(params[:id])
-    @collections = @collection.projects
-    @pagy, @collections = pagy(@collections)
+    @projects = @collection.projects
+    @pagy, @projects = pagy(@projects)
   end
 
   private
