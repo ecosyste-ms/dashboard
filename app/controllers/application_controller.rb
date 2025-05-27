@@ -12,9 +12,10 @@ class ApplicationController < ActionController::Base
     @current_user ||= User.find_by(id: session[:user_id])
   end
 
-  def require_login
+  def authenticate_user!
     unless current_user
-      redirect_to root_path, alert: "You must be logged in to access this section"
+      session[:return_to] = request.fullpath if request.get?
+      redirect_to login_path, alert: "You must be logged in to access this section"
     end
   end
 

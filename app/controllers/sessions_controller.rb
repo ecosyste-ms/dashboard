@@ -3,7 +3,7 @@ class SessionsController < ApplicationController
     user = User.from_omniauth(request.env['omniauth.auth'])
     session[:user_id] = user.id
     Rails.logger.debug "Auth Hash: #{request.env['omniauth.auth'].inspect}"
-    redirect_to root_path, notice: 'Signed in!'
+    redirect_to(session.delete(:return_to) || root_path, notice: 'Signed in!')
   end
 
   def new

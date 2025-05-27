@@ -4,13 +4,13 @@
 <div class="container">
   <div class="well p-4 my-5">
     <div class="col-lg-10 container text-center">
-      <form class="row g-2 justify-content-center" action='<%= lookup_projects_path %>' method="post">
-        <label for="repo_name">Enter a github repository URL</label>
+      <%= form_with url: lookup_projects_path, method: :post, html: { class: "row g-2 justify-content-center" } do %>
+        <label for="url">Enter a github repository URL</label>
         <div class="input-group rounded-input-group mt-3 mb-4">
-          <input name='url' type="text" class="form-control " id="url" placeholder="Eg. https://github.com/ecosyste-ms/packages" size="" >
-          <button type="submit" class="btn  btn-danger pe-4">View dashboard</button>
+          <%= text_field_tag :url, nil, class: "form-control", id: "url", placeholder: "URL: eg https://github.com/ecosyste-ms/packages", size: 50 %>
+          <%= submit_tag "Create collection", class: "btn btn-danger pe-4" %>
         </div>
-      </form>
+      <% end %>
     </div>
   </div>
 

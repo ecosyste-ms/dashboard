@@ -1,24 +1,26 @@
 class CollectionsController < ApplicationController
   before_action :set_period_vars, only: [:engagement, :productivity, :finance, :responsiveness]
 
+  before_action :authenticate_user!
+
   def index
-    scope = Collection.visible.all
+    scope = current_user.collections
     @pagy, @collections = pagy(scope)
   end
 
   def show
-    @collection = Collection.find(params[:id])
+    @collection = current_user.collections.find(params[:id])
     @range = range
     @period = period
     @top_package = @collection.packages.order_by_rankings.first
   end
 
   def new
-    @collection = Collection.new
+    @collection = current_user.collections.build
   end
 
   def create
-    @collection = Collection.new(collection_params)
+    @collection = current_user.collections.build(collection_params)
     if @collection.save
       redirect_to @collection, notice: 'Collection was successfully created.'
     else
@@ -27,7 +29,7 @@ class CollectionsController < ApplicationController
   end
 
   def adoption
-    @collection = Collection.find(params[:id])
+    @collection = current_user.collections.find(params[:id])
     @top_package = @collection.packages.order_by_rankings.first
   end
 
@@ -58,14 +60,14 @@ class CollectionsController < ApplicationController
   end
 
   def dependency
-    @collection = Collection.find(params[:id])
+    @collection = current_user.collections.find(params[:id])
     @direct_dependencies = @collection.direct_dependencies.length
     @development_dependencies = @collection.development_dependencies.length
     @transitive_dependencies = @collection.transitive_dependencies.length
   end
 
   def productivity
-    @collection = Collection.find(params[:id])
+    @collection = current_user.collections.find(params[:id])
     
     @commits_last_period = @collection.commits.between(@last_period_range.begin, @last_period_range.end).count
     @commits_this_period = @collection.commits.between(@this_period_range.begin, @this_period_range.end).count
@@ -102,7 +104,7 @@ class CollectionsController < ApplicationController
   end
 
   def finance
-    @collection = Collection.find(params[:id])
+    @collection = current_user.collections.find(params[:id])
 
     if @collection.collective.present?
 
@@ -124,7 +126,7 @@ class CollectionsController < ApplicationController
   end
 
   def responsiveness
-    @collection = Collection.find(params[:id])
+    @collection = current_user.collections.find(params[:id])
 
     @time_to_close_prs_last_period = (@collection.issues.pull_request.closed_between(@last_period_range.begin, @last_period_range.end)
       .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
@@ -144,7 +146,7 @@ class CollectionsController < ApplicationController
   end
 
   def projects
-    @collection = Collection.find(params[:id])
+    @collection = current_user.collections.find(params[:id])
     @projects = @collection.projects
     @pagy, @projects = pagy(@projects)
   end
