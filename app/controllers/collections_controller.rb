@@ -28,6 +28,25 @@ class CollectionsController < ApplicationController
     end
   end
 
+  def edit
+    @collection = current_user.collections.find_by_uuid(params[:id])
+  end
+
+  def update
+    @collection = current_user.collections.find_by_uuid(params[:id])
+    if @collection.update(collection_params)
+      redirect_to @collection, notice: 'Collection was successfully updated.'
+    else
+      render :edit
+    end
+  end
+
+  def destroy
+    @collection = current_user.collections.find_by_uuid(params[:id])
+    @collection.destroy
+    redirect_to collections_path, notice: 'Collection was successfully deleted.'
+  end
+
   def adoption
     @collection = current_user.collections.find_by_uuid(params[:id])
     @top_package = @collection.packages.order_by_rankings.first
