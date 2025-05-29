@@ -46,6 +46,7 @@ class Collection < ApplicationRecord
   end
 
   def import_projects
+    update(status: 'syncing')
     if respond_to?(:github_organization_url) && github_organization_url.present?
       import_from_github_org
     elsif respond_to?(:collective_url) && collective_url.present?
@@ -55,14 +56,35 @@ class Collection < ApplicationRecord
     elsif respond_to?(:dependency_file) && dependency_file.present?
       import_from_dependency_file
     end
+    update(status: 'ready')
+  rescue StandardError
+    update(status: 'error')
   end
 
   def import_from_github_org
-    # TODO: implement GitHub org import
+    return if github_organization_url.blank?
+    uri = URI.parse(github_organization_url)
+    org_name = uri.path.split("/")[1]
+    import_github_org(org_name)
   end
 
   def import_from_opencollective
-    # TODO: implement Open Collective import
+    return if collective_url.blank?
+    uri = URI.parse(collective_url)
+    org_name = uri.path.split("/")[1]
+    # fetch all projects from the Open Collective API
+    oc_api_url = "https://opencollective.ecosyste.ms/api/v1/collectives/#{org_name}/projects"
+    resp = Faraday.get(oc_api_url)
+    if resp.status == 200
+      data = JSON.parse(resp.body)
+      urls = data.map { |p| p['html_url'] }.uniq.reject(&:blank?)
+      urls.each do |url|
+        puts url
+        project = Project.find_or_create_by(url: url)
+        project.sync_async unless project.last_synced_at.present?
+        collection_projects.find_or_create_by(project: project)
+      end
+    end
   end
 
   def import_from_repo
@@ -76,9 +98,8 @@ class Collection < ApplicationRecord
   def import_projects_from_url
     return if url.blank?
     # if url is a github org, import all repos
-    if url =~ /github\.com\/([^\/]+)/
-      org_name = $1
-      import_github_org(org_name)
+    
+      
     else
       # TODO open collective url 
       # TODO single repo (dependencies)
