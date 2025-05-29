@@ -24,6 +24,8 @@ class CollectionsController < ApplicationController
     if @collection.save
       redirect_to @collection, notice: 'Collection was successfully created.'
     else
+      flash.now[:alert] = @collection.errors.full_messages.to_sentence
+      params[:collection_type] = nil
       render :new
     end
   end

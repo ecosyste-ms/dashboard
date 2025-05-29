@@ -10,12 +10,60 @@ class Collection < ApplicationRecord
 
   scope :visible, -> { where(visibility: 'public') }
 
-  validates :name, presence: true
+  after_create :import_projects
 
-  after_create :import_projects_from_url
+  before_validation :set_name_from_source
+  validate :at_least_one_import_source
+
+  def set_name_from_source
+    return if name.present?
+
+    self.name =
+      github_organization_url.presence ||
+      collective_url.presence ||
+      github_repo_url.presence ||
+      (dependency_file.presence && "SBOM from upload")
+  end
+
+  def at_least_one_import_source
+    if github_organization_url.blank? &&
+      collective_url.blank? &&
+      github_repo_url.blank? &&
+      dependency_file.blank?
+      errors.add(:base, "You must provide a source: GitHub org, Open Collective URL, repo URL, or dependency file.")
+    end
+  end
 
   def to_param
     uuid
+  end
+
+  def import_projects
+    if respond_to?(:github_organization_url) && github_organization_url.present?
+      import_from_github_org
+    elsif respond_to?(:collective_url) && collective_url.present?
+      import_from_opencollective
+    elsif respond_to?(:github_repo_url) && github_repo_url.present?
+      import_from_repo
+    elsif respond_to?(:dependency_file) && dependency_file.present?
+      import_from_dependency_file
+    end
+  end
+
+  def import_from_github_org
+    # TODO: implement GitHub org import
+  end
+
+  def import_from_opencollective
+    # TODO: implement Open Collective import
+  end
+
+  def import_from_repo
+    # TODO: implement GitHub repo import
+  end
+
+  def import_from_dependency_file
+    # TODO: implement dependency file import
   end
 
   def import_projects_from_url
@@ -132,3 +180,4 @@ class Collection < ApplicationRecord
     projects.map(&:downloads).compact.sum
   end
 end
+

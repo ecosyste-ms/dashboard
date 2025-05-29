@@ -54,6 +54,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_29_135018) do
     t.string "visibility", default: "public"
     t.integer "user_id", null: false
     t.uuid "uuid", default: -> { "gen_random_uuid()" }, null: false
+    t.string "github_organization_url"
+    t.string "collective_url"
+    t.string "github_repo_url"
+    t.text "dependency_file"
     t.index ["user_id"], name: "index_collections_on_user_id"
   end
 
@@ -85,10 +89,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_29_135018) do
     t.datetime "collective_created_at"
     t.datetime "collective_updated_at"
     t.float "total_donations"
-    t.string "github_organization_url"
-    t.string "collective_url"
-    t.string "github_repo_url"
-    t.text "dependency_file"
     t.index ["slug"], name: "index_collectives_on_slug", unique: true
   end
 
