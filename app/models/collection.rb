@@ -90,12 +90,61 @@ class Collection < ApplicationRecord
   end
 
   def import_from_repo
-    # repos_url = "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=#{CGI.escape(github_repo_url)}"
+    repos_url = "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=#{CGI.escape(github_repo_url)}"
+    resp = Faraday.get(repos_url)
+    if resp.status == 200
+      data = JSON.parse(resp.body)
+      sbom_url = data['sbom_url']
+      if sbom_url.present?
+        sbom = Faraday.get(sbom_url)
+        if sbom.status == 200
+          json = JSON.parse(sbom.body)
+          purls = extract_purls_from_sbom(json)
+          urls = fetch_project_urls_from_purls(purls)
+          urls.each do |url|
+            project = Project.find_or_create_by(url: url)
+            puts "Importing project: #{project.url}"
+            project.sync_async unless project.last_synced_at.present?
+            collection_projects.find_or_create_by(project: project)
+          end
+        else
+          update(status: 'error')
+        end
+      end
+    end
     # get an sbom from the repo URL
   end
 
   def import_from_dependency_file
     # TODO: implement dependency file import
+  end
+
+  def extract_purls_from_sbom(json)
+    purls = []
+
+    if json['bomFormat'] == 'CycloneDX' && json['components']
+      purls = json['components'].map { |c| c['purl'] }.compact
+    elsif json['spdxVersion'] && json['packages']
+      purls = json['packages'].map { |p| p['purl'] }.compact
+    end
+
+    purls.uniq
+  end
+
+  def fetch_project_urls_from_purls(purls)
+    # TODO check existing packages in the database first
+    # TODO implement and use bulk lookup
+    # TODO when purl type is github, convert to GitHub URL
+    urls = []
+    purls.each do |purl|
+      resp = Faraday.get("https://packages.ecosyste.ms/api/v1/packages/lookup?purl=#{purl}")
+      pp resp
+      if resp.status == 200
+        data = JSON.parse(resp.body)
+        urls << data['repository_url'] if data['repository_url'].present?
+      end
+    end
+    urls.uniq
   end
 
   def self.import_github_org(org_name)
