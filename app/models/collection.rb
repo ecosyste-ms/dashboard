@@ -26,9 +26,9 @@ class Collection < ApplicationRecord
     return if name.present?
 
     self.name =
-      github_organization_url.presence ||
-      collective_url.presence ||
-      github_repo_url.presence ||
+      github_organization_url&.sub(%r{\Ahttps://}, '') ||
+      collective_url&.sub(%r{\Ahttps://}, '') ||
+      github_repo_url&.sub(%r{\Ahttps://}, '') ||
       (dependency_file.presence && "SBOM from upload")
   end
 
