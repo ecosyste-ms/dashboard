@@ -77,7 +77,7 @@ class Collection < ApplicationRecord
     resp = Faraday.get(oc_api_url)
     if resp.status == 200
       data = JSON.parse(resp.body)
-      urls = data.map { |p| p['html_url'] }.uniq.reject(&:blank?)
+      urls = data.map { |p| p['url'] }.uniq.reject(&:blank?)
       urls.each do |url|
         puts url
         project = Project.find_or_create_by(url: url)
