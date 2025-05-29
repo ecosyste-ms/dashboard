@@ -173,7 +173,16 @@ class CollectionsController < ApplicationController
   private
 
   def collection_params
-    params.require(:collection).permit(:name, :description, :url, :visibility)
+    params.require(:collection).permit(
+      :name,
+      :description,
+      :url,
+      :visibility,
+      :github_organization_url,
+      :collective_url,
+      :github_repo_url,
+      :dependency_file
+    )
   end
 
   def set_period_vars
