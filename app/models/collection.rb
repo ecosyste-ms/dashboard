@@ -84,11 +84,14 @@ class Collection < ApplicationRecord
         project.sync_async unless project.last_synced_at.present?
         collection_projects.find_or_create_by(project: project)
       end
+    else
+      update(status: 'error')
     end
   end
 
   def import_from_repo
-    # TODO: implement GitHub repo import
+    # repos_url = "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=#{CGI.escape(github_repo_url)}"
+    # get an sbom from the repo URL
   end
 
   def import_from_dependency_file
