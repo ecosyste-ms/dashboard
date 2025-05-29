@@ -13,10 +13,9 @@
             <% if params[:collection_type].blank? %>
               <%= form_with url: new_collection_path, method: :get, local: true do |f| %>
                 <div class="form-group mb-3">
-                  <label>Choose Collection Type</label><br>
-                  <%= radio_button_tag :collection_type, "github" %> GitHub<br>
-                  <%= radio_button_tag :collection_type, "opencollective" %> Open Collective<br>
-                  <%= radio_button_tag :collection_type, "dependency" %> Dependency<br>
+                  <label><%= radio_button_tag :collection_type, "github" %> GitHub</label><br>
+                  <label><%= radio_button_tag :collection_type, "opencollective" %> Open Collective</label><br>
+                  <label><%= radio_button_tag :collection_type, "dependency" %> Dependency</label><br>
                 </div>
                 <div class="form-group">
                   <%= submit_tag "Next", class: "btn btn-primary" %>
