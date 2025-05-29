@@ -95,18 +95,6 @@ class Collection < ApplicationRecord
     # TODO: implement dependency file import
   end
 
-  def import_projects_from_url
-    return if url.blank?
-    # if url is a github org, import all repos
-    
-      
-    else
-      # TODO open collective url 
-      # TODO single repo (dependencies)
-      # TODO ecosystem fund url 
-    end
-  end
-
   def self.import_github_org(org_name)
     collection = Collection.find_or_create_by(name: org_name) do |collection|
       collection.name = org_name
