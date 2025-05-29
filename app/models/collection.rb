@@ -8,6 +8,8 @@ class Collection < ApplicationRecord
   has_many :packages, through: :projects
   has_many :advisories, through: :projects
 
+  belongs_to :user
+
   scope :visible, -> { where(visibility: 'public') }
 
   after_create :import_projects
