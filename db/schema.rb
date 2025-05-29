@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_27_154040) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_29_135018) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -85,6 +85,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_27_154040) do
     t.datetime "collective_created_at"
     t.datetime "collective_updated_at"
     t.float "total_donations"
+    t.string "github_organization_url"
+    t.string "collective_url"
+    t.string "github_repo_url"
+    t.text "dependency_file"
     t.index ["slug"], name: "index_collectives_on_slug", unique: true
   end
 

@@ -10,26 +10,32 @@
         <div class="card well p-3 border-0 mt-5">
           <div class="card-body">
             <h5 class="card-title small">Create a new collection</h5>
-            <%= form_with model: @collection, local: true do |f| %>
-              <div class="form-group mb-3">
-                <%= f.label :name, "Collection Name" %>
-                <%= f.text_field :name, class: "form-control", placeholder: "Enter collection name" %>
-              </div>
-              <div class="form-group mb-3">
-                <%= f.label :description, "Description" %>
-                <%= f.text_area :description, class: "form-control", placeholder: "Enter description" %>
-              </div>
-              <div class="form-group mb-3">
-                <%= f.label :url, "URL" %>
-                <%= f.text_field :url, class: "form-control", placeholder: "Enter URL" %>
-              </div>
-              <div class="form-group mb-3">
-                <%= f.label :visibility, "Visibility" %>
-                <%= f.select :visibility, options_for_select([['Public', 'public'], ['Private', 'private']]), {}, class: "form-control" %>
-              </div>
-              <div class="form-group">
-                <%= f.submit "Create Collection", class: "btn btn-primary" %>
-              </div>
+            <% if params[:collection_type].blank? %>
+              <%= form_with url: new_collection_path, method: :get, local: true do |f| %>
+                <div class="form-group mb-3">
+                  <label>Choose Collection Type</label><br>
+                  <%= radio_button_tag :collection_type, "github" %> GitHub<br>
+                  <%= radio_button_tag :collection_type, "opencollective" %> Open Collective<br>
+                  <%= radio_button_tag :collection_type, "dependency" %> Dependency<br>
+                </div>
+                <div class="form-group">
+                  <%= submit_tag "Next", class: "btn btn-primary" %>
+                </div>
+              <% end %>
+            <% else %>
+              <%= form_with model: @collection, local: true do |f| %>
+                <%= hidden_field_tag :collection_type, params[:collection_type] %>
+                <% if params[:collection_type] == "github" %>
+                  <%= render partial: "collections/github_fields", locals: { f: f } %>
+                <% elsif params[:collection_type] == "opencollective" %>
+                  <%= render partial: "collections/opencollective_fields", locals: { f: f } %>
+                <% elsif params[:collection_type] == "dependency" %>
+                  <%= render partial: "collections/dependency_fields", locals: { f: f } %>
+                <% end %>
+                <div class="form-group">
+                  <%= f.submit "Create Collection", class: "btn btn-primary" %>
+                </div>
+              <% end %>
             <% end %>
           </div>
         </div>
