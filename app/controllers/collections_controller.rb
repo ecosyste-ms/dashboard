@@ -4,6 +4,7 @@ class CollectionsController < ApplicationController
   before_action :authenticate_user!
 
   before_action :set_collection_with_visibility_check, except: [:index, :new, :create]
+  before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependency, :productivity, :finance, :responsiveness, :projects]
 
   def index
     scope = current_user.collections
@@ -16,6 +17,10 @@ class CollectionsController < ApplicationController
     @top_package = @collection.packages.order_by_rankings.first
   end
 
+  def syncing
+    
+  end
+
   def new
     @collection = current_user.collections.build
   end
@@ -26,7 +31,7 @@ class CollectionsController < ApplicationController
       redirect_to @collection, notice: 'Collection was successfully created.'
     else
       flash.now[:alert] = @collection.errors.full_messages.to_sentence
-      params[:collection_type] = nil
+      params[:collection_type] = nil if @collection.errors[:base].present?
       render :new
     end
   end
@@ -227,5 +232,9 @@ class CollectionsController < ApplicationController
 
   def require_owner!
     raise ActiveRecord::RecordNotFound unless @collection.user == current_user
+  end
+
+  def redirect_if_syncing
+    render :syncing if @collection.status != 'ready'
   end
 end

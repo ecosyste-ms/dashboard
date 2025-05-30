@@ -16,14 +16,19 @@ class Collection < ApplicationRecord
 
   before_validation :set_name_from_source
   validate :at_least_one_import_source
+  
+  validates :github_organization_url, format: { with: %r{\Ahttps://github\.com/[^/]+/?\z}, message: "must be a valid GitHub organization URL" }, allow_blank: true
+  validates :collective_url, format: { with: %r{\Ahttps://opencollective\.com/[^/]+/?\z}, message: "must be a valid Open Collective URL" }, allow_blank: true
+  validates :github_repo_url, format: { with: %r{\Ahttps://github\.com/[^/]+/[^/]+/?\z}, message: "must be a valid GitHub repository URL" }, allow_blank: true
+
 
   def set_name_from_source
     return if name.present?
 
     self.name =
-      github_organization_url.presence ||
-      collective_url.presence ||
-      github_repo_url.presence ||
+      github_organization_url&.sub(%r{\Ahttps://}, '') ||
+      collective_url&.sub(%r{\Ahttps://}, '') ||
+      github_repo_url&.sub(%r{\Ahttps://}, '') ||
       (dependency_file.presence && "SBOM from upload")
   end
 
@@ -41,6 +46,7 @@ class Collection < ApplicationRecord
   end
 
   def import_projects
+    update(status: 'syncing')
     if respond_to?(:github_organization_url) && github_organization_url.present?
       import_from_github_org
     elsif respond_to?(:collective_url) && collective_url.present?
@@ -50,35 +56,95 @@ class Collection < ApplicationRecord
     elsif respond_to?(:dependency_file) && dependency_file.present?
       import_from_dependency_file
     end
+    update(status: 'ready')
+  rescue StandardError
+    update(status: 'error')
   end
 
   def import_from_github_org
-    # TODO: implement GitHub org import
+    return if github_organization_url.blank?
+    uri = URI.parse(github_organization_url)
+    org_name = uri.path.split("/")[1]
+    import_github_org(org_name)
   end
 
   def import_from_opencollective
-    # TODO: implement Open Collective import
+    return if collective_url.blank?
+    uri = URI.parse(collective_url)
+    org_name = uri.path.split("/")[1]
+    # fetch all projects from the Open Collective API
+    oc_api_url = "https://opencollective.ecosyste.ms/api/v1/collectives/#{org_name}/projects"
+    resp = Faraday.get(oc_api_url)
+    if resp.status == 200
+      data = JSON.parse(resp.body)
+      urls = data.map { |p| p['url'] }.uniq.reject(&:blank?)
+      urls.each do |url|
+        puts url
+        project = Project.find_or_create_by(url: url)
+        project.sync_async unless project.last_synced_at.present?
+        collection_projects.find_or_create_by(project: project)
+      end
+    else
+      update(status: 'error')
+    end
   end
 
   def import_from_repo
-    # TODO: implement GitHub repo import
+    repos_url = "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=#{CGI.escape(github_repo_url)}"
+    resp = Faraday.get(repos_url)
+    if resp.status == 200
+      data = JSON.parse(resp.body)
+      sbom_url = data['sbom_url']
+      if sbom_url.present?
+        sbom = Faraday.get(sbom_url)
+        if sbom.status == 200
+          json = JSON.parse(sbom.body)
+          purls = extract_purls_from_sbom(json)
+          urls = fetch_project_urls_from_purls(purls)
+          urls.each do |url|
+            project = Project.find_or_create_by(url: url)
+            puts "Importing project: #{project.url}"
+            project.sync_async unless project.last_synced_at.present?
+            collection_projects.find_or_create_by(project: project)
+          end
+        else
+          update(status: 'error')
+        end
+      end
+    end
+    # get an sbom from the repo URL
   end
 
   def import_from_dependency_file
     # TODO: implement dependency file import
   end
 
-  def import_projects_from_url
-    return if url.blank?
-    # if url is a github org, import all repos
-    if url =~ /github\.com\/([^\/]+)/
-      org_name = $1
-      import_github_org(org_name)
-    else
-      # TODO open collective url 
-      # TODO single repo (dependencies)
-      # TODO ecosystem fund url 
+  def extract_purls_from_sbom(json)
+    purls = []
+
+    if json['bomFormat'] == 'CycloneDX' && json['components']
+      purls = json['components'].map { |c| c['purl'] }.compact
+    elsif json['spdxVersion'] && json['packages']
+      purls = json['packages'].map { |p| p['purl'] }.compact
     end
+
+    purls.uniq
+  end
+
+  def fetch_project_urls_from_purls(purls)
+    # TODO check existing packages in the database first
+    # TODO implement and use bulk lookup
+    # TODO when purl type is github, convert to GitHub URL
+    urls = []
+    purls.each do |purl|
+      resp = Faraday.get("https://packages.ecosyste.ms/api/v1/packages/lookup?purl=#{purl}")
+      pp resp
+      if resp.status == 200
+        data = JSON.parse(resp.body)
+        urls << data['repository_url'] if data['repository_url'].present?
+      end
+    end
+    urls.uniq
   end
 
   def self.import_github_org(org_name)
