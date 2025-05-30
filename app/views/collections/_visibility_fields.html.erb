@@ -2,7 +2,7 @@
 <fieldset class="form-group mb-3">
   <legend class="h4 mb-4">Visibility</legend>
   <div class="mb-3 d-flex align-items-center gap-3">
-    <%= f.radio_button :visibility, "public", id: "visibility_public" %>
+    <%= f.radio_button :visibility, "public", id: "collection_visibility_public" %>
     <%= f.label :visibility, value: "public", class: "d-flex align-items-center gap-2" do %>
       <div>
         <%= bootstrap_icon 'people-fill', width: 28, height: 21, aria_hidden: 'true', focusable: 'false', role: 'img', class: 'flex-shrink-0 me-2' %>
@@ -14,7 +14,7 @@
     <% end %>
   </div>
   <div class="mb-3 d-flex align-items-center gap-3">
-    <%= f.radio_button :visibility, "private", id: "visibility_private" %>
+    <%= f.radio_button :visibility, "private", id: "collection_visibility_private" %>
     <%= f.label :visibility, value: "private", class: "d-flex align-items-center gap-2" do %>
       <div>
         <%= bootstrap_icon 'lock-fill', width: 28, height: 22, aria_hidden: 'true', focusable: 'false', role: 'img', class: 'flex-shrink-0 me-2' %>
