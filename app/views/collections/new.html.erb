@@ -2,7 +2,7 @@
 <% @meta_description = "Create a new collection" %>
 
 <div class="container mt-5">
-  <h1>Create a new collection</h1>
+  <h1 class="mb-4">Create a new collection</h1>
   <div class="row">
     <div class="col-12 col-lg-8">
     <% if params[:collection_type].blank? %>
@@ -19,8 +19,8 @@
                 %>
               </div>
               <div>
-                <p class="mb-1">Create a collection from a Github profile</p>
-                <p class="text-muted small mb-0">Grab a Github URL for an organisation or contributor and make a collection based on their repository</p>
+                <p class="mb-1">Create a collection from a Github organization</p>
+                <p class="text-muted small mb-0">Grab a Github URL for an organization and make a collection based on their repositories</p>
               </div>
             </label>
           </div>
@@ -71,8 +71,9 @@
         <% elsif params[:collection_type] == "dependency" %>
           <%= render partial: "collections/dependency_fields", locals: { f: f } %>
         <% end %>
+        <%= render partial: "collections/visibility_fields", locals: { f: f } %>
         <div class="form-group">
-          <%= f.submit "Create Collection", class: "btn btn-primary" %>
+          <%= f.submit "Create Collection", class: "btn btn-primary rounded-pill" %>
         </div>
       <% end %>
     <% end %>

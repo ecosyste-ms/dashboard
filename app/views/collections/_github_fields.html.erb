@@ -1,20 +1,17 @@
-<div class="form-group mb-3">
-  <%= f.label :github_organization_url, "GitHub Organization URL" %>
-  <%= f.text_field :github_organization_url, class: "form-control", placeholder: "https://github.com/your-org", required: true, type: :url %>
+<div class="form-group mb-4">
+  <%= f.label :github_organization_url, class: "form-label"  do %>
+    <p class="mb-0">Github URL</p>
+    <p class="text-muted small mb-0">Enter a valid Github URL to an organisation</p>
+  <% end %>
+  <%= f.text_field :github_organization_url, class: "form-control border-purple-light", placeholder: "https://github.com/your-org", required: true, type: :url %>
 </div>
 
-<div class="form-group mb-3">
-  <%= f.label :name, "Name" %>
-  <%= f.text_field :name, class: "form-control", placeholder: "Enter name" %>
+<div class="form-group mb-4">
+  <%= f.label :name, "Name your collection", class: "form-label" %>
+  <%= f.text_field :name, class: "form-control border-purple-light", placeholder: "Enter name" %>
 </div>
 
-<div class="form-group mb-3">
-  <%= f.label :description, "Description" %>
-  <%= f.text_area :description, class: "form-control", placeholder: "Enter description" %>
-</div>
-
-<div class="form-group mb-3">
-  <%= f.label :visibility, "Visibility" %><br>
-  <%= f.radio_button :visibility, "public" %> Public
-  <%= f.radio_button :visibility, "private" %> Private
+<div class="form-group mb-4">
+  <%= f.label :description, "Describe your collection", class: "form-label"  %>
+  <%= f.text_area :description, class: "form-control border-purple-light", placeholder: "Enter description", rows: "5" %>
 </div>

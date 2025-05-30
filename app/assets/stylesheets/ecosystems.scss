@@ -68,6 +68,7 @@ $btn-color: $color-white;
 $badge-font-weight: 400;
 $badge-padding-y: 0.4em;
 
+
 /* Outputs our colours variables as css variables so that chart.js can access them */
 :root {
   --es-purple: #{$color-purple};
@@ -251,6 +252,10 @@ $badge-padding-y: 0.4em;
 
 hr {
   border-top: 3px solid $color-purple-light;
+}
+
+.border-purple-light {
+  border-color: $color-purple-light;
 }
 
 .container {
