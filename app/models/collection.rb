@@ -57,7 +57,9 @@ class Collection < ApplicationRecord
       import_from_dependency_file
     end
     update(status: 'ready')
-  rescue StandardError
+  rescue StandardError => e
+    puts "Error importing projects: #{e.message}"
+    puts e.backtrace.join("\n")
     update(status: 'error')
   end
 
@@ -72,7 +74,7 @@ class Collection < ApplicationRecord
     return if collective_url.blank?
     uri = URI.parse(collective_url)
     org_name = uri.path.split("/")[1]
-    # fetch all projects from the Open Collective API
+    
     oc_api_url = "https://opencollective.ecosyste.ms/api/v1/collectives/#{org_name}/projects"
     resp = Faraday.get(oc_api_url)
     if resp.status == 200
@@ -112,7 +114,6 @@ class Collection < ApplicationRecord
         end
       end
     end
-    # get an sbom from the repo URL
   end
 
   def import_from_dependency_file
@@ -125,23 +126,35 @@ class Collection < ApplicationRecord
     if json['bomFormat'] == 'CycloneDX' && json['components']
       purls = json['components'].map { |c| c['purl'] }.compact
     elsif json['spdxVersion'] && json['packages']
-      purls = json['packages'].map { |p| p['purl'] }.compact
+      purls = json['packages'].flat_map { |p| Array(p['externalRefs']).select { |ref| ref['referenceType'] == 'purl' }.map { |ref| ref['referenceLocator'] } }.compact
     end
 
     purls.uniq
   end
 
   def fetch_project_urls_from_purls(purls)
-    # TODO check existing packages in the database first
     # TODO implement and use bulk lookup
-    # TODO when purl type is github, convert to GitHub URL
+    
     urls = []
     purls.each do |purl|
-      resp = Faraday.get("https://packages.ecosyste.ms/api/v1/packages/lookup?purl=#{purl}")
-      pp resp
-      if resp.status == 200
-        data = JSON.parse(resp.body)
-        urls << data['repository_url'] if data['repository_url'].present?
+      if pkg = Package.package_url(purl) 
+        urls << pkg.repository_url if pkg.repository_url.present?
+      elsif purl.start_with?('pkg:github/')
+        # Convert GitHub PURL to URL
+        parts = purl.split('/')
+        if parts.length >= 3
+          owner = parts[2]
+          repo = parts[3]
+          urls << "https://github.com/#{owner}/#{repo}"
+        end
+      else
+        resp = Faraday.get("https://packages.ecosyste.ms/api/v1/packages/lookup?purl=#{purl}")
+        if resp.status == 200
+          data = JSON.parse(resp.body)
+          pkg = data.first
+          next unless pkg
+          urls << pkg['repository_url'] if pkg['repository_url'].present?
+        end
       end
     end
     urls.uniq

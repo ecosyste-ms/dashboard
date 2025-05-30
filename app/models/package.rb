@@ -104,6 +104,10 @@ class Package < ApplicationRecord
     metadata['homepage']
   end
 
+  def repository_url
+    metadata['repository_url']
+  end
+
   def last_synced_at
     metadata['last_synced_at']
   end
