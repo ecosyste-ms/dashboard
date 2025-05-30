@@ -1,45 +1,81 @@
 <% @meta_title = "New Collection" %>
 <% @meta_description = "Create a new collection" %>
 
-<div class="container">
-  <div class="dashboard-layout">
-    <div class="dashboard-layout__dboard">
-    </div>
-    <div class="dashboard-grid">
-      <div class="full-width-widget">
-        <div class="card well p-3 border-0 mt-5">
-          <div class="card-body">
-            <h5 class="card-title small">Create a new collection</h5>
-            <% if params[:collection_type].blank? %>
-              <%= form_with url: new_collection_path, method: :get, local: true do |f| %>
-                <div class="form-group mb-3">
-                  <label>Choose Collection Type</label><br>
-                  <%= radio_button_tag :collection_type, "github" %> GitHub<br>
-                  <%= radio_button_tag :collection_type, "opencollective" %> Open Collective<br>
-                  <%= radio_button_tag :collection_type, "dependency" %> Dependency<br>
-                </div>
-                <div class="form-group">
-                  <%= submit_tag "Next", class: "btn btn-primary" %>
-                </div>
-              <% end %>
-            <% else %>
-              <%= form_with model: @collection, local: true do |f| %>
-                <%= hidden_field_tag :collection_type, params[:collection_type] %>
-                <% if params[:collection_type] == "github" %>
-                  <%= render partial: "collections/github_fields", locals: { f: f } %>
-                <% elsif params[:collection_type] == "opencollective" %>
-                  <%= render partial: "collections/opencollective_fields", locals: { f: f } %>
-                <% elsif params[:collection_type] == "dependency" %>
-                  <%= render partial: "collections/dependency_fields", locals: { f: f } %>
-                <% end %>
-                <div class="form-group">
-                  <%= f.submit "Create Collection", class: "btn btn-primary" %>
-                </div>
-              <% end %>
-            <% end %>
+<div class="container mt-5">
+  <h1>Create a new collection</h1>
+  <div class="row">
+    <div class="col-12 col-lg-8">
+    <% if params[:collection_type].blank? %>
+      <%= form_with url: new_collection_path, method: :get, local: true do |f| %>
+        <fieldset class="form-group my-5">
+          <legend class="h3 mb-4">Choose Collection Type</legend>
+
+          <div class="mb-4 d-flex align-items-center gap-3">
+            <%= radio_button_tag :collection_type, "github", false, id: "collection_type_github" %>
+            <label for="collection_type_github" class="d-flex align-items-center gap-2">
+              <div>
+                <%= bootstrap_icon 'github',
+                  width: 26, height: 26, aria_hidden: 'true', focusable: 'false', role: 'img',  title: '', class: 'flex-shrink-0 me-2'
+                %>
+              </div>
+              <div>
+                <p class="mb-1">Create a collection from a Github profile</p>
+                <p class="text-muted small mb-0">Grab a Github URL for an organisation or contributor and make a collection based on their repository</p>
+              </div>
+            </label>
           </div>
+
+          <div class="mb-4 d-flex align-items-center gap-3">
+            <%= radio_button_tag :collection_type, "opencollective", false, id: "collection_type_opencollective" %>
+            <label for="collection_type_opencollective" class="d-flex align-items-center gap-2">
+              <div>
+                <%= bootstrap_icon 'piggy-bank-fill',
+                  width: 30, height: 24, aria_hidden: 'true', focusable: 'false', role: 'img',  title: '', class: 'flex-shrink-0 me-2'
+                %> 
+              </div>
+              <div>
+                <p class="mb-1">Create a collection from Open Collective</p>
+                <p class="text-muted small mb-0">Grab a URL from Open Collective and create a collection based on a funding portfolio</p>
+              </div>
+            </label>
+          </div>
+
+          <div class="mb-4 d-flex align-items-center gap-3">
+            <%= radio_button_tag :collection_type, "dependency", false, id: "collection_type_dependency" %>
+            <label for="collection_type_dependency" class="d-flex align-items-center gap-2">
+              <div>
+                <%= bootstrap_icon 'diagram-3-fill',
+                  width: 27, height: 20, aria_hidden: 'true', focusable: 'false', role: 'img',  title: '', class: 'flex-shrink-0 me-2'
+                %>
+              </div>
+              <div>
+                <p class="mb-1">Create collection from your dependencies</p>
+                <p class="text-muted small mb-0">Upload an SBOM or paste a Github repo URL to create a collection based on your dependencies</p>
+              </div>
+            </label>
+          </div>
+
+        </fieldset>
+        <div class="form-group">
+          <hr />
+          <%= submit_tag "Next", class: "btn btn-primary rounded-pill" %>
         </div>
-      </div>
+      <% end %>
+    <% else %>
+      <%= form_with model: @collection, local: true do |f| %>
+        <%= hidden_field_tag :collection_type, params[:collection_type] %>
+        <% if params[:collection_type] == "github" %>
+          <%= render partial: "collections/github_fields", locals: { f: f } %>
+        <% elsif params[:collection_type] == "opencollective" %>
+          <%= render partial: "collections/opencollective_fields", locals: { f: f } %>
+        <% elsif params[:collection_type] == "dependency" %>
+          <%= render partial: "collections/dependency_fields", locals: { f: f } %>
+        <% end %>
+        <div class="form-group">
+          <%= f.submit "Create Collection", class: "btn btn-primary" %>
+        </div>
+      <% end %>
+    <% end %>
     </div>
   </div>
 </div>
