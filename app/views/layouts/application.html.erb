@@ -29,9 +29,11 @@
         when :alert then 'alert alert-warning'
         else 'alert alert-secondary'
       end %>
-      <div class="<%= alert_class %> alert-dismissible fade show mx-3 mt-3" role="alert">
-        <%= message %>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <div class="container">
+        <div class="<%= alert_class %> alert-dismissible fade show mx-3 mt-3" role="alert">
+          <%= message %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
       </div>
     <% end %>
 
