@@ -12,7 +12,15 @@
       </div>
   
       <div class="col-md-11">
-        <p class="h3 mb-0 text-muted">Collection</p>
+        <p class="h3 mb-0 text-muted">
+          <% if @collection.visibility == 'private' %>
+            <%= bootstrap_icon 'lock-fill',
+            width: 20, height: 20, aria_hidden: 'true', focusable: 'false', role: 'img',  title: 'This collection is private', class: 'flex-shrink-0 me-1'
+            %> Private collection 
+          <% else %>
+            Collection
+          <% end %>
+        </p>
         <h1 class="display-1 extra-bold">
           <%= @collection.to_s %>
         </h1>
