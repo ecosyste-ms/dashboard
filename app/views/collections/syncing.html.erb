@@ -4,15 +4,12 @@
 <%= render 'collection_header' %>
 <div class="container">
 
-  <div class="dashboard-layout">
-    
+  <div class="well p-4">
+    <h1><%= bootstrap_icon 'arrow-down-up',
+    width: 36, height: 36, aria_hidden: 'true', focusable: 'false', role: 'img',  title: 'Last synced', class: 'flex-shrink-0 me-3'
+    %>Syncing data</h1>
 
-    <div class="dashboard-layout__dboard">
-      <div class="">
-        <h1>Syncing</h1>
-
-        Currently syncing this collection. This may take a few minutes.
-      </div>
-    </div>
+    <p>Currently syncing this collection. This may take a few minutes.<p>
   </div>
+
 </div>

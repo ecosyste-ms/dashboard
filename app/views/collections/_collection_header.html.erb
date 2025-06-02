@@ -24,8 +24,10 @@
   </div>
 </div>
 <div class="dboard-collection-bar mb-5">
-  <div class="container pb-4">
+  <div class="container pb-4 <% if @collection.status != 'ready' %>border-0<% end %>">
+  <% if @collection.status == 'ready' %>
     <h2 class="h4 mb-3">Showing</h2>
+  <% end %>
     <div class="row">
       <div class="col">
         <% @collection.projects.with_repository.first(5).each do |project| %>
