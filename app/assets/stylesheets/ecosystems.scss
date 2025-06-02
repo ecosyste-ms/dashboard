@@ -946,7 +946,7 @@ body {
   width: 100%;
   max-width: 100%;
   @include media-breakpoint-up(lg) { 
-    grid-template-columns: 25% 75%;
+    grid-template-columns: 1fr 3fr;
   }
 }
 
