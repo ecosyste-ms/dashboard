@@ -460,18 +460,38 @@ body {
   @include media-breakpoint-up(lg) {
     margin-left: 0;
   }
-  a {
+  .nav-link {
     @include spesh-link();
     padding: 0;
   }
-  li {
+  .nav-item {
     padding: var(--bs-nav-link-padding-y) var(--bs-nav-link-padding-x);
   }
 
-.nav {
-	@include media-breakpoint-up(lg) {
-	  justify-content: end;
-	}
+  .nav {
+    @include media-breakpoint-up(lg) {
+      justify-content: end;
+    }
+  }
+
+  .dropdown {
+    padding-top:4px;
+  }
+
+  .dropdown:last-of-type {
+    padding-right: 0;
+  }
+}
+
+.user-menu__image {
+  border: 4px solid transparent;
+  [aria-expanded="true"] & {
+    border-color: $color-green;
+  }
+
+  &:hover,
+  &:focus {
+    border-color: $color-green;
   }
 }
 

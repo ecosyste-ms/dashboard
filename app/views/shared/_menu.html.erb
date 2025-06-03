@@ -1,19 +1,6 @@
 <nav class="header__local__navigation">
   <ul class="nav">
-    <% if logged_in? %>
-      <li class="nav-item">  
-        <a class="nav-link" href="/collections" >
-          <%= current_user.name %>
-        </a>
-      </li>
-      <li class="nav-item">  
-        <a class="nav-link" href="/logout">Logout</a>
-      </li>
-    <% else %>
-      <li class="nav-item">  
-        <a class="nav-link" href="/login">Login</a>
-      </li>
-      <li class="nav-item">
+  <li class="nav-item">
         <a class="nav-link" href="https://opencollective.com/ecosystems" target="_blank">Support</a>
       </li>
       <li class="nav-item">
@@ -21,6 +8,25 @@
       </li>
       <li class="nav-item">
         <a class="nav-link" href="/docs">API</a>
+      </li>
+    <% if logged_in? %>
+      <div class="dropdown nav-item user-menu" id="user-menu">
+        <a class="" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <img src="https://github.com/ecosyste-ms.png" alt="User menu" height="36" width="36" class="rounded-circle user-menu__image" />
+        </a>
+
+        <ul class="dropdown-menu" aria-labelledby="user-menu" role="menu">
+          <li><p class="dropdown-header"><%= current_user.name %></p></li>
+          <li><a class="dropdown-item" href="/logout">Logout</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><p class="dropdown-header">Collections</p></li>
+          <li><a class="dropdown-item" href="/collections">Your collections</a></li> 
+          <li><a class="dropdown-item" href="<%= new_collection_path %>">Create a new collection</a></li> 
+        </ul>
+      </div>
+    <% else %>
+      <li class="nav-item">  
+        <a class="nav-link" href="/login">Login</a>
       </li>
     <% end %>
   </ul>
