@@ -45,6 +45,7 @@ Rails.application.routes.draw do
       get :adoption
       get :dependency
 
+      get :sync
     end
   end
 

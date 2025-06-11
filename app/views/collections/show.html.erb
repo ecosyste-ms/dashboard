@@ -10,7 +10,12 @@
     <div class="dashboard-layout__dboard">
       <div class="d-md-flex justify-content-between align-items-center mb-4">
         <h1>Overview</h1>
-        <%= render 'bots' %>
+        <div class="d-flex align-items-center gap-2">
+          <% if Rails.env.development? %>
+            <%= link_to 'Sync', sync_collection_path(@collection), method: :get, class: 'btn btn-outline-primary btn-sm' %>
+          <% end %>
+          <%= render 'bots' %>
+        </div>
       </div>
       <div class="dashboard-grid">  
         

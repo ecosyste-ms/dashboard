@@ -167,6 +167,12 @@ class CollectionsController < ApplicationController
     @pagy, @projects = pagy(@projects)
   end
 
+  def sync
+    @collection.import_projects
+    flash[:notice] = 'Collection synced'
+    redirect_to collection_path(@collection)
+  end
+
   private
 
   def collection_params
