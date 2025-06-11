@@ -278,13 +278,14 @@ hr {
   .text-muted {
     color: rgba(255,255,255,0.666) !important;
   }
-  a {
-    color: $color-white;
+  a,
+  .spesh-link {
+    color: $color-white !important;
     &:hover,
     &:active,
     &:focus, 
     &:visited {
-      color: $color-white;
+      color: $color-white !important;
     }
   }
 }
@@ -308,6 +309,10 @@ hr {
   .text-muted {
     color: rgba(255,255,255,0.666) !important;
   }
+}
+
+.grey-bg {
+  background-color: $color-grey-light;
 }
 
 /* Put an icon next to a link and make the whole lockup clickable */

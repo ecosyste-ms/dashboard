@@ -89,3 +89,75 @@ html {
     }
   }
 }
+
+.dashboard-home__hero {
+  
+  .container {
+    padding-top: 3rem;
+    padding-bottom: 4rem;
+    background-image: asset-url('graph-go-up.svg');
+    background-position-x: 100%;
+    background-position-y: 120%;
+    background-repeat: no-repeat;
+    background-size: 600px 240px;
+
+    @include media-breakpoint-up(md) {
+      padding-bottom: 14rem;
+      background-position: bottom right;
+      background-size: contain;
+    }
+  }
+
+  .display-1 {
+    @include font-size(5.25rem);
+    line-height: 1.05;
+  }
+}
+
+.dashboard-home__hero__para {
+  max-width: 44ch;
+}
+
+.dashboard-home__benefits {
+  h3 {
+    max-width: 44ch;
+    margin: 0 auto;
+  }
+}
+
+.dashboard-home__howitworks {
+  p {
+    @include media-breakpoint-up(lg) {
+      max-width: 32ch;
+    }
+  }
+}
+
+.dashboard-home__whywebuilt__img {
+  max-width: 100%;
+}
+
+.dashboard-home__ecosystems-data {
+
+  padding-bottom: 400px;
+  padding-top: 3rem;
+
+  background-image: asset-url('dashboard-screen.png');
+  background-size: 426px 507.5px;
+  background-repeat: no-repeat;
+
+  background-position-x: 50%;
+  background-position-y: 160%;
+
+  @include media-breakpoint-up(md) {
+    background-size: 852px 1015px;
+    background-position-y: -110%;
+  }
+
+  @include media-breakpoint-up(lg) {
+    background-position-x: calc(50% + 520px);
+    background-position-y: 4rem;
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+  }
+}
