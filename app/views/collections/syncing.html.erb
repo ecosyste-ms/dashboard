@@ -14,12 +14,35 @@
       <% end %>
     </div>
 
-    <p>Currently syncing this collection. This may take a few minutes.</p>
+    <% if @collection.status == 'error' %>
+      <p class="text-danger">❌ An error occurred while syncing this collection.</p>
+    <% else %>
+      <p>Currently syncing this collection. This may take a few minutes.</p>
+    <% end %>
     
     <div class="mt-3">
       <strong>Status:</strong> 
-      <span class="badge bg-warning text-dark"><%= @collection.status %></span>
+      <span class="badge <%= @collection.status == 'error' ? 'bg-danger' : 'bg-warning text-dark' %>"><%= @collection.status %></span>
     </div>
+
+    <% if @collection.status == 'error' && @collection.last_error_message.present? %>
+      <div class="mt-4">
+        <h5>Error Details</h5>
+        <div class="alert alert-danger">
+          <strong>Error:</strong> <%= @collection.last_error_message %>
+          <% if @collection.last_error_at.present? %>
+            <br><small class="text-muted">Occurred at: <%= @collection.last_error_at.strftime('%B %d, %Y at %I:%M %p') %></small>
+          <% end %>
+        </div>
+        
+        <% if Rails.env.development? && @collection.last_error_backtrace.present? %>
+          <details>
+            <summary>Backtrace (Development Only)</summary>
+            <pre class="mt-2 p-3 bg-light border rounded"><%= @collection.last_error_backtrace %></pre>
+          </details>
+        <% end %>
+      </div>
+    <% end %>
   </div>
 
 </div>

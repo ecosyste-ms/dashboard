@@ -46,7 +46,7 @@ class Collection < ApplicationRecord
   end
 
   def import_projects
-    update(status: 'syncing')
+    update(status: 'syncing', last_error_message: nil, last_error_backtrace: nil, last_error_at: nil)
     if respond_to?(:github_organization_url) && github_organization_url.present?
       import_from_github_org
     elsif respond_to?(:collective_url) && collective_url.present?
@@ -58,9 +58,15 @@ class Collection < ApplicationRecord
     end
     update(status: 'ready')
   rescue StandardError => e
-    puts "Error importing projects: #{e.message}"
-    puts e.backtrace.join("\n")
-    update(status: 'error')
+    Rails.logger.error "Error importing projects for collection #{id}: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+    
+    update(
+      status: 'error',
+      last_error_message: e.message,
+      last_error_backtrace: e.backtrace.join("\n"),
+      last_error_at: Time.current
+    )
   end
 
   def import_from_github_org
