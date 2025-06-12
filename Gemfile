@@ -8,6 +8,7 @@ gem "sprockets-rails"
 gem "pg", "~> 1.5"
 gem "puma"
 gem "jbuilder"
+gem "turbo-rails"
 gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
 gem "bootsnap", require: false
 gem "sassc-rails"

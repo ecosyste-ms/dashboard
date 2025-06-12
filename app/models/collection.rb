@@ -12,7 +12,6 @@ class Collection < ApplicationRecord
 
   scope :visible, -> { where(visibility: 'public') }
 
-  after_create :import_projects
 
   before_validation :set_name_from_source
   validate :at_least_one_import_source
@@ -45,8 +44,24 @@ class Collection < ApplicationRecord
     uuid
   end
 
+  def import_projects_sync
+    import_projects_with_mode
+  end
+
+  def import_projects_async
+    ImportCollectionWorker.perform_async(id)
+  end
+
+  # Deprecated method for backwards compatibility
   def import_projects
-    update(status: 'syncing', last_error_message: nil, last_error_backtrace: nil, last_error_at: nil)
+    import_projects_async
+  end
+
+  private
+
+  def import_projects_with_mode
+    update_with_broadcast(import_status: 'importing', sync_status: 'pending', last_error_message: nil, last_error_backtrace: nil, last_error_at: nil)
+    
     if respond_to?(:github_organization_url) && github_organization_url.present?
       import_from_github_org
     elsif respond_to?(:collective_url) && collective_url.present?
@@ -56,18 +71,25 @@ class Collection < ApplicationRecord
     elsif respond_to?(:dependency_file) && dependency_file.present?
       import_from_dependency_file
     end
-    update(status: 'ready')
+    
+    update_with_broadcast(import_status: 'completed', sync_status: 'syncing')
+    
+    # Start background job to monitor individual project sync completion
+    CheckCollectionSyncStatusWorker.perform_async(id)
   rescue StandardError => e
     Rails.logger.error "Error importing projects for collection #{id}: #{e.message}"
     Rails.logger.error e.backtrace.join("\n")
     
-    update(
-      status: 'error',
+    update_with_broadcast(
+      import_status: 'error',
+      sync_status: 'error',
       last_error_message: e.message,
       last_error_backtrace: e.backtrace.join("\n"),
       last_error_at: Time.current
     )
   end
+
+  public
 
   def import_from_github_org
     return if github_organization_url.blank?
@@ -88,35 +110,71 @@ class Collection < ApplicationRecord
       urls = data.map { |p| p['url'] }.uniq.reject(&:blank?)
       urls.each do |url|
         puts url
-        project = Project.find_or_create_by(url: url)
-        project.sync_async unless project.last_synced_at.present?
-        collection_projects.find_or_create_by(project: project)
+        next if url.blank?
+        
+        begin
+          project = Project.find_or_create_by(url: url)
+          next unless project&.persisted?
+          
+          collection_projects.find_or_create_by(project: project)
+          
+          # Queue individual sync job for each project if it needs syncing
+          if project.last_synced_at.blank?
+            SyncProjectWorker.perform_async(project.id)
+          end
+          
+          broadcast_sync_progress
+        rescue => e
+          Rails.logger.error "Error creating project for URL #{url}: #{e.message}"
+          next
+        end
       end
     else
-      update(status: 'error')
+      update_with_broadcast(import_status: 'error', sync_status: 'error')
     end
   end
 
   def import_from_repo
     repos_url = "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=#{CGI.escape(github_repo_url)}"
-    resp = Faraday.get(repos_url)
+    
+    conn = Faraday.new do |f|
+      f.options.timeout = 30  # 30 seconds timeout
+      f.options.open_timeout = 10  # 10 seconds to establish connection
+    end
+    
+    resp = conn.get(repos_url)
     if resp.status == 200
       data = JSON.parse(resp.body)
       sbom_url = data['sbom_url']
       if sbom_url.present?
-        sbom = Faraday.get(sbom_url)
+        sbom = conn.get(sbom_url)
         if sbom.status == 200
           json = JSON.parse(sbom.body)
           purls = extract_purls_from_sbom(json)
           urls = fetch_project_urls_from_purls(purls)
           urls.each do |url|
-            project = Project.find_or_create_by(url: url)
-            puts "Importing project: #{project.url}"
-            project.sync_async unless project.last_synced_at.present?
-            collection_projects.find_or_create_by(project: project)
+            puts "Importing project: #{url}"
+            next if url.blank?
+            
+            begin
+              project = Project.find_or_create_by(url: url)
+              next unless project&.persisted?
+              
+              collection_projects.find_or_create_by(project: project)
+              
+              # Queue individual sync job for each project if it needs syncing
+              if project.last_synced_at.blank?
+                SyncProjectWorker.perform_async(project.id)
+              end
+              
+              broadcast_sync_progress
+            rescue => e
+              Rails.logger.error "Error creating project for URL #{url}: #{e.message}"
+              next
+            end
           end
         else
-          update(status: 'error')
+          update_with_broadcast(import_status: 'error', sync_status: 'error')
         end
       end
     end
@@ -177,7 +235,12 @@ class Collection < ApplicationRecord
   def import_github_org(org_name)
     page = 1
     loop do
-      resp = Faraday.get("https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/#{org_name}/repositories?per_page=100&page=#{page}")
+      conn = Faraday.new do |f|
+        f.options.timeout = 30  # 30 seconds timeout
+        f.options.open_timeout = 10  # 10 seconds to establish connection
+      end
+      
+      resp = conn.get("https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/#{org_name}/repositories?per_page=100&page=#{page}")
       break unless resp.status == 200
 
       data = JSON.parse(resp.body)
@@ -186,9 +249,24 @@ class Collection < ApplicationRecord
       urls = data.map{|p| p['html_url'] }.uniq.reject(&:blank?)
       urls.each do |url|
         puts url
-        project = Project.find_or_create_by(url: url)
-        project.sync_async unless project.last_synced_at.present?
-        collection_projects.find_or_create_by(project: project)
+        next if url.blank?
+        
+        begin
+          project = Project.find_or_create_by(url: url)
+          next unless project&.persisted?
+          
+          collection_projects.find_or_create_by(project: project)
+          
+          # Queue individual sync job for each project if it needs syncing
+          if project.last_synced_at.blank?
+            SyncProjectWorker.perform_async(project.id)
+          end
+          
+          broadcast_sync_progress
+        rescue => e
+          Rails.logger.error "Error creating project for URL #{url}: #{e.message}"
+          next
+        end
       end
 
       page += 1
@@ -197,6 +275,37 @@ class Collection < ApplicationRecord
 
   def to_s
     name
+  end
+
+  def syncing?
+    import_status == 'importing' || sync_status == 'syncing'
+  end
+
+  def ready?
+    import_status == 'completed' && sync_status == 'ready'
+  end
+
+  def check_and_update_sync_status
+    # Check if all projects have been synced
+    total_projects = projects.count
+    synced_projects = projects.where.not(last_synced_at: nil).count
+    
+    if total_projects == 0
+      # No projects found during import - mark as ready
+      update_with_broadcast(sync_status: 'ready')
+    elsif synced_projects == total_projects
+      # All projects have been synced - mark as ready
+      update_with_broadcast(sync_status: 'ready')
+    else
+      # Still syncing projects - broadcast progress update
+      broadcast_sync_progress
+    end
+  end
+
+  def projects_sync_progress
+    total = projects.count
+    synced = projects.where.not(last_synced_at: nil).count
+    { total: total, synced: synced }
   end
 
   def avatar_url
@@ -265,6 +374,78 @@ class Collection < ApplicationRecord
 
   def downloads
     projects.map(&:downloads).compact.sum
+  end
+
+  def broadcast_sync_progress
+    begin
+      data = {
+        type: 'progress_update',
+        progress: projects_sync_progress,
+        sync_status: sync_status
+      }
+      
+      Rails.logger.info "Broadcasting progress update for collection #{id}: #{data}"
+      
+      CollectionSyncChannel.broadcast_to(self, data)
+    rescue => e
+      Rails.logger.error "Error broadcasting progress update for collection #{id}: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+    end
+  end
+
+  def test_broadcast
+    Rails.logger.info "Sending test broadcast for collection #{id}"
+    CollectionSyncChannel.broadcast_to(
+      self,
+      {
+        type: 'test',
+        message: 'Test broadcast from collection',
+        timestamp: Time.current.iso8601
+      }
+    )
+  end
+
+  private
+
+  def update_with_broadcast(attributes)
+    update(attributes)
+    broadcast_sync_update
+  end
+
+  def broadcast_sync_update
+    begin
+      html_content = ApplicationController.render(
+        partial: 'collections/sync_status',
+        locals: { collection: self }
+      )
+      
+      data = {
+        type: 'status_update',
+        import_status: import_status,
+        sync_status: sync_status,
+        progress: projects_sync_progress,
+        error_message: last_error_message,
+        html: html_content
+      }
+      
+      Rails.logger.info "Broadcasting sync update for collection #{id}: #{data.except(:html)}"
+      
+      CollectionSyncChannel.broadcast_to(self, data)
+    rescue => e
+      Rails.logger.error "Error broadcasting sync update for collection #{id}: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      
+      # Fallback broadcast without HTML
+      fallback_data = {
+        type: 'status_update',
+        import_status: import_status,
+        sync_status: sync_status,
+        progress: projects_sync_progress,
+        error_message: last_error_message
+      }
+      
+      CollectionSyncChannel.broadcast_to(self, fallback_data)
+    end
   end
 end
 

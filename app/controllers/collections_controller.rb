@@ -28,6 +28,8 @@ class CollectionsController < ApplicationController
   def create
     @collection = current_user.collections.build(collection_params)
     if @collection.save
+      # Trigger async import with ActionCable updates
+      @collection.import_projects_async
       redirect_to @collection, notice: 'Collection was successfully created.'
     else
       flash.now[:alert] = @collection.errors.full_messages.to_sentence
@@ -168,8 +170,17 @@ class CollectionsController < ApplicationController
   end
 
   def sync
-    @collection.import_projects
-    flash[:notice] = 'Collection synced'
+    # Clear any existing errors before starting new sync
+    @collection.update(
+      import_status: 'pending',
+      sync_status: 'pending',
+      last_error_message: nil,
+      last_error_backtrace: nil,
+      last_error_at: nil
+    )
+    
+    @collection.import_projects_async
+    flash[:notice] = 'Collection sync started'
     redirect_to collection_path(@collection)
   end
 
@@ -241,6 +252,6 @@ class CollectionsController < ApplicationController
   end
 
   def redirect_if_syncing
-    render :syncing if @collection.status != 'ready'
+    render :syncing unless @collection.ready?
   end
 end
