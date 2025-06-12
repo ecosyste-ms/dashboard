@@ -4,6 +4,8 @@
 //= require bootstrap 
 //= require jquery
 //= require jquery_ujs
+//= require actioncable
+//= require collection_sync
 
 const rootStyles = getComputedStyle(document.documentElement);
 

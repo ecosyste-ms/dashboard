@@ -1,0 +1,108 @@
+<div class="sync-status-content">
+  <% if collection.import_status == 'error' || collection.sync_status == 'error' %>
+    <p class="text-danger">❌ An error occurred while syncing this collection.</p>
+  <% elsif collection.ready? && collection.projects_sync_progress[:total] == 0 %>
+    <p class="text-muted">✅ Import completed - no projects found for this collection.</p>
+  <% elsif collection.ready? %>
+    <p class="text-success">✅ Collection sync completed successfully!</p>
+  <% else %>
+    <p>Currently syncing this collection. This may take a few minutes.</p>
+  <% end %>
+  
+  <!-- Import Status -->
+  <div class="mt-4">
+    <h5>Import Progress</h5>
+    <div class="d-flex align-items-center">
+      <strong class="me-2">Finding projects:</strong>
+      <% if collection.import_status == 'pending' %>
+        <span class="badge bg-secondary">Not started</span>
+      <% elsif collection.import_status == 'importing' %>
+        <span class="badge bg-warning text-dark">
+          <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          Importing...
+        </span>
+      <% elsif collection.import_status == 'completed' %>
+        <span class="badge bg-success">
+          <%= bootstrap_icon 'check-circle', width: 16, height: 16, class: 'me-1' %>
+          Completed
+        </span>
+      <% elsif collection.import_status == 'error' %>
+        <span class="badge bg-danger">
+          <%= bootstrap_icon 'x-circle', width: 16, height: 16, class: 'me-1' %>
+          Error
+        </span>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Sync Status -->
+  <% if collection.import_status == 'completed' %>
+    <div class="mt-4">
+      <h5>Sync Progress</h5>
+      <% progress = collection.projects_sync_progress %>
+      <div class="d-flex align-items-center">
+        <strong class="me-2">Syncing projects:</strong>
+        <% if collection.sync_status == 'pending' %>
+          <span class="badge bg-secondary">Not started</span>
+        <% elsif collection.sync_status == 'syncing' %>
+          <% if progress[:total] > 0 %>
+            <span class="badge bg-warning text-dark">
+              <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+              <%= progress[:synced] %> / <%= progress[:total] %> projects synced
+            </span>
+          <% else %>
+            <span class="badge bg-info text-dark">
+              <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+              Waiting for projects...
+            </span>
+          <% end %>
+        <% elsif collection.sync_status == 'ready' %>
+          <span class="badge bg-success">
+            <%= bootstrap_icon 'check-circle', width: 16, height: 16, class: 'me-1' %>
+            <% if progress[:total] > 0 %>
+              All <%= progress[:total] %> projects synced
+            <% else %>
+              No projects found
+            <% end %>
+          </span>
+        <% elsif collection.sync_status == 'error' %>
+          <span class="badge bg-danger">
+            <%= bootstrap_icon 'x-circle', width: 16, height: 16, class: 'me-1' %>
+            Error
+          </span>
+        <% end %>
+      </div>
+
+      <% if collection.sync_status == 'syncing' && progress[:total] > 0 %>
+        <div class="progress mt-2" style="height: 20px;">
+          <div class="progress-bar" role="progressbar" 
+               style="width: <%= (progress[:synced].to_f / progress[:total] * 100).round %>%"
+               aria-valuenow="<%= progress[:synced] %>" 
+               aria-valuemin="0" 
+               aria-valuemax="<%= progress[:total] %>">
+            <%= (progress[:synced].to_f / progress[:total] * 100).round %>%
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if (collection.import_status == 'error' || collection.sync_status == 'error') && collection.last_error_message.present? %>
+    <div class="mt-4">
+      <h5>Error Details</h5>
+      <div class="alert alert-danger">
+        <strong>Error:</strong> <%= collection.last_error_message %>
+        <% if collection.last_error_at.present? %>
+          <br><small class="text-muted">Occurred at: <%= collection.last_error_at.strftime('%B %d, %Y at %I:%M %p') %></small>
+        <% end %>
+      </div>
+      
+      <% if Rails.env.development? && collection.last_error_backtrace.present? %>
+        <details>
+          <summary>Backtrace (Development Only)</summary>
+          <pre class="mt-2 p-3 bg-light border rounded"><%= collection.last_error_backtrace %></pre>
+        </details>
+      <% end %>
+    </div>
+  <% end %>
+</div>

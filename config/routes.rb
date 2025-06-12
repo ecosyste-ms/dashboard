@@ -14,6 +14,7 @@ Rails.application.routes.draw do
   
   mount Sidekiq::Web => "/sidekiq"
   mount PgHero::Engine, at: "pghero"
+  mount ActionCable.server => "/cable"
 
   namespace :api, :defaults => {:format => :json} do
     namespace :v1 do

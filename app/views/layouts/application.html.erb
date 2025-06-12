@@ -9,7 +9,10 @@
     </title>
     <meta name="description" content="<%= meta_description %>">
     <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <meta name="turbo-cache-control" content="no-cache">
     <%= stylesheet_link_tag "application", :media => "all" %>
+    <%= turbo_include_tags %>
     <%= javascript_include_tag "application" %>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

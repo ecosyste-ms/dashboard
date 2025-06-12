@@ -112,6 +112,7 @@ class Project < ApplicationRecord
     return if destroyed?
     update_column(:last_synced_at, Time.now) 
     ping
+    notify_collections_of_sync
   end
 
   def uninteresting_fork?
@@ -980,5 +981,11 @@ class Project < ApplicationRecord
 
   def other_funding_links
     funding_links.reject{|f| f.include?('github.com/sponsors') || f.include?('opencollective.com') }
+  end
+
+  def notify_collections_of_sync
+    collections.where(sync_status: 'syncing').each do |collection|
+      collection.broadcast_sync_progress
+    end
   end
 end
