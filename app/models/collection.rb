@@ -140,9 +140,18 @@ class Collection < ApplicationRecord
     conn = Faraday.new do |f|
       f.options.timeout = 30  # 30 seconds timeout
       f.options.open_timeout = 10  # 10 seconds to establish connection
+      f.request :retry, max: 3, interval: 2, backoff_factor: 2, 
+                retry_statuses: [429, 500, 502, 503, 504],
+                methods: [:get]
     end
     
-    resp = conn.get(repos_url)
+    begin
+      resp = conn.get(repos_url)
+    rescue Faraday::Error => e
+      Rails.logger.error "Error fetching repo lookup for #{github_repo_url}: #{e.message}"
+      update_with_broadcast(import_status: 'error', sync_status: 'error')
+      return
+    end
     if resp.status == 200
       data = JSON.parse(resp.body)
       sbom_url = data['sbom_url']
@@ -238,10 +247,18 @@ class Collection < ApplicationRecord
       conn = Faraday.new do |f|
         f.options.timeout = 30  # 30 seconds timeout
         f.options.open_timeout = 10  # 10 seconds to establish connection
+        f.request :retry, max: 3, interval: 2, backoff_factor: 2, 
+                  retry_statuses: [429, 500, 502, 503, 504],
+                  methods: [:get]
       end
       
-      resp = conn.get("https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/#{org_name}/repositories?per_page=100&page=#{page}")
-      break unless resp.status == 200
+      begin
+        resp = conn.get("https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/#{org_name}/repositories?per_page=100&page=#{page}")
+        break unless resp.status == 200
+      rescue Faraday::Error => e
+        Rails.logger.error "Error fetching GitHub org repos for #{org_name}, page #{page}: #{e.message}"
+        break
+      end
 
       data = JSON.parse(resp.body)
       break if data.empty?
