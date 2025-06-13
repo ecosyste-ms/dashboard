@@ -97,7 +97,7 @@
           </div>
         </div>
       <% end %>
-        <% if @project.packages.any? %>
+        <% if @project.packages.any? && @top_package.present? %>
           <div class="full-width-widget">
             <div class="card well p-3 border-0">
               <div class="card-body">
