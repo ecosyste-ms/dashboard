@@ -143,15 +143,15 @@ html {
   padding-top: 3rem;
 
   background-image: asset-url('dashboard-screen.png');
-  background-size: 426px 507.5px;
+  background-size: 426px 388px;
   background-repeat: no-repeat;
 
   background-position-x: 50%;
-  background-position-y: 160%;
+  background-position-y: 107%;
 
   @include media-breakpoint-up(md) {
-    background-size: 852px 1015px;
-    background-position-y: -110%;
+    background-size: 852px 776px;
+    background-position-y: -410%;
   }
 
   @include media-breakpoint-up(lg) {
