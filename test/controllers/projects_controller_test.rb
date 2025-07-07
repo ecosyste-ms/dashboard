@@ -79,6 +79,9 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should lookup and create new project" do
+    user = create(:user)
+    login_as(user)
+    
     url = "https://github.com/newuser/newrepo"
     
     # Mock the sync_async method since we're testing the lookup functionality
@@ -93,6 +96,9 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should redirect to existing project on lookup" do
+    user = create(:user)
+    login_as(user)
+    
     existing_project = create(:project, url: "https://github.com/existing/repo")
     
     assert_no_difference('Project.count') do

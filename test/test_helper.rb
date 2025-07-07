@@ -23,7 +23,7 @@ end
 
 class ActionDispatch::IntegrationTest
   def login_as(user)
-    # For Rails 8, set the session directly with headers
-    get "/", headers: {}, session: { user_id: user.id }
+    # For Rails 8, we need to mock the session by stubbing current_user
+    ApplicationController.any_instance.stubs(:current_user).returns(user)
   end
 end
