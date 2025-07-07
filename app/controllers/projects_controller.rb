@@ -195,8 +195,12 @@ class ProjectsController < ApplicationController
 
   def sync
     @project = Project.find(params[:id])
-    @project.sync
-    flash[:notice] = 'Project synced'
+    begin
+      @project.sync
+      flash[:notice] = 'Project synced'
+    rescue => e
+      flash[:alert] = "Sync failed: #{e.message}"
+    end
     redirect_to project_path(@project)
   end
 
