@@ -137,10 +137,10 @@
               <h5 class="card-title">Commits</h5>
               <div class="stat-card mb-2">
                 <div class="stat-card-body">
-                  <span class="stat-card-title stat-card-title--large stat-card-number-negative">
-                    110,978 <%= bootstrap_icon 'caret-down-fill', width: 18, height: 18, class: 'flex-shrink-0' %>
+                  <span class="stat-card-title stat-card-title--large <%= @commits_this_period >= @commits_last_period ? 'stat-card-number-positive' : 'stat-card-number-negative' %>">
+                    <%= number_with_delimiter(@commits_this_period) %> <%= bootstrap_icon(@commits_this_period >= @commits_last_period ? 'caret-up-fill' : 'caret-down-fill', width: 18, height: 18, class: 'flex-shrink-0') %>
                   </span>
-                  <span class="stat-card-text stat-card-text">111,262 last period</span>
+                  <span class="stat-card-text stat-card-text"><%= number_with_delimiter(@commits_last_period) %> last period</span>
                 </div>
               </div>
               <div class="chart-wrapper">
@@ -148,8 +148,8 @@
                   id="commitChart" 
                   width="600"
                   data-chart="line"
-                  data-chart-data='{"labels": ["January", "February", "March", "April", "May", "June"], "label": "Commits", "values": [90000, 100000, 110000, 120000, 115000, 110000]}'
-                  data-chart-options='{"scales": {"y": {"max": 121000}}}'
+                  data-chart-data='<%= {labels: @commits_per_period.map(&:first), label: "Commits", values: @commits_per_period.map(&:last)}.to_json.html_safe %>'
+                  data-chart-options='<%= {scales: {y: {max: (@commits_per_period.map(&:last).max.to_i * 1.1).ceil}}}.to_json.html_safe %>'
                 ></canvas>
               </div>
       </div>      

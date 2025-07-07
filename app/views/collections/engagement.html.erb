@@ -56,11 +56,23 @@
              
               
               <div id="chartContainer" class="chart-wrapper" role="img" aria-describedby="chartDesc">
-              <canvas id="barChart" tabindex="0"  width="400" height="300" style="margin-left: 150px;"></canvas>
+              <canvas 
+                id="barChart" 
+                tabindex="0"  
+                width="400" 
+                height="300" 
+                style="margin-left: 150px;"
+                data-chart="bar"
+                data-chart-data='{"labels": <%= @contributions_per_period.map(&:first).to_json.html_safe %>, "label": "Contributions", "values": <%= @contributions_per_period.map(&:last).to_json %>, "dataset": {"backgroundColor": ["var(--es-purple-light)", "var(--es-purple-light)", "var(--es-purple-light)", "var(--es-purple-light)", "var(--es-purple-light)", "var(--es-purple-dark)"], "hoverBackgroundColor": ["var(--es-purple)", "var(--es-purple)", "var(--es-purple)", "var(--es-purple)", "var(--es-purple)", "var(--es-purple)"], "borderWidth": 0, "borderRadius": 5, "minBarLength": 2}}'
+                data-chart-options='{"layout": {"padding": {"top": 10, "right": 10, "bottom": 10, "left": 10}}}'
+              ></canvas>
             </div>
 
             <p id="chartDesc" class="visually-hidden">
-              We need to describe the chart here, for example 'this bar chart shows commits over the last 3 months. January had 110,988 commits, February 232,000, and March 123,989'
+              This bar chart shows contributions over the last <%= @contributions_per_period.length %> periods. 
+              <% @contributions_per_period.each do |period, count| %>
+                <%= period %> had <%= number_with_delimiter(count) %> contributions<%= ", " unless period == @contributions_per_period.keys.last %>.
+              <% end %>
             </p>
 
           </div>
