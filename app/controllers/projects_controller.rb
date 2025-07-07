@@ -1,5 +1,6 @@
 class ProjectsController < ApplicationController
   before_action :set_period_vars, only: [:engagement, :productivity, :finance, :responsiveness]
+  before_action :authenticate_user!, only: [:lookup]
 
   def show
     @project = Project.find(params[:id])
