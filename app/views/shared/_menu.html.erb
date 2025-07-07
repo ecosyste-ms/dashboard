@@ -12,7 +12,7 @@
     <% if logged_in? %>
       <div class="dropdown nav-item user-menu" id="user-menu">
         <a class="" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-          <img src="https://github.com/ecosyste-ms.png" alt="User menu" height="36" width="36" class="rounded-circle user-menu__image" />
+          <img src="<%= current_user.avatar_url%>" alt="User menu" height="36" width="36" class="rounded-circle user-menu__image" />
         </a>
 
         <ul class="dropdown-menu" aria-labelledby="user-menu" role="menu">
