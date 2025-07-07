@@ -64,61 +64,6 @@
             </p>
 
           </div>
-            <script type="text/javascript">
-            // Bar Chart
-            const ctx4 = document.getElementById('barChart').getContext('2d');
-            const data = {
-              labels: <%= @contributions_per_period.map(&:first).to_json.html_safe %>,
-              datasets: [{
-                data: <%= @contributions_per_period.map(&:last).to_json %>,
-                backgroundColor: [
-                  esPurpleLight,
-                  esPurpleLight,
-                  esPurpleLight,
-                  esPurpleLight,
-                  esPurpleLight,
-                  esPurpleDark
-                ],
-                hoverBackgroundColor: [
-                  esPurple,  // Hover color for the first bar
-                  esPurple,  // Hover color for the second bar
-                  esPurple,
-                  esPurple,
-                  esPurple,
-                  esPurple   // Hover color for the last bar
-                ],
-                borderWidth: 0,
-                borderRadius: 1
-              }]
-            };
-
-            const myBarChart = new Chart(ctx4, {
-              type: 'bar',
-              data: data,
-              options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                  legend: { display: false },
-                  tooltip: { enabled: true }
-                },
-                scales: {
-                  x: {
-                    display: false,
-                    grid: { display: false }
-                  },
-                  y: {
-                    display: false,
-                    grid: { display: false },
-                    beginAtZero: true
-                  }
-                },
-                layout: {
-                  padding: { top: 10, right: 10, bottom: 10, left: 10 }
-                }
-              }
-            });  
-            </script>
        
           </div>             
         </div> 

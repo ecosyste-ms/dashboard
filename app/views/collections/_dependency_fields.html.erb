@@ -1,26 +1,3 @@
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const fileInput = document.querySelector('#collection_dependency_file');
-    const repoInput = document.querySelector('#collection_github_repo_url');
-    const form = fileInput.closest("form");
-
-    form.addEventListener("submit", function (e) {
-      // only check if form passes built-in validations
-      if (form.checkValidity()) {
-        if (!fileInput.value && !repoInput.value) {
-          e.preventDefault();
-          // make it fail validation-style
-          repoInput.setCustomValidity("Provide a GitHub repo URL or upload a dependency file.");
-          repoInput.reportValidity();
-        } else {
-          // clear any previous custom error
-          repoInput.setCustomValidity("");
-        }
-      }
-    });
-  });
-</script>
-
 <div class="form-group mb-3">
   <%= f.label :dependency_file, class: "form-label"  do %>
     <p class="mb-0">Upload an SBOM file</p>

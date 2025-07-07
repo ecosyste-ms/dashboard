@@ -144,57 +144,14 @@
                 </div>
               </div>
               <div class="chart-wrapper">
-                <canvas id="commitChart" width="600"></canvas>
+                <canvas 
+                  id="commitChart" 
+                  width="600"
+                  data-chart="line"
+                  data-chart-data='{"labels": ["January", "February", "March", "April", "May", "June"], "label": "Commits", "values": [90000, 100000, 110000, 120000, 115000, 110000]}'
+                  data-chart-options='{"scales": {"y": {"max": 121000}}}'
+                ></canvas>
               </div>
-            </div>
-          </div>
-        </div>
-          
-        <script type="text/javascript">
-          
-          // Commit Chart (Line Chart)
-          const ctx3 = document.getElementById('commitChart').getContext('2d');
-          const commitChart = new Chart(ctx3, {
-            type: 'line',
-            data: {
-              labels: ['January', 'February', 'March', 'April', 'May', 'June'],
-              datasets: [{
-                label: 'Commits',
-                data: [90000, 100000, 110000, 120000, 115000, 110000],
-                borderColor: esOrangeDark,
-                borderWidth: 3,
-                pointRadius: 3,
-                tension: 0.4,
-                fill: true,
-                backgroundColor: esOrangeTransparent
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: true,
-              scales: {
-                x: {
-                  display: true,
-                  grid: { display: false }
-                },
-                y: {
-                  display: false,
-                  grid: { display: false },
-                  beginAtZero: false,
-                  max: 121000
-                }
-              },
-              plugins: {
-                legend: {
-                  display: false,
-                  usePointStyle: true
-                },
-                tooltip: { enabled: true }
-              }
-            }
-          });
-
-        </script>
       </div>      
       <div class="three-equal-widgets">
         <%= stat_card_widget 'Committers', 75, 65, title_class: "card-title small", stat_size: "large" %>

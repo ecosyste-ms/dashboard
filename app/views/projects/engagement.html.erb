@@ -56,70 +56,21 @@
              
               
               <div id="chartContainer" class="chart-wrapper" role="img" aria-describedby="chartDesc">
-              <canvas id="barChart" tabindex="0"  width="400" height="300" class="float-lg-end"></canvas>
-            </div>
+                <canvas 
+                  id="barChart" 
+                  tabindex="0"  
+                  width="400" 
+                  height="300" 
+                  class="float-lg-end"
+                  data-chart="bar"
+                  data-chart-data='{"labels": <%= @contributions_per_period.map(&:first).to_json.html_safe %>, "label": "Contributions", "values": <%= @contributions_per_period.map(&:last).to_json %>, "dataset": {"backgroundColor": ["var(--es-purple-light)", "var(--es-purple-light)", "var(--es-purple-light)", "var(--es-purple-light)", "var(--es-purple-light)", "var(--es-purple-dark)"], "hoverBackgroundColor": ["var(--es-purple)", "var(--es-purple)", "var(--es-purple)", "var(--es-purple)", "var(--es-purple)", "var(--es-purple)"], "borderWidth": 0, "borderRadius": 5, "minBarLength": 2}}'
+                  data-chart-options='{"layout": {"padding": {"top": 10, "right": 10, "bottom": 10, "left": 10}}}'
+                ></canvas>
+              </div>
 
-            <p id="chartDesc" class="visually-hidden">
-              We need to describe the chart here, for example 'this bar chart shows commits over the last 3 months. January had 110,988 commits, February 232,000, and March 123,989'
-            </p>
-
-          </div>
-            <script type="text/javascript">
-            // Bar Chart
-            const ctx4 = document.getElementById('barChart').getContext('2d');
-            const data = {
-              labels: <%= @contributions_per_period.map(&:first).to_json.html_safe %>,
-              datasets: [{
-                data: <%= @contributions_per_period.map(&:last).to_json %>,
-                backgroundColor: [
-                  esPurpleLight,
-                  esPurpleLight,
-                  esPurpleLight,
-                  esPurpleLight,
-                  esPurpleLight,
-                  esPurpleDark
-                ],
-                hoverBackgroundColor: [
-                  esPurple,  // Hover color for the first bar
-                  esPurple,  // Hover color for the second bar
-                  esPurple,
-                  esPurple,
-                  esPurple,
-                  esPurple   // Hover color for the last bar
-                ],
-                borderWidth: 0,
-                borderRadius: 5,
-                minBarLength: 2
-              }]
-            };
-
-            const myBarChart = new Chart(ctx4, {
-              type: 'bar',
-              data: data,
-              options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                  legend: { display: false },
-                  tooltip: { enabled: true }
-                },
-                scales: {
-                  x: {
-                    display: true,
-                    grid: { display: false },
-                  },
-                  y: {
-                    display: false,
-                    grid: { display: false },
-                    beginAtZero: true
-                  }
-                },
-                layout: {
-                  padding: { top: 10, right: 10, bottom: 10, left: 10 }
-                }
-              }
-            });  
-            </script>
+              <p id="chartDesc" class="visually-hidden">
+                We need to describe the chart here, for example 'this bar chart shows commits over the last 3 months. January had 110,988 commits, February 232,000, and March 123,989'
+              </p>
        
           </div>             
         </div> 

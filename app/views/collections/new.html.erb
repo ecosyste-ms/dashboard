@@ -62,7 +62,7 @@
         </div>
       <% end %>
     <% else %>
-      <%= form_with model: @collection, local: true do |f| %>
+      <%= form_with model: @collection, local: true, html: { data: { dependency_validation: params[:collection_type] == "dependency" } } do |f| %>
         <%= hidden_field_tag :collection_type, params[:collection_type] %>
         <% if params[:collection_type] == "github" %>
           <%= render partial: "collections/github_fields", locals: { f: f } %>
