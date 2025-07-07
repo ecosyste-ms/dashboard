@@ -20,3 +20,10 @@ class ActiveSupport::TestCase
     end
   end
 end
+
+class ActionDispatch::IntegrationTest
+  def login_as(user)
+    # For Rails 8, set the session directly with headers
+    get "/", headers: {}, session: { user_id: user.id }
+  end
+end
