@@ -42,36 +42,6 @@ module ApplicationHelper
     number_with_delimiter(number.round(2))
   end
 
-  def render_issues_chart(name, max: @max, ytitle: nil)
-    content_tag :div, class: 'chart-container py-4 my-4' do
-      line_chart issues_chart_path(project_ids: @project.id, chart: name, period: @period, exclude_bots: @exclude_bots, range: @range, start_date: @start_date, end_date: @end_date), thousands: ",", title: name.humanize, max: max, ytitle: ytitle
-    end
-  end
-
-  def render_commits_chart(name, max: @max, ytitle: nil)
-    content_tag :div, class: 'chart-container py-4 my-4' do
-      line_chart commits_chart_path(project_ids: @project, chart: name, period: @period, exclude_bots: @exclude_bots, range: @range, start_date: @start_date, end_date: @end_date), thousands: ",", title: name.humanize, max: max, ytitle: ytitle
-    end
-  end
-
-  def render_collective_issues_chart(name, max: @max, ytitle: nil)
-    content_tag :div, class: 'chart-container py-4 my-4' do
-      line_chart issues_chart_path(collective_slugs: @collective.slug, chart: name, period: @period, exclude_bots: @exclude_bots, range: @range, start_date: @start_date, end_date: @end_date), thousands: ",", title: name.humanize, max: max, ytitle: ytitle
-    end
-  end
-
-  def render_collective_commits_chart(name, max: @max, ytitle: nil)
-    content_tag :div, class: 'chart-container py-4 my-4' do
-      line_chart commits_chart_path(collective_slugs: @collective.slug, chart: name, period: @period, exclude_bots: @exclude_bots, range: @range, start_date: @start_date, end_date: @end_date), thousands: ",", title: name.humanize, max: max, ytitle: ytitle
-    end
-  end
-
-  def render_batch_collective_issues_chart(name, max: @max, ytitle: nil)
-    content_tag :div, class: 'chart-container py-4 my-4' do
-      line_chart issues_chart_path(collective_slugs: params[:collective_slugs], chart: name, period: @period, exclude_bots: @exclude_bots, range: @range, start_date: @start_date, end_date: @end_date), thousands: ",", title: name.humanize, max: max, ytitle: ytitle
-    end
-  end
-
   def diff_class(count)
     count > 0 ? 'text-success' : 'text-danger'
   end

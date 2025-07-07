@@ -73,11 +73,6 @@ Rails.application.routes.draw do
     end
   end
   
-  get 'charts/transactions', to: 'charts#transactions', as: :transactions_chart
-  get 'charts/issues', to: 'charts#issues', as: :issues_chart
-  get 'charts/commits', to: 'charts#commits', as: :commits_chart
-  get 'charts/tags', to: 'charts#tags', as: :tags_chart
-
   resources :exports, only: [:index], path: 'open-data'
 
   get '/404', to: 'errors#not_found'
