@@ -62,26 +62,31 @@ class CollectionsController < ApplicationController
   end
 
   def engagement
-    @active_contributors_last_period = @collection.issues.between(@last_period_range.begin, @last_period_range.end).group(:user).count.length
-    @active_contributors_this_period = @collection.issues.between(@this_period_range.begin, @this_period_range.end).group(:user).count.length
+    # Apply bot filtering based on params
+    issues_scope = @collection.issues
+    issues_scope = issues_scope.human if params[:exclude_bots] == 'true'
+    issues_scope = issues_scope.bot if params[:only_bots] == 'true'
 
-    @contributions_last_period = @collection.issues.between(@last_period_range.begin, @last_period_range.end).count
-    @contributions_this_period = @collection.issues.between(@this_period_range.begin, @this_period_range.end).count
+    @active_contributors_last_period = issues_scope.between(@last_period_range.begin, @last_period_range.end).group(:user).count.length
+    @active_contributors_this_period = issues_scope.between(@this_period_range.begin, @this_period_range.end).group(:user).count.length
 
-    @issue_authors_last_period = @collection.issues.between(@last_period_range.begin, @last_period_range.end).group(:user).count.length
-    @issue_authors_this_period = @collection.issues.between(@this_period_range.begin, @this_period_range.end).group(:user).count.length
+    @contributions_last_period = issues_scope.between(@last_period_range.begin, @last_period_range.end).count
+    @contributions_this_period = issues_scope.between(@this_period_range.begin, @this_period_range.end).count
 
-    @pr_authors_last_period = @collection.issues.pull_request.between(@last_period_range.begin, @last_period_range.end).group(:user).count.length
-    @pr_authors_this_period = @collection.issues.pull_request.between(@this_period_range.begin, @this_period_range.end).group(:user).count.length
+    @issue_authors_last_period = issues_scope.between(@last_period_range.begin, @last_period_range.end).group(:user).count.length
+    @issue_authors_this_period = issues_scope.between(@this_period_range.begin, @this_period_range.end).group(:user).count.length
 
-    @contributor_role_breakdown_this_period = @collection.issues.between(@this_period_range.begin, @this_period_range.end).group(:author_association).count.sort_by { |_role, count| -count }.to_h
+    @pr_authors_last_period = issues_scope.pull_request.between(@last_period_range.begin, @last_period_range.end).group(:user).count.length
+    @pr_authors_this_period = issues_scope.pull_request.between(@this_period_range.begin, @this_period_range.end).group(:user).count.length
 
-    @all_time_contributors = @collection.issues.group(:user).count.length
+    @contributor_role_breakdown_this_period = issues_scope.between(@this_period_range.begin, @this_period_range.end).group(:author_association).count.sort_by { |_role, count| -count }.to_h
+
+    @all_time_contributors = issues_scope.group(:user).count.length
 
     if @range == 'year'
-      @contributions_per_period = @collection.issues.group_by_year(:created_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
+      @contributions_per_period = issues_scope.group_by_year(:created_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
     else
-      @contributions_per_period = @collection.issues.group_by_month(:created_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
+      @contributions_per_period = issues_scope.group_by_month(:created_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
     end
   end
 
@@ -92,6 +97,11 @@ class CollectionsController < ApplicationController
   end
 
   def productivity
+    # Apply bot filtering based on params
+    issues_scope = @collection.issues
+    issues_scope = issues_scope.human if params[:exclude_bots] == 'true'
+    issues_scope = issues_scope.bot if params[:only_bots] == 'true'
+
     @commits_last_period = @collection.commits.between(@last_period_range.begin, @last_period_range.end).count
     @commits_this_period = @collection.commits.between(@this_period_range.begin, @this_period_range.end).count
 
@@ -107,23 +117,23 @@ class CollectionsController < ApplicationController
     @avg_commits_per_author_last_period = authors_last.zero? ? 0 : (commits_last.count.to_f / authors_last).round(1)
     @avg_commits_per_author_this_period = authors_this.zero? ? 0 : (commits_this.count.to_f / authors_this).round(1)
 
-    @new_issues_last_period = @collection.issues.issue.between(@last_period_range.begin, @last_period_range.end).count
-    @new_issues_this_period = @collection.issues.issue.between(@this_period_range.begin, @this_period_range.end).count
+    @new_issues_last_period = issues_scope.issue.between(@last_period_range.begin, @last_period_range.end).count
+    @new_issues_this_period = issues_scope.issue.between(@this_period_range.begin, @this_period_range.end).count
 
-    @open_isues_last_period = @collection.issues.issue.open_between(@last_period_range.begin, @last_period_range.end).count
-    @open_isues_this_period = @collection.issues.issue.open_between(@this_period_range.begin, @this_period_range.end).count
+    @open_isues_last_period = issues_scope.issue.open_between(@last_period_range.begin, @last_period_range.end).count
+    @open_isues_this_period = issues_scope.issue.open_between(@this_period_range.begin, @this_period_range.end).count
 
     @advisories_last_period = @collection.advisories.between(@last_period_range.begin, @last_period_range.end).count
     @advisories_this_period = @collection.advisories.between(@this_period_range.begin, @this_period_range.end).count
 
-    @new_prs_last_period = @collection.issues.pull_request.between(@last_period_range.begin, @last_period_range.end).count
-    @new_prs_this_period = @collection.issues.pull_request.between(@this_period_range.begin, @this_period_range.end).count
+    @new_prs_last_period = issues_scope.pull_request.between(@last_period_range.begin, @last_period_range.end).count
+    @new_prs_this_period = issues_scope.pull_request.between(@this_period_range.begin, @this_period_range.end).count
 
-    @open_prs_last_period = @collection.issues.pull_request.open_between(@last_period_range.begin, @last_period_range.end).count
-    @open_prs_this_period = @collection.issues.pull_request.open_between(@this_period_range.begin, @this_period_range.end).count
+    @open_prs_last_period = issues_scope.pull_request.open_between(@last_period_range.begin, @last_period_range.end).count
+    @open_prs_this_period = issues_scope.pull_request.open_between(@this_period_range.begin, @this_period_range.end).count
 
-    @merged_prs_last_period = @collection.issues.pull_request.merged_between(@last_period_range.begin, @last_period_range.end).count
-    @merged_prs_this_period = @collection.issues.pull_request.merged_between(@this_period_range.begin, @this_period_range.end).count
+    @merged_prs_last_period = issues_scope.pull_request.merged_between(@last_period_range.begin, @last_period_range.end).count
+    @merged_prs_this_period = issues_scope.pull_request.merged_between(@this_period_range.begin, @this_period_range.end).count
   end
 
   def finance
@@ -147,19 +157,24 @@ class CollectionsController < ApplicationController
   end
 
   def responsiveness
-    @time_to_close_prs_last_period = (@collection.issues.pull_request.closed_between(@last_period_range.begin, @last_period_range.end)
+    # Apply bot filtering based on params
+    issues_scope = @collection.issues
+    issues_scope = issues_scope.human if params[:exclude_bots] == 'true'
+    issues_scope = issues_scope.bot if params[:only_bots] == 'true'
+
+    @time_to_close_prs_last_period = (issues_scope.pull_request.closed_between(@last_period_range.begin, @last_period_range.end)
       .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
     @time_to_close_prs_last_period = @time_to_close_prs_last_period.round(1)
 
-    @time_to_close_prs_this_period = (@collection.issues.pull_request.closed_between(@this_period_range.begin, @this_period_range.end)
+    @time_to_close_prs_this_period = (issues_scope.pull_request.closed_between(@this_period_range.begin, @this_period_range.end)
       .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
     @time_to_close_prs_this_period = @time_to_close_prs_this_period.round(1)
 
-    @time_to_close_issues_last_period = (@collection.issues.issue.closed_between(@last_period_range.begin, @last_period_range.end)
+    @time_to_close_issues_last_period = (issues_scope.issue.closed_between(@last_period_range.begin, @last_period_range.end)
       .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
     @time_to_close_issues_last_period = @time_to_close_issues_last_period.round(1)
 
-    @time_to_close_issues_this_period = (@collection.issues.issue.closed_between(@this_period_range.begin, @this_period_range.end)
+    @time_to_close_issues_this_period = (issues_scope.issue.closed_between(@this_period_range.begin, @this_period_range.end)
       .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
     @time_to_close_issues_this_period = @time_to_close_issues_this_period.round(1)
   end
