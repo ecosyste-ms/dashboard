@@ -1,5 +1,6 @@
 class Project < ApplicationRecord
   include Stats
+  include EcosystemsApiClient
 
   has_many :collection_projects, dependent: :destroy
   has_many :collections, through: :collection_projects
@@ -150,7 +151,7 @@ class Project < ApplicationRecord
 
   def ping
     ping_urls.each do |url|
-      Faraday.get(url) rescue nil
+      ecosystems_api_request(url) rescue nil
     end
   end
 
@@ -199,18 +200,13 @@ class Project < ApplicationRecord
   end
 
   def fetch_repository
-    conn = Faraday.new(url: repos_api_url) do |faraday|
-      faraday.response :follow_redirects
-      faraday.adapter Faraday.default_adapter
-    end
-
-    response = conn.get
-    return unless response.success?
+    response = ecosystems_api_request(repos_api_url)
+    return unless response&.success?
     self.repository = JSON.parse(response.body)
     self.keywords = combined_keywords
     self.save
-  rescue
-    puts "Error fetching repository for #{repository_url}"
+  rescue => e
+    Rails.logger.error "Error fetching repository for #{repository_url}: #{e.message}"
   end
 
   def combined_keywords
@@ -381,42 +377,25 @@ class Project < ApplicationRecord
 
   def sync_issues
     return unless repository.present?
-    conn = Faraday.new(url: issues_api_url) do |faraday|
-      faraday.response :follow_redirects
-      faraday.adapter Faraday.default_adapter
-    end
-    response = conn.get
-    return unless response.success?
-    self.issues_last_synced_at = JSON.parse(response.body)['last_synced_at']
+    
+    response_data = fetch_json_with_retry(issues_api_url)
+    return unless response_data
+    
+    self.issues_last_synced_at = response_data['last_synced_at']
     self.save
-    issues_list_url = JSON.parse(response.body)['issues_url'] + '?per_page=100'
-
-    page = 1
-    loop do
-      paginated_issues_url = "#{issues_list_url}&page=#{page}"
-      conn = Faraday.new(url: paginated_issues_url) do |faraday|
-        faraday.response :follow_redirects
-        faraday.adapter Faraday.default_adapter
-      end
-      response = conn.get
-      return unless response.success?
-
-      issues_json = JSON.parse(response.body)
-      break if issues_json.empty? # Stop if there are no more issues
-
-      # TODO: Use bulk insert
-      issues_json.each do |issue|
-        i = issues.find_or_create_by(number: issue['number']) 
-        i.assign_attributes(issue)
-        i.save(touch: false)
-      end
-
-      page += 1
-      break if page > 50 # Stop if there are too many issues
+    
+    issues_list_url = response_data['issues_url']
+    issues_data = fetch_paginated_data(issues_list_url, max_pages: 50)
+    
+    # TODO: Use bulk insert
+    issues_data.each do |issue|
+      i = issues.find_or_create_by(number: issue['number']) 
+      i.assign_attributes(issue)
+      i.save(touch: false)
     end
     
-  rescue
-    puts "Error fetching issues for #{repository_url}"
+  rescue => e
+    Rails.logger.error "Error fetching issues for #{repository_url}: #{e.message}"
   end
 
   def commits_api_url
@@ -425,44 +404,26 @@ class Project < ApplicationRecord
 
   def sync_commits
     return unless repository.present?
-    conn = Faraday.new(url: commits_api_url) do |faraday|
-      faraday.response :follow_redirects
-      faraday.adapter Faraday.default_adapter
-    end
-    response = conn.get
-    return unless response.success?
-    commits_list_url = JSON.parse(response.body)['commits_url'] + '?per_page=100&sort=timestamp'
-
-    page = 1
-    loop do
-      paginated_commits_url = "#{commits_list_url}&page=#{page}"
-      conn = Faraday.new(url: paginated_commits_url) do |faraday|
-        faraday.response :follow_redirects
-        faraday.adapter Faraday.default_adapter
-      end
-      response = conn.get
-      return unless response.success?
-
-      commits_json = JSON.parse(response.body)
-      break if commits_json.empty? # Stop if there are no more commits
-
-      # TODO: Use bulk insert
-      commits_json.each do |commit|
-        c = commits.find_or_create_by(sha: commit['sha']) 
-        commit_attributes = commit.except('stats', 'html_url')
-        commit_attributes['additions'] = commit['stats']['additions']
-        commit_attributes['deletions'] = commit['stats']['deletions']
-        commit_attributes['files_changed'] = commit['stats']['files_changed']
-        c.assign_attributes(commit_attributes)
-        c.save(touch: false)
-      end
-
-      page += 1
-      break if page > 50 # Stop if there are too many commits
+    
+    response_data = fetch_json_with_retry(commits_api_url)
+    return unless response_data
+    
+    commits_list_url = response_data['commits_url'] + '?sort=timestamp'
+    commits_data = fetch_paginated_data(commits_list_url, max_pages: 50)
+    
+    # TODO: Use bulk insert
+    commits_data.each do |commit|
+      c = commits.find_or_create_by(sha: commit['sha']) 
+      commit_attributes = commit.except('stats', 'html_url')
+      commit_attributes['additions'] = commit['stats']['additions']
+      commit_attributes['deletions'] = commit['stats']['deletions']
+      commit_attributes['files_changed'] = commit['stats']['files_changed']
+      c.assign_attributes(commit_attributes)
+      c.save(touch: false)
     end
 
-  rescue
-    puts "Error fetching commits for #{repository_url}"
+  rescue => e
+    Rails.logger.error "Error fetching commits for #{repository_url}: #{e.message}"
   end
 
   def tags_api_url(page: 1)

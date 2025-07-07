@@ -8,15 +8,15 @@ class ProjectsController < ApplicationController
     @period = period
     
     # Generate dynamic commit data for the chart
-    if @range <= 180  # 6 months or less
+    if @range.to_i <= 180  # 6 months or less
       @commits_per_period = @project.commits.group_by_month(:timestamp, format: '%b', last: 6, expand_range: true, default_value: 0).count
     else
       @commits_per_period = @project.commits.group_by_year(:timestamp, format: '%Y', last: 6, expand_range: true, default_value: 0).count
     end
     
     # Calculate current and previous period commits
-    current_period_start = @range.days.ago
-    previous_period_start = (@range * 2).days.ago
+    current_period_start = @range.to_i.days.ago
+    previous_period_start = (@range.to_i * 2).days.ago
     
     @commits_this_period = @project.commits.where('timestamp >= ?', current_period_start).count
     @commits_last_period = @project.commits.where('timestamp >= ? AND timestamp < ?', previous_period_start, current_period_start).count

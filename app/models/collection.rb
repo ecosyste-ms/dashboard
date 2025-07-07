@@ -1,4 +1,6 @@
 class Collection < ApplicationRecord
+  include EcosystemsApiClient
+  
   has_many :collection_projects, dependent: :destroy
   has_many :projects, through: :collection_projects
 

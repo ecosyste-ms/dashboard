@@ -1,6 +1,7 @@
 class Collective < ApplicationRecord
   include Charts
   include Stats
+  include EcosystemsApiClient
 
   validates :slug, presence: true
 
