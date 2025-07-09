@@ -153,6 +153,10 @@ class Project < ApplicationRecord
     ping_urls.each do |url|
       ecosystems_api_request(url) rescue nil
     end
+    
+    if sync_commits_url.present?
+      ecosystems_api_request(sync_commits_url, method: :post) rescue nil
+    end
   end
 
   def ping_urls
@@ -172,6 +176,11 @@ class Project < ApplicationRecord
   def commits_ping_url
     return unless repository.present?
     "https://commits.ecosyste.ms/api/v1/hosts/#{repository['host']['name']}/repositories/#{repository['full_name']}/ping"
+  end
+
+  def sync_commits_url
+    return unless repository.present?
+    "https://commits.ecosyste.ms/api/v1/hosts/#{repository['host']['name']}/repositories/#{repository['full_name']}/sync_commits"
   end
 
   def packages_ping_urls
