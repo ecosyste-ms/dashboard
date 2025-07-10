@@ -170,7 +170,7 @@ class Project < ApplicationRecord
 
   def issues_ping_url
     return unless repository.present?
-    "https://issues.ecosyste.ms/api/v1/hosts/#{repository['host']['name']}/repositories/#{repository['full_name']}/ping"
+    "https://issues.ecosyste.ms/api/v1/hosts/#{repository['host']['name']}/repositories/#{repository['full_name']}/ping?priority=true"
   end
 
   def commits_ping_url
@@ -381,7 +381,7 @@ class Project < ApplicationRecord
   end
 
   def issues_api_url
-    "https://issues.ecosyste.ms/api/v1/repositories/lookup?url=#{repository_url}"
+    "https://issues.ecosyste.ms/api/v1/repositories/lookup?url=#{repository_url}&priority=true"
   end
 
   def sync_issues
