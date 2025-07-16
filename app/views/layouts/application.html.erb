@@ -9,10 +9,7 @@
     </title>
     <meta name="description" content="<%= meta_description %>">
     <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
-    <meta name="turbo-cache-control" content="no-cache">
     <%= stylesheet_link_tag "application", :media => "all" %>
-    <%= turbo_include_tags %>
     <%= javascript_include_tag "application" %>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,22 +21,6 @@
   <body>
 		<%= render 'shared/header' %>
 		
-    <% flash.each do |type, message| %>
-      <% alert_class = case type.to_sym
-        when :notice then 'alert alert-info'
-        when :success then 'alert alert-success'
-        when :error then 'alert alert-danger'
-        when :alert then 'alert alert-warning'
-        else 'alert alert-secondary'
-      end %>
-      <div class="container">
-        <div class="<%= alert_class %> alert-dismissible fade show mx-3 mt-3" role="alert">
-          <%= message %>
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      </div>
-    <% end %>
-
     <div class="main">
       <%= yield %>
     </div>
