@@ -465,7 +465,6 @@ DEPENDENCIES
   sitemap_generator
   sprockets-rails
   turbo-rails
-  tzinfo-data
   web-console
   webmock
 
