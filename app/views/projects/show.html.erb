@@ -127,10 +127,10 @@
             <%= stat_card_widget 'Downloads', @project.downloads, nil, title_class: "card-title small", stat_size: "large" %>
           </div>
         <% end %>
+      </div>
       <div class="full-width-widget">
         <!-- <%= stat_card_widget 'Commits', 882, 781, increase_good: true, symbol: '', title_class: "card-title" %> -->
-        <div class="full-width-widget">
-          <div class="card well p-3 border-0">
+        <div class="card well p-3 border-0">
             <div class="card-body">
               <h5 class="card-title">Commits</h5>
               <div class="stat-card mb-2">
@@ -150,8 +150,10 @@
                   data-chart-options='<%= {scales: {y: {max: (@commits_per_period.map(&:last).max.to_i * 1.1).ceil}}}.to_json.html_safe %>'
                 ></canvas>
               </div>
-      </div>      
-      <div class="three-equal-widgets">
+            </div>
+          </div>
+        </div>
+        <div class="three-equal-widgets">
         <%= stat_card_widget 'Committers', 75, 65, title_class: "card-title small", stat_size: "large" %>
         <%= stat_card_widget 'Open PRs', 11, 9,  increase_good: false, title_class: "card-title small", stat_size: "large" %>
         <%= stat_card_widget 'Open issues', 704, 654,  increase_good: false, title_class: "card-title small", stat_size: "large" %>
