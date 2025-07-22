@@ -35,19 +35,21 @@ class CollectionTest < ActiveSupport::TestCase
       dependency_file: @cyclone_dx_sbom
     )
     
-    # Mock the Package.package_url method to return mock data
-    mock_rails_package = OpenStruct.new(repository_url: "https://github.com/rails/rails")
-    mock_react_package = OpenStruct.new(repository_url: "https://github.com/facebook/react")
+    # Mock Package.package_url to return relations with first() results
+    mock_rails_relation = mock()
+    mock_rails_package = OpenStruct.new(repository_url: "https://github.com/rails/rails", project: nil)
+    mock_rails_relation.stubs(:first).returns(mock_rails_package)
     
-    Package.stubs(:package_url).with("pkg:gem/rails@7.0.0").returns(mock_rails_package)
-    Package.stubs(:package_url).with("pkg:npm/react@18.0.0").returns(mock_react_package)
-    Package.stubs(:package_url).with("pkg:github/rails/rails@v7.0.0").returns(nil)
+    mock_react_relation = mock()
+    mock_react_package = OpenStruct.new(repository_url: "https://github.com/facebook/react", project: nil)
+    mock_react_relation.stubs(:first).returns(mock_react_package)
     
-    # Mock Faraday for the package lookup fallback
-    response = mock()
-    response.stubs(:status).returns(200)
-    response.stubs(:body).returns([{ "repository_url" => "https://github.com/rails/rails" }].to_json)
-    Faraday.stubs(:get).returns(response)
+    empty_relation = mock()
+    empty_relation.stubs(:first).returns(nil)
+    
+    Package.stubs(:package_url).with("pkg:gem/rails@7.0.0").returns(mock_rails_relation)
+    Package.stubs(:package_url).with("pkg:npm/react@18.0.0").returns(mock_react_relation)
+    Package.stubs(:package_url).with("pkg:github/rails/rails@v7.0.0").returns(empty_relation)
     
     # Mock the worker to avoid background job execution
     SyncProjectWorker.expects(:perform_async).at_least_once
@@ -72,12 +74,15 @@ class CollectionTest < ActiveSupport::TestCase
       dependency_file: @spdx_sbom
     )
     
-    # Mock the Package.package_url method
-    mock_activerecord_package = OpenStruct.new(repository_url: "https://github.com/rails/rails")
-    mock_lodash_package = OpenStruct.new(repository_url: "https://github.com/lodash/lodash")
+    # Mock the Package.package_url scope to return empty relations (no local packages found)
+    Package.stubs(:package_url).returns(Package.none)
     
-    Package.stubs(:package_url).with("pkg:gem/activerecord@7.0.0").returns(mock_activerecord_package)
-    Package.stubs(:package_url).with("pkg:npm/lodash@4.17.21").returns(mock_lodash_package)
+    # Stub the HTTP requests for package lookup
+    stub_request(:get, "https://packages.ecosyste.ms/api/v1/packages/lookup?purl=pkg:gem/activerecord@7.0.0")
+      .to_return(status: 200, body: [{ "repository_url" => "https://github.com/rails/rails" }].to_json)
+    
+    stub_request(:get, "https://packages.ecosyste.ms/api/v1/packages/lookup?purl=pkg:npm/lodash@4.17.21")
+      .to_return(status: 200, body: [{ "repository_url" => "https://github.com/lodash/lodash" }].to_json)
     
     # Mock the worker
     SyncProjectWorker.expects(:perform_async).at_least_once

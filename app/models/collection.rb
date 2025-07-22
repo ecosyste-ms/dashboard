@@ -261,24 +261,46 @@ class Collection < ApplicationRecord
     
     urls = []
     purls.each do |purl|
-      if pkg = Package.package_url(purl) 
-        urls << pkg.repository_url if pkg.repository_url.present?
-      elsif purl.start_with?('pkg:github/')
-        # Convert GitHub PURL to URL
-        parts = purl.split('/')
-        if parts.length >= 3
-          owner = parts[2]
-          repo = parts[3]
-          urls << "https://github.com/#{owner}/#{repo}"
+      begin
+        pkg_relation = Package.package_url(purl)
+        if pkg_relation && (pkg = pkg_relation.first)
+          if pkg.repository_url.present?
+            urls << pkg.repository_url
+          elsif pkg.project&.url.present?
+            urls << pkg.project.url
+          end
+        elsif purl.start_with?('pkg:github/')
+          # Convert GitHub PURL to URL
+          parts = purl.split('/')
+          if parts.length >= 3
+            owner = parts[2]
+            repo = parts[3]
+            urls << "https://github.com/#{owner}/#{repo}"
+          end
+        else
+          # Make HTTP request with timeout and error handling
+          conn = Faraday.new do |f|
+            f.options.timeout = 10  # 10 seconds timeout
+            f.options.open_timeout = 5  # 5 seconds to establish connection
+            f.request :retry, max: 2, interval: 1, backoff_factor: 2, 
+                      retry_statuses: [429, 500, 502, 503, 504],
+                      methods: [:get]
+          end
+          
+          resp = conn.get("https://packages.ecosyste.ms/api/v1/packages/lookup?purl=#{purl}")
+          if resp.status == 200
+            data = JSON.parse(resp.body)
+            pkg = data.first
+            next unless pkg
+            urls << pkg['repository_url'] if pkg['repository_url'].present?
+          end
         end
-      else
-        resp = Faraday.get("https://packages.ecosyste.ms/api/v1/packages/lookup?purl=#{purl}")
-        if resp.status == 200
-          data = JSON.parse(resp.body)
-          pkg = data.first
-          next unless pkg
-          urls << pkg['repository_url'] if pkg['repository_url'].present?
-        end
+      rescue Faraday::Error, JSON::ParserError => e
+        Rails.logger.error "Error processing PURL #{purl}: #{e.message}"
+        next # Continue with next PURL instead of failing the entire import
+      rescue => e
+        Rails.logger.error "Unexpected error processing PURL #{purl}: #{e.message}"
+        next # Continue with next PURL instead of failing the entire import
       end
     end
     urls.uniq
