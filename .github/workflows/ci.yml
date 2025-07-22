@@ -39,6 +39,10 @@ jobs:
         with:
           bundler-cache: true
 
+      - name: Install Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
       - name: Run tests
         env:
           RAILS_ENV: test
@@ -48,3 +52,12 @@ jobs:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
         run: bundle exec rake db:create db:migrate test
+
+      - name: Generate SBOM with Syft
+        run: syft . -o spdx-json=sbom.spdx.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.spdx.json
