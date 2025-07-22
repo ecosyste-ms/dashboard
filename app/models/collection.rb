@@ -192,7 +192,56 @@ class Collection < ApplicationRecord
   end
 
   def import_from_dependency_file
-    # TODO: implement dependency file import
+    return if dependency_file.blank?
+    
+    begin
+      # Create SBOM record to handle processing
+      sbom = Sbom.create!(raw: dependency_file)
+      
+      # Parse the SBOM JSON
+      json = JSON.parse(dependency_file)
+      
+      # Extract PURLs from the SBOM using the shared method
+      purls = extract_purls_from_sbom(json)
+      
+      # Convert PURLs to project URLs
+      urls = fetch_project_urls_from_purls(purls)
+      
+      # Create projects for each URL
+      urls.each do |url|
+        puts "Importing project from SBOM: #{url}"
+        next if url.blank?
+        
+        begin
+          project = Project.find_or_create_by(url: url)
+          next unless project&.persisted?
+          
+          collection_projects.find_or_create_by(project: project)
+          
+          # Queue individual sync job for each project if it needs syncing
+          if project.last_synced_at.blank?
+            SyncProjectWorker.perform_async(project.id)
+          end
+          
+          broadcast_sync_progress
+        rescue => e
+          Rails.logger.error "Error creating project for URL #{url}: #{e.message}"
+          next
+        end
+      end
+      
+      Rails.logger.info "Successfully imported #{urls.length} projects from SBOM dependency file"
+      
+    rescue JSON::ParserError => e
+      Rails.logger.error "Error parsing SBOM JSON: #{e.message}"
+      update_with_broadcast(import_status: 'error', sync_status: 'error', last_error_message: "Invalid SBOM file format: #{e.message}")
+      raise e
+    rescue => e
+      Rails.logger.error "Error importing from dependency file: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      update_with_broadcast(import_status: 'error', sync_status: 'error', last_error_message: e.message, last_error_backtrace: e.backtrace.join("\n"))
+      raise e
+    end
   end
 
   def extract_purls_from_sbom(json)

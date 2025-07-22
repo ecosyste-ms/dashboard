@@ -145,4 +145,203 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     assert_includes visible_collections, public_collection
     assert_not_includes visible_collections, private_collection
   end
+
+  # Controller action tests
+  test "should create collection with SBOM file upload" do
+    login_as(@user)
+    
+    # Create a test SBOM file
+    sbom_content = {
+      "bomFormat" => "CycloneDX",
+      "components" => [
+        { "purl" => "pkg:gem/rails@7.0.0" },
+        { "purl" => "pkg:npm/react@18.0.0" }
+      ]
+    }.to_json
+    
+    # Mock the import process to avoid actual API calls
+    ImportCollectionWorker.expects(:perform_async).once
+    
+    assert_difference('Collection.count', 1) do
+      post collections_path, params: {
+        collection_type: "dependency",
+        collection: {
+          name: "Test SBOM Collection",
+          description: "Test collection from SBOM upload",
+          dependency_file: sbom_content,
+          visibility: "public"
+        }
+      }
+    end
+    
+    collection = Collection.last
+    assert_equal "Test SBOM Collection", collection.name
+    assert_equal sbom_content, collection.dependency_file
+    assert_equal @user, collection.user
+    assert_redirected_to collection_path(collection)
+    assert_equal 'Collection was successfully created.', flash[:notice]
+  end
+
+  test "should create collection with SPDX SBOM file" do
+    login_as(@user)
+    
+    # Create a test SPDX SBOM file
+    spdx_content = {
+      "spdxVersion" => "SPDX-2.3",
+      "packages" => [
+        {
+          "externalRefs" => [
+            { "referenceType" => "purl", "referenceLocator" => "pkg:gem/activerecord@7.0.0" }
+          ]
+        }
+      ]
+    }.to_json
+    
+    # Mock the import process
+    ImportCollectionWorker.expects(:perform_async).once
+    
+    assert_difference('Collection.count', 1) do
+      post collections_path, params: {
+        collection_type: "dependency",
+        collection: {
+          name: "Test SPDX Collection", 
+          description: "Test collection from SPDX SBOM",
+          dependency_file: spdx_content,
+          visibility: "private"
+        }
+      }
+    end
+    
+    collection = Collection.last
+    assert_equal "Test SPDX Collection", collection.name
+    assert_equal spdx_content, collection.dependency_file
+    assert_equal "private", collection.visibility
+    assert_redirected_to collection_path(collection)
+  end
+
+  test "should handle invalid SBOM JSON in controller" do
+    login_as(@user)
+    
+    # Invalid JSON content
+    invalid_json = "{ invalid json content"
+    
+    # Should still create the collection (validation happens during import)
+    assert_difference('Collection.count', 1) do
+      post collections_path, params: {
+        collection_type: "dependency",
+        collection: {
+          name: "Invalid SBOM Collection",
+          dependency_file: invalid_json,
+          visibility: "public"
+        }
+      }
+    end
+    
+    collection = Collection.last
+    assert_equal invalid_json, collection.dependency_file
+    assert_redirected_to collection_path(collection)
+  end
+
+  test "should require at least one source for dependency collection" do
+    login_as(@user)
+    
+    # No dependency file or repo URL
+    assert_no_difference('Collection.count') do
+      post collections_path, params: {
+        collection_type: "dependency",
+        collection: {
+          name: "Empty Collection",
+          description: "Collection with no sources",
+          dependency_file: "",
+          github_repo_url: "",
+          visibility: "public"
+        }
+      }
+    end
+    
+    assert_response :success # Re-renders the form
+    # The flash alert should be present
+    assert flash[:alert].present?
+    assert_includes flash[:alert], "You must provide a source"
+  end
+
+  test "should create collection with both SBOM and repo URL" do
+    login_as(@user)
+    
+    sbom_content = {
+      "bomFormat" => "CycloneDX",
+      "components" => [{ "purl" => "pkg:gem/rails@7.0.0" }]
+    }.to_json
+    
+    ImportCollectionWorker.expects(:perform_async).once
+    
+    assert_difference('Collection.count', 1) do
+      post collections_path, params: {
+        collection_type: "dependency",
+        collection: {
+          name: "Combined Collection",
+          dependency_file: sbom_content,
+          github_repo_url: "https://github.com/test/repo",
+          visibility: "public"
+        }
+      }
+    end
+    
+    collection = Collection.last
+    assert_equal sbom_content, collection.dependency_file
+    assert_equal "https://github.com/test/repo", collection.github_repo_url
+    assert_redirected_to collection_path(collection)
+  end
+
+  test "should set name from SBOM when no name provided" do
+    login_as(@user)
+    
+    sbom_content = {
+      "bomFormat" => "CycloneDX",
+      "components" => [{ "purl" => "pkg:gem/rails@7.0.0" }]
+    }.to_json
+    
+    ImportCollectionWorker.expects(:perform_async).once
+    
+    post collections_path, params: {
+      collection_type: "dependency",
+      collection: {
+        dependency_file: sbom_content,
+        visibility: "public"
+      }
+    }
+    
+    collection = Collection.last
+    assert_equal "SBOM from upload", collection.name
+  end
+
+  test "should require authentication for collection creation" do
+    # Don't log in user
+    initial_count = Collection.count
+    
+    post collections_path, params: {
+      collection_type: "dependency",
+      collection: {
+        name: "Unauthorized Collection",
+        dependency_file: '{"bomFormat": "CycloneDX"}',
+        visibility: "public"
+      }
+    }
+    
+    assert_redirected_to login_path
+    assert_equal initial_count, Collection.count # No new collections created
+  end
+
+  test "should show new collection form with dependency type" do
+    login_as(@user)
+    
+    get new_collection_path, params: { collection_type: "dependency" }
+    
+    assert_response :success
+    assert_select 'form[data-dependency-validation]'
+    assert_select 'input[type="file"][name="collection[dependency_file]"]'
+    assert_select 'input[name="collection[github_repo_url]"]'
+    assert_select 'input[name="collection[name]"]'
+    assert_select 'textarea[name="collection[description]"]'
+  end
 end
