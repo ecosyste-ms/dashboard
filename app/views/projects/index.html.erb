@@ -5,13 +5,32 @@
     <h1 class="display-1 mb-3">Measure what matters</h1>
     <h2 class="fw-normal mb-4">Support Open Source for the right reasons</h2>
     <p class="dashboard-home__hero__para mb-5">When you&rsquo;re supporting Open Source you need to know your investment is having the maximum impact. Improving, securing and sustaining the technology you rely on.</p>
+
+    <div class="well p-5 mx-lg-5 dashboard-home__hero__cta">
+      <div class="row">
+        <div class="col-12 col-lg-5 col-xl-4">
+          <p class="h3">Dashboard is a free tool from ecosyste.ms to help you see the impact of your open source software contributions</p>
+        </div>
+        <div class="col-12 col-lg-7 col-xl-8">
+          <p>Find a project and see it in our dashboard, with statistics on responsiveness, productivity, finance and more available to compare over time</p>
+          <%= form_with url: lookup_projects_path, method: :post, html: { class: "row g-2 justify-content-center" } do %>
+          <label for="url" class="fw-bold">Enter a github repository URL</label>
+          <div class="input-group rounded-input-group mt-3 mb-4">
+            <%= text_field_tag :url, nil, class: "form-control", id: "url", placeholder: "https://github.com/ecosyste-ms/packages", size: 50 %>
+            <%= submit_tag "View dashboard", class: "btn btn-danger pe-4" %>
+          </div>
+          <% end %>
+           <p class="small">Or <a href="/projects/52" class="spesh-link">view an example project</a> or <a href="/collections/new"  class="spesh-link">create a collection</a></p>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
 <div class="dashboard-home__benefits dark-section purple-grad-bg py-5">
   <div class="container">
-    <h3 class="text-center fw-normal mt-4 mb-5" ><span class="spesh-link">Dashboard</span> is a free tool from ecosyste.ms to help you see the impact of your open source software contributions</h3>
-    <div class="row text-center mb-5">
+    <div class="row text-center my-5">
       <div class="col-12 col-md-6 col-lg-3">
         <h4>Fewer metrics, clearer picture</h4>
         <p>Confidently measure what matters most. Dashboard guides you to the right metrics, ensuring you capture every key insight.</p> 
