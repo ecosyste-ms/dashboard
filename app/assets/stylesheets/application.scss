@@ -182,3 +182,8 @@ html {
     padding-bottom: 5rem;
   }
 }
+
+//just for this app, which for now is the only one with the user menu, to stop it dropping to a second line at some breakpoints
+.header__local__navigation .dropdown:last-of-type {
+  padding-left: 0;
+}
