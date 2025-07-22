@@ -161,8 +161,8 @@ class Collection < ApplicationRecord
         sbom = conn.get(sbom_url)
         if sbom.status == 200
           json = JSON.parse(sbom.body)
-          purls = extract_purls_from_sbom(json)
-          urls = fetch_project_urls_from_purls(purls)
+          purls = Sbom.extract_purls_from_json(json)
+          urls = Sbom.fetch_project_urls_from_purls(purls)
           urls.each do |url|
             puts "Importing project: #{url}"
             next if url.blank?
@@ -192,48 +192,58 @@ class Collection < ApplicationRecord
   end
 
   def import_from_dependency_file
-    # TODO: implement dependency file import
-  end
-
-  def extract_purls_from_sbom(json)
-    purls = []
-
-    if json['bomFormat'] == 'CycloneDX' && json['components']
-      purls = json['components'].map { |c| c['purl'] }.compact
-    elsif json['spdxVersion'] && json['packages']
-      purls = json['packages'].flat_map { |p| Array(p['externalRefs']).select { |ref| ref['referenceType'] == 'purl' }.map { |ref| ref['referenceLocator'] } }.compact
-    end
-
-    purls.uniq
-  end
-
-  def fetch_project_urls_from_purls(purls)
-    # TODO implement and use bulk lookup
+    return if dependency_file.blank?
     
-    urls = []
-    purls.each do |purl|
-      if pkg = Package.package_url(purl) 
-        urls << pkg.repository_url if pkg.repository_url.present?
-      elsif purl.start_with?('pkg:github/')
-        # Convert GitHub PURL to URL
-        parts = purl.split('/')
-        if parts.length >= 3
-          owner = parts[2]
-          repo = parts[3]
-          urls << "https://github.com/#{owner}/#{repo}"
-        end
-      else
-        resp = Faraday.get("https://packages.ecosyste.ms/api/v1/packages/lookup?purl=#{purl}")
-        if resp.status == 200
-          data = JSON.parse(resp.body)
-          pkg = data.first
-          next unless pkg
-          urls << pkg['repository_url'] if pkg['repository_url'].present?
+    begin
+      # Create SBOM record to handle processing
+      Sbom.create!(raw: dependency_file)
+      
+      # Parse the SBOM JSON
+      json = JSON.parse(dependency_file)
+      
+      # Extract PURLs from the SBOM using the SBOM class method
+      purls = Sbom.extract_purls_from_json(json)
+      
+      # Convert PURLs to project URLs using the SBOM class method
+      urls = Sbom.fetch_project_urls_from_purls(purls)
+      
+      # Create projects for each URL
+      urls.each do |url|
+        puts "Importing project from SBOM: #{url}"
+        next if url.blank?
+        
+        begin
+          project = Project.find_or_create_by(url: url)
+          next unless project&.persisted?
+          
+          collection_projects.find_or_create_by(project: project)
+          
+          # Queue individual sync job for each project if it needs syncing
+          if project.last_synced_at.blank?
+            SyncProjectWorker.perform_async(project.id)
+          end
+          
+          broadcast_sync_progress
+        rescue => e
+          Rails.logger.error "Error creating project for URL #{url}: #{e.message}"
+          next
         end
       end
+      
+      Rails.logger.info "Successfully imported #{urls.length} projects from SBOM dependency file"
+      
+    rescue JSON::ParserError => e
+      Rails.logger.error "Error parsing SBOM JSON: #{e.message}"
+      update_with_broadcast(import_status: 'error', sync_status: 'error', last_error_message: "Invalid SBOM file format: #{e.message}")
+      raise e
+    rescue => e
+      Rails.logger.error "Error importing from dependency file: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      update_with_broadcast(import_status: 'error', sync_status: 'error', last_error_message: e.message, last_error_backtrace: e.backtrace.join("\n"))
+      raise e
     end
-    urls.uniq
   end
+
 
   def self.import_github_org(org_name)
     collection = Collection.find_or_create_by(name: org_name) do |collection|

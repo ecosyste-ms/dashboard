@@ -1,0 +1,24 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "components": [
+    {
+      "type": "library",
+      "name": "rails",
+      "version": "7.0.0",
+      "purl": "pkg:gem/rails@7.0.0"
+    },
+    {
+      "type": "library", 
+      "name": "activerecord",
+      "version": "7.0.0",
+      "purl": "pkg:gem/activerecord@7.0.0"
+    },
+    {
+      "type": "library",
+      "name": "react",
+      "version": "18.0.0",
+      "purl": "pkg:npm/react@18.0.0"
+    }
+  ]
+}

@@ -27,6 +27,12 @@ class CollectionsController < ApplicationController
 
   def create
     @collection = current_user.collections.build(collection_params)
+    
+    # Handle file upload for dependency_file
+    if params[:collection][:dependency_file].respond_to?(:read)
+      @collection.dependency_file = params[:collection][:dependency_file].read
+    end
+    
     if @collection.save
       # Trigger async import with ActionCable updates
       @collection.import_projects_async
@@ -44,6 +50,12 @@ class CollectionsController < ApplicationController
 
   def update
     require_owner!
+    
+    # Handle file upload for dependency_file
+    if params[:collection][:dependency_file].respond_to?(:read)
+      params[:collection][:dependency_file] = params[:collection][:dependency_file].read
+    end
+    
     if @collection.update(collection_params)
       redirect_to @collection, notice: 'Collection was successfully updated.'
     else
