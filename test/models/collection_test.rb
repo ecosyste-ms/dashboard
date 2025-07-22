@@ -132,10 +132,9 @@ class CollectionTest < ActiveSupport::TestCase
   end
 
   test "should extract PURLs from CycloneDX SBOM" do
-    collection = @user.collections.build(dependency_file: @cyclone_dx_sbom)
     json = JSON.parse(@cyclone_dx_sbom)
     
-    purls = collection.extract_purls_from_sbom(json)
+    purls = Sbom.extract_purls_from_json(json)
     
     expected_purls = [
       "pkg:gem/rails@7.0.0",
@@ -147,10 +146,9 @@ class CollectionTest < ActiveSupport::TestCase
   end
 
   test "should extract PURLs from SPDX SBOM" do
-    collection = @user.collections.build(dependency_file: @spdx_sbom)
     json = JSON.parse(@spdx_sbom)
     
-    purls = collection.extract_purls_from_sbom(json)
+    purls = Sbom.extract_purls_from_json(json)
     
     expected_purls = [
       "pkg:gem/activerecord@7.0.0",
@@ -158,5 +156,57 @@ class CollectionTest < ActiveSupport::TestCase
     ]
     
     assert_equal expected_purls, purls
+  end
+
+  test "should handle GitHub Actions PURLs correctly" do
+    github_actions_sbom = {
+      "bomFormat" => "CycloneDX",
+      "components" => [
+        { "purl" => "pkg:github/actions/checkout@v4" },
+        { "purl" => "pkg:github/actions/setup-node@v4.4.0" },
+        { "purl" => "pkg:github/andrew/ruby-upgrade-action@main" }
+      ]
+    }.to_json
+    
+    json = JSON.parse(github_actions_sbom)
+    
+    purls = Sbom.extract_purls_from_json(json)
+    urls = Sbom.fetch_project_urls_from_purls(purls)
+    
+    expected_urls = [
+      "https://github.com/actions/checkout",
+      "https://github.com/actions/setup-node", 
+      "https://github.com/andrew/ruby-upgrade-action"
+    ]
+    
+    assert_equal expected_urls.sort, urls.sort
+  end
+
+  test "should handle pkg:githubactions PURLs via API lookup" do
+    githubactions_sbom = {
+      "bomFormat" => "CycloneDX", 
+      "components" => [
+        { "purl" => "pkg:githubactions/actions/checkout@v4" },
+        { "purl" => "pkg:githubactions/actions/setup-node@v4.4.0" }
+      ]
+    }.to_json
+    
+    # Stub the HTTP requests for GitHub Actions API lookup
+    stub_request(:get, "https://packages.ecosyste.ms/api/v1/packages/lookup?purl=pkg:githubactions/actions/checkout@v4")
+      .to_return(status: 200, body: [{ "repository_url" => "https://github.com/actions/checkout" }].to_json)
+    
+    stub_request(:get, "https://packages.ecosyste.ms/api/v1/packages/lookup?purl=pkg:githubactions/actions/setup-node@v4.4.0")
+      .to_return(status: 200, body: [{ "repository_url" => "https://github.com/actions/setup-node" }].to_json)
+    
+    json = JSON.parse(githubactions_sbom)
+    purls = Sbom.extract_purls_from_json(json)
+    urls = Sbom.fetch_project_urls_from_purls(purls)
+    
+    expected_urls = [
+      "https://github.com/actions/checkout",
+      "https://github.com/actions/setup-node"
+    ]
+    
+    assert_equal expected_urls.sort, urls.sort
   end
 end
