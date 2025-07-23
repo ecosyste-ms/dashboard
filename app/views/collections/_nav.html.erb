@@ -25,4 +25,12 @@
       <a class="nav-link <%= 'active' if action_name == 'projects' %>" href="<%= projects_collection_path(@collection, request.query_parameters) %>">Projects</a>
     </li>
   </ul>
+
+  <hr class="mt-5 me-3" />
+  <div class="p-3 ">
+      <% if Rails.env.development? %>
+        <%= link_to 'Sync collection', sync_collection_path(@collection), method: :get, class: 'btn btn-primary rounded-pill' %>
+      <% end %>
+  </div>
+  
 </div>
