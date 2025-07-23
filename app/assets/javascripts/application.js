@@ -234,3 +234,40 @@ function initializeDependencyFormValidation() {
 
 document.addEventListener('DOMContentLoaded', initializeDependencyFormValidation);
 document.addEventListener('turbo:load', initializeDependencyFormValidation);
+
+
+
+function initCopyToClipboard() {
+  const btn = document.getElementById('copyLink');
+  if (!btn) return;                       // element not on this page
+
+
+  const tooltip = bootstrap.Tooltip.getOrCreateInstance(btn, {
+    title: 'Copy URL',
+    placement: 'top',
+  });
+
+  btn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      tooltip.setContent({ '.tooltip-inner': 'Copied!' });
+    } catch {
+      tooltip.setContent({ '.tooltip-inner': 'Copy failed' });
+    }
+
+    tooltip.show();
+
+    // reset after 2 s
+    setTimeout(() => {
+      tooltip.hide();
+      tooltip.setContent({ '.tooltip-inner': 'Copy URL' });
+    }, 2000);
+  });
+}
+
+/* ----------  run it at the right time ---------- */
+// Plain-HTML sites
+document.addEventListener('DOMContentLoaded', initCopyToClipboard);
+
+// Rails + Turbo
+document.addEventListener('turbo:load', initCopyToClipboard);
