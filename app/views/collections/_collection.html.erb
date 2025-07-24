@@ -30,18 +30,24 @@
     </div>
     <div class="mt-3 listing__details">
       <div class="d-flex align-items-center gap-3">
-        <%= link_to edit_collection_path(collection), class: "btn btn-link p-0 text-primary d-inline-flex align-items-center" do %>
+        <%= link_to edit_collection_path(collection), class: "btn btn-light fw-normal btn-sm d-inline-flex align-items-center", role: "button" do %>
           <%= bootstrap_icon 'pencil',
-            width: 16, height: 16, aria_hidden: 'true', focusable: 'false', role: 'img', title: '', class: 'flex-shrink-0 me-1'
+            width: 16, height: 16, aria_hidden: 'true', focusable: 'false', role: 'img', title: '', class: 'flex-shrink-0 me-2'
           %>
           Edit
         <% end %>
-        <%= button_to collection_path(collection), method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-link p-0 text-danger d-inline-flex align-items-center" do %>
+        <%= button_to collection_path(collection), method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-light fw-normal btn-sm d-inline-flex align-items-center" do %>
           <%= bootstrap_icon 'trash3',
             width: 16, height: 16, aria_hidden: 'true', focusable: 'false', role: 'img', title: '', class: 'flex-shrink-0 me-1'
           %>
           Delete
         <% end %>
+        <a href="javascript:void(0)" class="btn btn-light fw-normal btn-sm d-inline-flex align-items-center copy-to-clipboard-btn" 
+            role="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Copy collection URL" data-copy-value="<%= request.base_url + collection_path(collection) %>">
+        <%= bootstrap_icon 'copy',
+          width: 16, height: 16, aria_hidden: 'true', focusable: 'false', role: 'img', title: '', class: 'flex-shrink-0 me-1'
+        %>
+        Share</a>
       </div>
     </div>
   </div>

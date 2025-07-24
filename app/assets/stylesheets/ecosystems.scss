@@ -199,11 +199,11 @@ $card-border-color: $color-grey;
 }
 
 .btn-light {
-  background: linear-gradient(180deg, $color-grey-light 0%, $color-grey 100%);
+  background: $color-grey-light;
   &:hover,
   &:active,
   &:focus {
-    background: linear-gradient(180deg, $color-grey-light 0%, $color-grey 33%);
+    background: darken($color-grey-light, 3%);
   }
 }
 

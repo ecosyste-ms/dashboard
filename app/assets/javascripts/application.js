@@ -271,3 +271,40 @@ document.addEventListener('DOMContentLoaded', initCopyToClipboard);
 
 // Rails + Turbo
 document.addEventListener('turbo:load', initCopyToClipboard);
+
+
+function initCopyToClipboardButtons() {
+  document.querySelectorAll('.copy-to-clipboard-btn').forEach(btn => {
+    const tooltip = bootstrap.Tooltip.getOrCreateInstance(btn, {
+      title: btn.getAttribute('title') || 'Copy link URL',
+      placement: btn.getAttribute('data-bs-placement') || 'bottom',
+    });
+
+    btn.addEventListener('click', async () => {
+      const value = btn.getAttribute('data-copy-value');
+      if (!value) {
+        tooltip.setContent({ '.tooltip-inner': 'No value to copy' });
+        tooltip.show();
+        setTimeout(() => tooltip.hide(), 2000);
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(value);
+        tooltip.setContent({ '.tooltip-inner': 'Copied!' });
+        tooltip.show();
+        setTimeout(() => {
+          tooltip.hide();
+          tooltip.setContent({ '.tooltip-inner': btn.getAttribute('title') || 'Copy link URL' });
+        }, 2000);
+      } catch {
+        tooltip.setContent({ '.tooltip-inner': 'Copy failed' });
+        tooltip.show();
+        setTimeout(() => tooltip.hide(), 2000);
+      }
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initCopyToClipboardButtons);
+document.addEventListener('turbo:load', initCopyToClipboardButtons);
