@@ -82,19 +82,19 @@
           <div class="card two-thirds-widget-group__large well p-3 border-0">
             <div class="card-body">
               <h5 class="card-title small">Links</h5>
-              
-              <ul class="list-unstyled">
-                <% @project.links.each do |link| %>
+              <div class="limit-size-and-scroll">
+                <ul class="list-unstyled">
+                  <% @project.links.each do |link| %>
 
-                  <li class="mb-3">
-                    <%= link_to link, target: "_blank", rel: "noopener noreferrer", class: "link-with-icon text-decoration-none text-body" do %>
-                      <%= bootstrap_icon link_icon(link), width: 18, height: 18, class: "link-with-icon__icon", aria_hidden: "true" %>
-                      <span class="link-with-icon__text"><%= display_link link %></span>
-                    <% end %>
-                  </li>
-                <% end %>
-              </ul>
-              
+                    <li class="mb-3">
+                      <%= link_to link, target: "_blank", rel: "noopener noreferrer", class: "link-with-icon text-decoration-none text-body" do %>
+                        <%= bootstrap_icon link_icon(link), width: 18, height: 18, class: "link-with-icon__icon", aria_hidden: "true" %>
+                        <span class="link-with-icon__text"><%= display_link link %></span>
+                      <% end %>
+                    </li>
+                  <% end %>
+                </ul>
+              </div>
             </div>
           </div>
         </div> 

@@ -187,3 +187,8 @@ html {
 .header__local__navigation .dropdown:last-of-type {
   padding-left: 0;
 }
+
+.limit-size-and-scroll {
+  max-height: 16rem;
+  overflow-y: auto;
+}
