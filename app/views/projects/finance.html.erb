@@ -40,8 +40,8 @@
 
       <% if @project.github_sponsors.present? %>
         <div class="d-md-flex justify-content-between align-items-center mb-2">
-          <h2>GitHubSponsors</h2>
-          <a href="<%= @project.github_sponsors_url %>" class="spesh-link">View on GitHubSponsors</a>
+          <h2>GitHub Sponsors</h2>
+          <a href="<%= @project.github_sponsors_url %>" class="spesh-link">View on GitHub Sponsors</a>
         </div>
 
         <div class="dashboard-grid">
@@ -54,7 +54,7 @@
           <div class="two-thirds-widgets">
             <%= small_widget 'Minimum sponsorship', @project.github_minimum_sponsorship_amount, nil, symbol: '$', currency: true %>
             <%= no_data_widget 'Missing Data', card_class: "well--grey two-thirds-widgets__large" do %>
-              We can't show financial data for <strong>GitHubSponsors</strong> due to limits in their API.
+              We can't show financial data for <strong>GitHub Sponsors</strong> due to limits in their API.
             <% end %>
           </div>
 
