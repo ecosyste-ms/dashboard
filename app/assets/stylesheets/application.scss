@@ -97,9 +97,9 @@ html {
     padding-bottom: 6rem;
     background-image: asset-url('graph-go-up.svg');
  
-      background-position-x: right;
-      background-position-y: 30%;
-      background-size: contain;
+    background-position-x: right;
+    background-position-y: 30%;
+    background-size: contain;
     background-repeat: no-repeat;
 
 
@@ -111,7 +111,7 @@ html {
     }
 
     @include media-breakpoint-up(lg) {
-      background-position-y: 10rem;
+      background-position-y: 4rem;
     }
 
     @include media-breakpoint-up(xl) {
@@ -127,11 +127,11 @@ html {
 .dashboard-home__hero__cta {
   margin-top: 6rem;
   @include media-breakpoint-up(md) {
-    margin-top: 10rem;
+    margin-top: 4rem;
   }
 
    @include media-breakpoint-up(lg) {
-    margin-top: 14rem;
+    margin-top: 8rem;
   } 
 }
 
