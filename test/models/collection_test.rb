@@ -100,11 +100,41 @@ class CollectionTest < ActiveSupport::TestCase
     assert lodash_project, "Lodash project should be imported"
   end
 
-  test "should handle invalid SBOM JSON gracefully" do
-    collection = @user.collections.create!(
-      name: "Invalid SBOM Collection",
-      dependency_file: "invalid json content"
+  test "should validate dependency file format" do
+    collection = build(:collection, 
+      github_organization_url: nil,
+      collective_url: nil,
+      github_repo_url: nil,
+      dependency_file: "invalid json content",
+      user: @user
     )
+    assert_not collection.valid?
+    assert_includes collection.errors[:dependency_file], "must be a valid JSON SBOM file"
+  end
+
+  test "should accept valid JSON in dependency file" do
+    valid_json = { "bomFormat" => "CycloneDX", "components" => [] }.to_json
+    collection = build(:collection,
+      github_organization_url: nil,
+      collective_url: nil, 
+      github_repo_url: nil,
+      dependency_file: valid_json,
+      user: @user
+    )
+    assert collection.valid?
+    assert_empty collection.errors[:dependency_file]
+  end
+
+  test "should handle invalid SBOM JSON gracefully during import" do
+    # Create a collection with valid JSON initially, then test import error handling
+    valid_json = { "bomFormat" => "CycloneDX", "components" => [] }.to_json
+    collection = @user.collections.create!(
+      name: "SBOM Collection",
+      dependency_file: valid_json
+    )
+    
+    # Simulate corrupted file content during import by stubbing JSON.parse to raise an error
+    JSON.stubs(:parse).raises(JSON::ParserError.new("test error")).then.returns({})
     
     assert_raises(JSON::ParserError) do
       collection.import_from_dependency_file

@@ -88,6 +88,89 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     assert_includes collection.errors[:github_repo_url], "must be a valid GitHub repository URL"
   end
 
+  # Controller validation error handling tests
+  test "create should show validation errors for invalid GitHub organization URL" do
+    login_as(@user)
+    
+    post collections_url, params: { 
+      collection_type: "github",
+      collection: { 
+        github_organization_url: "invalid-url" 
+      } 
+    }
+    
+    assert_response :success
+    assert_template :new
+    assert_match(/must be a valid GitHub organization URL/, response.body)
+  end
+
+  test "create should show validation errors for invalid Open Collective URL" do
+    login_as(@user)
+    
+    post collections_url, params: { 
+      collection_type: "opencollective",
+      collection: { 
+        collective_url: "invalid-url" 
+      } 
+    }
+    
+    assert_response :success
+    assert_template :new
+    assert_match(/must be a valid Open Collective URL/, response.body)
+  end
+
+  test "create should show validation errors for invalid GitHub repo URL" do
+    login_as(@user)
+    
+    post collections_url, params: { 
+      collection_type: "dependency",
+      collection: { 
+        github_repo_url: "invalid-url" 
+      } 
+    }
+    
+    assert_response :success
+    assert_template :new
+    assert_match(/must be a valid GitHub repository URL/, response.body)
+  end
+
+  test "create should show validation error when no import source provided" do
+    login_as(@user)
+    
+    post collections_url, params: { 
+      collection_type: "github",
+      collection: { 
+        name: "Test Collection" 
+      } 
+    }
+    
+    assert_response :success
+    assert_template :new
+    assert_match(/You must provide a source/, response.body)
+  end
+
+  test "create should show validation errors for invalid SBOM file" do
+    login_as(@user)
+    
+    # Create a mock file upload with invalid JSON
+    invalid_file = Rack::Test::UploadedFile.new(
+      StringIO.new("invalid json content"), 
+      "application/json",
+      original_filename: "invalid.json"
+    )
+    
+    post collections_url, params: { 
+      collection_type: "dependency",
+      collection: { 
+        dependency_file: invalid_file
+      } 
+    }
+    
+    assert_response :success
+    assert_template :new
+    assert_match(/must be a valid JSON SBOM file/, response.body)
+  end
+
   # Collection status tests
   test "collection should have proper ready status" do
     ready_collection = create(:collection, import_status: "completed", sync_status: "ready", user: @user)
@@ -225,8 +308,8 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     # Invalid JSON content
     invalid_json = "{ invalid json content"
     
-    # Should still create the collection (validation happens during import)
-    assert_difference('Collection.count', 1) do
+    # Should not create the collection due to validation
+    assert_no_difference('Collection.count') do
       post collections_path, params: {
         collection_type: "dependency",
         collection: {
@@ -237,9 +320,10 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
       }
     end
     
-    collection = Collection.last
-    assert_equal invalid_json, collection.dependency_file
-    assert_redirected_to collection_path(collection)
+    # Should show validation errors
+    assert_response :success
+    assert_template :new
+    assert_match(/must be a valid JSON SBOM file/, response.body)
   end
 
   test "should require at least one source for dependency collection" do

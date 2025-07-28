@@ -3,7 +3,12 @@
     <p class="mb-0">Upload an SBOM file</p>
     <p class="text-muted small mb-0">Upload a valid Software Bill Of Materials file</p>
   <% end %>
-  <%= f.file_field :dependency_file, class: "form-control border-purple-light" %>
+  <%= f.file_field :dependency_file, class: "form-control border-purple-light #{'is-invalid' if @collection.errors[:dependency_file].any?}" %>
+  <% if @collection.errors[:dependency_file].any? %>
+    <div class="invalid-feedback">
+      <%= @collection.errors[:dependency_file].first %>
+    </div>
+  <% end %>
 </div>
 
 <div class="form-group mb-3">
@@ -11,7 +16,12 @@
     <p class="mb-0">GitHub Repository URL</p>
     <p class="text-muted small mb-0">(Optional if providing an SBOM)</p>
   <% end %>
-  <%= f.text_field :github_repo_url, class: "form-control border-purple-light", placeholder: "https://github.com/your/repo" %>
+  <%= f.text_field :github_repo_url, class: "form-control border-purple-light #{'is-invalid' if @collection.errors[:github_repo_url].any?}", placeholder: "https://github.com/your/repo" %>
+  <% if @collection.errors[:github_repo_url].any? %>
+    <div class="invalid-feedback">
+      <%= @collection.errors[:github_repo_url].first %>
+    </div>
+  <% end %>
 </div>
 
 <div class="form-group mb-3">

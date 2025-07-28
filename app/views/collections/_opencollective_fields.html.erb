@@ -3,7 +3,12 @@
     <p class="mb-0">Open Collective URL</p>
     <p class="text-muted small mb-0">Enter a valid Open Collective URL to a collective</p>
   <% end %>
-  <%= f.text_field :collective_url, class: "form-control border-purple-light", placeholder: "https://opencollective.com/your-collective", required: true %>
+  <%= f.text_field :collective_url, class: "form-control border-purple-light #{'is-invalid' if @collection.errors[:collective_url].any?}", placeholder: "https://opencollective.com/your-collective", required: true %>
+  <% if @collection.errors[:collective_url].any? %>
+    <div class="invalid-feedback">
+      <%= @collection.errors[:collective_url].first %>
+    </div>
+  <% end %>
 </div>
 
 <div class="form-group mb-3">

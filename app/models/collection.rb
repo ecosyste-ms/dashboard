@@ -17,6 +17,7 @@ class Collection < ApplicationRecord
 
   before_validation :set_name_from_source
   validate :at_least_one_import_source
+  validate :valid_dependency_file_format
   
   validates :github_organization_url, format: { with: %r{\Ahttps://github\.com/[^/]+/?\z}, message: "must be a valid GitHub organization URL" }, allow_blank: true
   validates :collective_url, format: { with: %r{\Ahttps://opencollective\.com/[^/]+/?\z}, message: "must be a valid Open Collective URL" }, allow_blank: true
@@ -39,6 +40,16 @@ class Collection < ApplicationRecord
       github_repo_url.blank? &&
       dependency_file.blank?
       errors.add(:base, "You must provide a source: GitHub org, Open Collective URL, repo URL, or dependency file.")
+    end
+  end
+
+  def valid_dependency_file_format
+    return if dependency_file.blank?
+    
+    begin
+      JSON.parse(dependency_file)
+    rescue JSON::ParserError => e
+      errors.add(:dependency_file, "must be a valid JSON SBOM file")
     end
   end
 

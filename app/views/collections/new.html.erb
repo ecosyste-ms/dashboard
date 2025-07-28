@@ -64,6 +64,15 @@
     <% else %>
       <%= form_with model: @collection, local: true, html: { data: { dependency_validation: params[:collection_type] == "dependency" } } do |f| %>
         <%= hidden_field_tag :collection_type, params[:collection_type] %>
+        
+        <% if @collection.errors[:base].any? %>
+          <div class="alert alert-danger" role="alert">
+            <% @collection.errors[:base].each do |error| %>
+              <%= error %>
+            <% end %>
+          </div>
+        <% end %>
+        
         <% if params[:collection_type] == "github" %>
           <%= render partial: "collections/github_fields", locals: { f: f } %>
         <% elsif params[:collection_type] == "opencollective" %>

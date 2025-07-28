@@ -39,7 +39,6 @@ class CollectionsController < ApplicationController
       redirect_to @collection, notice: 'Collection was successfully created.'
     else
       flash.now[:alert] = @collection.errors.full_messages.to_sentence
-      params[:collection_type] = nil if @collection.errors[:base].present?
       render :new
     end
   end
