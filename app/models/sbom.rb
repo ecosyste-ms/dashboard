@@ -6,9 +6,8 @@ class Sbom < ApplicationRecord
     Dir.mktmpdir do |dir|
       # write raw sbom to file
       File.open("#{dir}/sbom.txt", "w") { |f| f.write(raw) }
-      puts "Wrote raw sbom to sbom.txt"
 
-      command = "syft convert #{dir}/sbom.txt -o syft-json"
+      command = "syft convert #{dir}/sbom.txt -o syft-json 2>/dev/null"
 
       result = `#{command}`
       update!(converted: result)

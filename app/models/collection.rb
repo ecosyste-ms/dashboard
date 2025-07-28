@@ -111,7 +111,6 @@ class Collection < ApplicationRecord
       data = JSON.parse(resp.body)
       urls = data.map { |p| p['url'] }.uniq.reject(&:blank?)
       urls.each do |url|
-        puts url
         next if url.blank?
         
         begin
@@ -164,7 +163,6 @@ class Collection < ApplicationRecord
           purls = Sbom.extract_purls_from_json(json)
           urls = Sbom.fetch_project_urls_from_purls(purls)
           urls.each do |url|
-            puts "Importing project: #{url}"
             next if url.blank?
             
             begin
@@ -209,7 +207,6 @@ class Collection < ApplicationRecord
       
       # Create projects for each URL
       urls.each do |url|
-        puts "Importing project from SBOM: #{url}"
         next if url.blank?
         
         begin
@@ -280,7 +277,6 @@ class Collection < ApplicationRecord
 
       urls = data.map{|p| p['html_url'] }.uniq.reject(&:blank?)
       urls.each do |url|
-        puts url
         next if url.blank?
         
         begin
