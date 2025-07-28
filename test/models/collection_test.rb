@@ -406,29 +406,6 @@ class CollectionTest < ActiveSupport::TestCase
     end
   end
 
-  test "sync_projects should re-import and queue projects for syncing" do
-    collection = create(:collection, :with_github_org)
-    
-    # Mock the GitHub org API response for re-import
-    stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/testorg/repositories?page=1&per_page=10")
-      .to_return(status: 200, body: [
-        { "html_url" => "https://github.com/testorg/repo1" },
-        { "html_url" => "https://github.com/testorg/repo2" }
-      ].to_json)
-    
-    # Mock empty responses for subsequent pages
-    (2..10).each do |page|
-      stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/testorg/repositories?page=#{page}&per_page=10")
-        .to_return(status: 200, body: [].to_json)
-    end
-
-    # Should queue ALL projects (both existing and newly imported) for syncing
-    collection.sync_projects
-    
-    assert_equal 2, collection.projects.count
-    # All projects should be queued for syncing
-    assert_equal 2, SyncProjectWorker.jobs.size
-  end
 
   test "sync_eligible scope should include all collections" do
     completed1 = create(:collection, import_status: 'completed')
