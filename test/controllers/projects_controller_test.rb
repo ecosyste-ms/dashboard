@@ -240,7 +240,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should show engagement page with comprehensive metrics" do
-    project = create(:project, :with_repository)
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
     
     # Add some issues for testing engagement metrics
     create_list(:issue, 5, project: project, state: "open", created_at: 2.weeks.ago)
@@ -280,7 +280,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should show productivity page with comprehensive metrics" do
-    project = create(:project, :with_repository)
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
     
     # Add test data for productivity metrics
     create_list(:commit, 8, project: project, timestamp: 2.weeks.ago)
@@ -338,7 +338,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
 
   # Analytics pages tests
   test "should show adoption page" do
-    project = create(:project, :with_repository, last_synced_at: 1.hour.ago)
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
     get adoption_project_url(project)
     assert_response :success
     assert_template :adoption
@@ -353,7 +353,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should show dependencies page" do
-    project = create(:project, :with_repository)
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
     get dependencies_project_url(project)
     assert_response :success
     assert_template :dependencies
@@ -372,7 +372,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should show finance page" do
-    project = create(:project, :with_repository)
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
     get finance_project_url(project)
     assert_response :success
     assert_template :finance
@@ -386,7 +386,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should show responsiveness page" do
-    project = create(:project, :with_repository)
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
     get responsiveness_project_url(project)
     assert_response :success
     assert_template :responsiveness
@@ -425,7 +425,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
 
   # Bot filtering tests
   test "should handle bot filtering on engagement page" do
-    project = create(:project, :with_repository)
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
     create_list(:issue, 3, project: project, state: "open", created_at: 2.weeks.ago)
     
     # Test exclude_bots parameter
@@ -440,7 +440,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should handle bot filtering on productivity page" do
-    project = create(:project, :with_repository)
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
     create_list(:issue, 3, project: project, state: "open", created_at: 2.weeks.ago)
     
     # Test exclude_bots parameter
@@ -455,7 +455,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should handle bot filtering on responsiveness page" do
-    project = create(:project, :with_repository)
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
     create_list(:issue, 3, project: project, state: "closed", created_at: 3.weeks.ago, closed_at: 2.weeks.ago)
     
     # Test exclude_bots parameter
@@ -473,7 +473,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   test "should access project through collection context" do
     user = create(:user)
     collection = create(:collection, :public, user: user)
-    project = create(:project, :with_repository)
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
     create(:collection_project, collection: collection, project: project)
     
     # Test nested show route
@@ -491,7 +491,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   test "should access project analytics through collection context" do
     user = create(:user)
     collection = create(:collection, :public, user: user)
-    project = create(:project, :with_repository)
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
     create(:collection_project, collection: collection, project: project)
     
     # Test nested analytics routes
@@ -516,18 +516,17 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     owner = create(:user)
     other_user = create(:user)
     private_collection = create(:collection, :private, user: owner)
-    project = create(:project, :with_repository)
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
     create(:collection_project, collection: private_collection, project: project)
     
-    # Should raise RecordNotFound (404) for non-owner accessing private collection
-    assert_raises(ActiveRecord::RecordNotFound) do
-      get collection_project_url(private_collection, project)
-    end
+    # The controller should return 404 for non-owner accessing private collection
+    get collection_project_url(private_collection, project)
+    assert_response :not_found
   end
 
   # Show page with realistic data test
   test "should show project page with comprehensive data" do
-    project = create(:project, :with_repository)
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
     
     # Add realistic test data
     create_list(:commit, 10, project: project, timestamp: 1.month.ago)

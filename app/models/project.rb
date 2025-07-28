@@ -748,7 +748,7 @@ class Project < ApplicationRecord
 
   def packages_licenses
     return [] if packages_count.zero?
-    packages.map{|p| p.licenses }.compact
+    packages.map{|p| p.licenses }.compact.flatten.uniq
   end
 
   def purl_kind
