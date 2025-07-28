@@ -2,6 +2,7 @@ FactoryBot.define do
   factory :project do
     sequence(:url) { |n| "https://github.com/example/test-repo-#{n}" }
     last_synced_at { 1.hour.ago }
+    sync_status { "completed" }
     
     trait :with_repository do
       repository do

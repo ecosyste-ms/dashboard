@@ -95,44 +95,53 @@ class Project < ApplicationRecord
 
   def sync
     return if last_synced_at.present? && last_synced_at > 1.day.ago
+    return if sync_status == 'syncing'
     
-    # Broadcast initial sync start
-    broadcast_sync_update
+    update_column(:sync_status, 'syncing')
     
-    check_url
-    fetch_repository
-    broadcast_sync_update  # After repository fetch
-    
-    # Limit packages in test environment to avoid excessive API calls  
-    max_pages = Rails.application.config.x.pagination_limits&.dig(:packages) || 100
-    fetch_packages(max_pages: max_pages)
-    broadcast_sync_update  # After packages fetch
-    
-    if repository && uninteresting_fork?
-      # Don't sync tags, commits or issues for uninteresting forks
-    else
-      fetch_readme
-      sync_tags
-      broadcast_sync_update  # After tags sync
+    begin
+      # Broadcast initial sync start
+      broadcast_sync_update
       
-      sync_advisories
-      sync_issues
-      broadcast_sync_update  # After issues sync
+      check_url
+      fetch_repository
+      broadcast_sync_update  # After repository fetch
       
-      sync_commits
-      broadcast_sync_update  # After commits sync
+      # Limit packages in test environment to avoid excessive API calls  
+      max_pages = Rails.application.config.x.pagination_limits&.dig(:packages) || 100
+      fetch_packages(max_pages: max_pages)
+      broadcast_sync_update  # After packages fetch
       
-      fetch_dependencies 
-      broadcast_sync_update  # After dependencies fetch
-      
-      fetch_collective
-      fetch_github_sponsors
+      if repository && uninteresting_fork?
+        # Don't sync tags, commits or issues for uninteresting forks
+      else
+        fetch_readme
+        sync_tags
+        broadcast_sync_update  # After tags sync
+        
+        sync_advisories
+        sync_issues
+        broadcast_sync_update  # After issues sync
+        
+        sync_commits
+        broadcast_sync_update  # After commits sync
+        
+        fetch_dependencies 
+        broadcast_sync_update  # After dependencies fetch
+        
+        fetch_collective
+        fetch_github_sponsors
+      end
+      return if destroyed?
+      update_columns(last_synced_at: Time.now, sync_status: 'completed') 
+      broadcast_sync_update  # Final completion broadcast
+      ping
+      notify_collections_of_sync
+    rescue => e
+      Rails.logger.error "Error syncing project #{id}: #{e.message}"
+      update_column(:sync_status, 'error') unless destroyed?
+      raise e
     end
-    return if destroyed?
-    update_column(:last_synced_at, Time.now) 
-    broadcast_sync_update  # Final completion broadcast
-    ping
-    notify_collections_of_sync
   end
 
   def uninteresting_fork?

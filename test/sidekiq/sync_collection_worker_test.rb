@@ -3,9 +3,13 @@ require 'test_helper'
 class SyncCollectionWorkerTest < ActiveSupport::TestCase
   test "should sync collection projects" do
     collection = create(:collection, import_status: 'completed')
-    project1 = create(:project)
-    project2 = create(:project)
+    project1 = create(:project, sync_status: 'pending', last_synced_at: nil)
+    project2 = create(:project, sync_status: 'pending', last_synced_at: nil)
     collection.projects << [project1, project2]
+
+    # Mock the GitHub org API response to prevent actual network calls
+    stub_request(:get, /repos\.ecosyste\.ms.*testorg.*repositories/)
+      .to_return(status: 200, body: [].to_json)
 
     assert_difference 'SyncProjectWorker.jobs.size', 2 do
       assert_difference 'CheckCollectionSyncStatusWorker.jobs.size', 1 do

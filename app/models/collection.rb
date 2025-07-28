@@ -69,21 +69,25 @@ class Collection < ApplicationRecord
   def sync_projects
     Rails.logger.info "Starting sync for collection: #{name} (ID: #{id})"
     
-    # First re-import to get any new projects
+    # Re-import to get any new projects
     import_projects_sync
     
-    # Then queue all projects for syncing
+    # Queue ALL current projects (existing + newly imported) that need syncing
     projects.each do |project|
+      # Skip if already syncing or recently synced
+      next if project.sync_status == 'syncing'      
       SyncProjectWorker.perform_async(project.id)
+    end
+    
+    # Update status to syncing and start monitoring (if not already done by import)
+    if sync_status != 'syncing'
+      update_with_broadcast(sync_status: 'syncing')
+      CheckCollectionSyncStatusWorker.perform_async(id)
     end
     
     Rails.logger.info "Queued #{projects.count} projects for syncing in collection: #{name}"
   end
 
-  # Deprecated method for backwards compatibility
-  def import_projects
-    import_projects_async
-  end
 
   private
 
@@ -145,10 +149,6 @@ class Collection < ApplicationRecord
           
           collection_projects.find_or_create_by(project: project)
           
-          # Queue individual sync job for each project if it needs syncing
-          if project.last_synced_at.blank?
-            SyncProjectWorker.perform_async(project.id)
-          end
           
           broadcast_sync_progress
         rescue => e
@@ -241,10 +241,6 @@ class Collection < ApplicationRecord
           
           collection_projects.find_or_create_by(project: project)
           
-          # Queue individual sync job for each project if it needs syncing
-          if project.last_synced_at.blank?
-            SyncProjectWorker.perform_async(project.id)
-          end
           
           broadcast_sync_progress
         rescue => e
@@ -325,10 +321,6 @@ class Collection < ApplicationRecord
           
           collection_projects.find_or_create_by(project: project)
           
-          # Queue individual sync job for each project if it needs syncing
-          if project.last_synced_at.blank?
-            SyncProjectWorker.perform_async(project.id)
-          end
           
           broadcast_sync_progress
         rescue => e

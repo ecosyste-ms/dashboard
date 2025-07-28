@@ -51,8 +51,6 @@ class CollectionTest < ActiveSupport::TestCase
     Package.stubs(:package_url).with("pkg:npm/react@18.0.0").returns(mock_react_relation)
     Package.stubs(:package_url).with("pkg:github/rails/rails@v7.0.0").returns(empty_relation)
     
-    # Mock the worker to avoid background job execution
-    SyncProjectWorker.expects(:perform_async).at_least_once
     
     # Perform the import
     collection.import_from_dependency_file
@@ -84,8 +82,6 @@ class CollectionTest < ActiveSupport::TestCase
     stub_request(:get, "https://packages.ecosyste.ms/api/v1/packages/lookup?purl=pkg:npm/lodash@4.17.21")
       .to_return(status: 200, body: [{ "repository_url" => "https://github.com/lodash/lodash" }].to_json)
     
-    # Mock the worker
-    SyncProjectWorker.expects(:perform_async).at_least_once
     
     # Perform the import
     collection.import_from_dependency_file
@@ -426,11 +422,12 @@ class CollectionTest < ActiveSupport::TestCase
         .to_return(status: 200, body: [].to_json)
     end
 
-    assert_difference 'SyncProjectWorker.jobs.size', 2 do
-      collection.sync_projects
-    end
-
+    # Should queue ALL projects (both existing and newly imported) for syncing
+    collection.sync_projects
+    
     assert_equal 2, collection.projects.count
+    # All projects should be queued for syncing
+    assert_equal 2, SyncProjectWorker.jobs.size
   end
 
   test "sync_eligible scope should include all collections" do
