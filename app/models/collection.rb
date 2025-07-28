@@ -320,10 +320,10 @@ class Collection < ApplicationRecord
     
     if total_projects == 0
       # No projects found during import - mark as ready
-      update_with_broadcast(sync_status: 'ready')
+      update_with_broadcast(sync_status: 'ready', last_synced_at: Time.current)
     elsif synced_projects == total_projects
-      # All projects have been synced - mark as ready
-      update_with_broadcast(sync_status: 'ready')
+      # All projects have been synced - mark as ready and set last_synced_at
+      update_with_broadcast(sync_status: 'ready', last_synced_at: Time.current)
     else
       # Still syncing projects - broadcast progress update
       broadcast_sync_progress
@@ -340,9 +340,6 @@ class Collection < ApplicationRecord
     ''
   end
 
-  def last_synced_at
-    nil
-  end
 
   def last_commit_at
     projects.map(&:last_commit_at).compact.max

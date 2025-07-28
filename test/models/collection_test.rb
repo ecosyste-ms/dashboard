@@ -226,4 +226,60 @@ class CollectionTest < ActiveSupport::TestCase
     assert_equal "testorg1", collection1.name
     assert_equal "Collection of repositories for testorg1", collection1.description
   end
+
+  test "should set last_synced_at when all projects are synced" do
+    collection = @user.collections.create!(
+      name: "Test Sync Collection",
+      dependency_file: @cyclone_dx_sbom,
+      sync_status: 'syncing'
+    )
+    
+    # Create some projects for this collection without last_synced_at
+    project1 = create(:project, url: "https://github.com/test/project1", last_synced_at: nil)
+    project2 = create(:project, url: "https://github.com/test/project2", last_synced_at: nil)
+    
+    collection.collection_projects.create!(project: project1)
+    collection.collection_projects.create!(project: project2)
+    
+    # Initially, collection should not have last_synced_at set
+    assert_nil collection.last_synced_at
+    
+    # Mark first project as synced
+    project1.update!(last_synced_at: Time.current)
+    collection.check_and_update_sync_status
+    
+    # Collection should still not have last_synced_at set (not all projects synced)
+    collection.reload
+    assert_nil collection.last_synced_at
+    assert_equal 'syncing', collection.sync_status
+    
+    # Mark second project as synced
+    project2.update!(last_synced_at: Time.current)
+    collection.check_and_update_sync_status
+    
+    # Collection should now have last_synced_at set
+    collection.reload
+    assert_not_nil collection.last_synced_at
+    assert_equal 'ready', collection.sync_status
+    assert collection.last_synced_at > 30.seconds.ago
+  end
+
+  test "should set last_synced_at when collection has no projects" do
+    collection = @user.collections.create!(
+      name: "Empty Collection",
+      github_organization_url: "https://github.com/empty-org"
+    )
+    
+    # Initially, collection should not have last_synced_at set
+    assert_nil collection.last_synced_at
+    
+    # Check sync status with no projects
+    collection.check_and_update_sync_status
+    
+    # Collection should have last_synced_at set even with no projects
+    collection.reload
+    assert_not_nil collection.last_synced_at
+    assert_equal 'ready', collection.sync_status
+    assert collection.last_synced_at > 30.seconds.ago
+  end
 end

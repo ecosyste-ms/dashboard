@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_12_091013) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_28_103228) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -63,6 +63,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_12_091013) do
     t.text "last_error_backtrace"
     t.datetime "last_error_at"
     t.string "import_status", default: "pending"
+    t.datetime "last_synced_at"
     t.index ["user_id"], name: "index_collections_on_user_id"
   end
 
