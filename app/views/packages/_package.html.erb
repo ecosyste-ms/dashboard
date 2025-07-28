@@ -36,7 +36,7 @@
       <% end %>
 
       <% if package.versions_count > 0 %>
-        <%= pluralize number_with_delimiter(package.versions_count), 'version' %>
+        <%= pluralize number_to_human(package.versions_count, precision: 1), 'version' %>
       <% end %>
 
       <% if package.latest_release_published_at %>
@@ -44,11 +44,11 @@
       <% end %>
 
       <% if package.dependent_packages_count && package.dependent_packages_count > 0 %>
-        - <%= pluralize number_with_delimiter(package.dependent_packages_count), 'dependent package' %>
+        - <%= pluralize number_to_human(package.dependent_packages_count, precision: 1), 'dependent package' %>
       <% end %>
 
       <% if package.dependent_repos_count && package.dependent_repos_count > 0 %>
-        - <%= pluralize number_with_delimiter(package.dependent_repos_count), 'dependent repositories' %>
+        - <%= pluralize number_to_human(package.dependent_repos_count, precision: 1), 'dependent repositories' %>
       <% end %>
 
       <% if package.downloads && package.downloads_period %>
@@ -56,11 +56,11 @@
       <% end %>
 
       <% if package.repo_metadata.present? && package.stars %>
-        - <%= number_with_delimiter package.stars %> stars on <%= package.repo_metadata.fetch('host',{})['name'] %>
+        - <%= number_to_human package.stars, precision: 1 %> stars on <%= package.repo_metadata.fetch('host',{})['name'] %>
       <% end %>
 
       <% if package.maintainers_count && package.maintainers_count > 0 %>
-        - <%= pluralize number_with_delimiter(package.maintainers_count), 'maintainer' %>
+        - <%= pluralize number_to_human(package.maintainers_count, precision: 1), 'maintainer' %>
       <% end %>
     </small>
   </div>

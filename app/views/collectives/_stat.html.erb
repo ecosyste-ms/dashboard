@@ -11,11 +11,11 @@
 
           <span class='info' title='<%= title %> in the past <%= @range %> days'><%= octicon 'info', height: 14 %></span>
           <h3>
-            <%= this_period.round(2) %>
+            <%= number_to_human(this_period.round(2), precision: 1) %>
 
             <% diff = this_period - last_period %>
             <% unless diff.zero?  %>
-              <small class='<%= diff_class(diff*positive_diff_change) %>' title='<%= last_period %> <%= title %> in the previous <%= @range %> days'><%= '+' if diff > 0 %><%= diff.round(2) %></small>
+              <small class='<%= diff_class(diff*positive_diff_change) %>' title='<%= last_period %> <%= title %> in the previous <%= @range %> days'><%= '+' if diff > 0 %><%= number_to_human(diff.round(2), precision: 1) %></small>
             <% end %>
           </h3>
           <span><%= title %></span>

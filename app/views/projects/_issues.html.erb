@@ -15,33 +15,33 @@
       <div class='row'>
         <div class='col-md-6'>
           <p>
-            Total issues: <%= number_with_delimiter @project.issue_stats.issues_count %><br>
-            Total pull requests: <%= number_with_delimiter @project.issue_stats.pull_requests_count %><br>
+            Total issues: <%= number_to_human @project.issue_stats.issues_count, precision: 1 %><br>
+            Total pull requests: <%= number_to_human @project.issue_stats.pull_requests_count, precision: 1 %><br>
             Average time to close issues: <%= distance_of_time_in_words_if_present @project.issue_stats.avg_time_to_close_issue %><br>
             Average time to close pull requests: <%= distance_of_time_in_words_if_present @project.issue_stats.avg_time_to_close_pull_request %><br>
-            Total issue authors: <%= number_with_delimiter @project.issue_stats.issue_authors_count %><br>
-            Total pull request authors: <%= number_with_delimiter @project.issue_stats.pull_request_authors_count %><br>
-            Average comments per issue: <%= rounded_number_with_delimiter @project.issue_stats.avg_comments_per_issue %><br>
-            Average comments per pull request: <%= rounded_number_with_delimiter @project.issue_stats.avg_comments_per_pull_request %><br>
-            Merged pull request: <%= rounded_number_with_delimiter @project.issue_stats.merged_pull_requests_count %><br>
+            Total issue authors: <%= number_to_human @project.issue_stats.issue_authors_count, precision: 1 %><br>
+            Total pull request authors: <%= number_to_human @project.issue_stats.pull_request_authors_count, precision: 1 %><br>
+            Average comments per issue: <%= @project.issue_stats.avg_comments_per_issue >= 10_000 ? number_to_human(@project.issue_stats.avg_comments_per_issue.round(2), precision: 1) : @project.issue_stats.avg_comments_per_issue.round(2) %><br>
+            Average comments per pull request: <%= @project.issue_stats.avg_comments_per_pull_request >= 10_000 ? number_to_human(@project.issue_stats.avg_comments_per_pull_request.round(2), precision: 1) : @project.issue_stats.avg_comments_per_pull_request.round(2) %><br>
+            Merged pull request: <%= @project.issue_stats.merged_pull_requests_count >= 10_000 ? number_to_human(@project.issue_stats.merged_pull_requests_count.round(2), precision: 1) : @project.issue_stats.merged_pull_requests_count.round(2) %><br>
 
-            Bot issues: <%= number_with_delimiter @project.issue_stats.bot_issues_count %><br>
-            Bot pull requests: <%= number_with_delimiter @project.issue_stats.bot_pull_requests_count %>
+            Bot issues: <%= number_to_human @project.issue_stats.bot_issues_count, precision: 1 %><br>
+            Bot pull requests: <%= number_to_human @project.issue_stats.bot_pull_requests_count, precision: 1 %>
           </p>
         </div>
         <div class='col-md-6'>
           <p>
-            Past year issues: <%= number_with_delimiter @project.issue_stats.past_year_issues_count %><br>
-            Past year pull requests: <%= number_with_delimiter @project.issue_stats.past_year_pull_requests_count %><br>
+            Past year issues: <%= number_to_human @project.issue_stats.past_year_issues_count, precision: 1 %><br>
+            Past year pull requests: <%= number_to_human @project.issue_stats.past_year_pull_requests_count, precision: 1 %><br>
             Past year average time to close issues: <%= distance_of_time_in_words_if_present @project.issue_stats.past_year_avg_time_to_close_issue %><br>
             Past year average time to close pull requests: <%= distance_of_time_in_words_if_present @project.issue_stats.past_year_avg_time_to_close_pull_request %><br>
-            Past year issue authors: <%= number_with_delimiter @project.issue_stats.past_year_issue_authors_count %><br>
-            Past year pull request authors: <%= number_with_delimiter @project.issue_stats.past_year_pull_request_authors_count %><br>
-            Past year average comments per issue: <%= rounded_number_with_delimiter @project.issue_stats.past_year_avg_comments_per_issue %><br>
-            Past year average comments per pull request: <%= rounded_number_with_delimiter @project.issue_stats.past_year_avg_comments_per_pull_request %><br>
-            Past year merged pull request: <%= rounded_number_with_delimiter @project.issue_stats.past_year_merged_pull_requests_count %><br>
-            Past year bot issues: <%= number_with_delimiter @project.issue_stats.past_year_bot_issues_count %><br>
-            Past year bot pull requests: <%= number_with_delimiter @project.issue_stats.past_year_bot_pull_requests_count %>
+            Past year issue authors: <%= number_to_human @project.issue_stats.past_year_issue_authors_count, precision: 1 %><br>
+            Past year pull request authors: <%= number_to_human @project.issue_stats.past_year_pull_request_authors_count, precision: 1 %><br>
+            Past year average comments per issue: <%= @project.issue_stats.past_year_avg_comments_per_issue >= 10_000 ? number_to_human(@project.issue_stats.past_year_avg_comments_per_issue.round(2), precision: 1) : @project.issue_stats.past_year_avg_comments_per_issue.round(2) %><br>
+            Past year average comments per pull request: <%= @project.issue_stats.past_year_avg_comments_per_pull_request >= 10_000 ? number_to_human(@project.issue_stats.past_year_avg_comments_per_pull_request.round(2), precision: 1) : @project.issue_stats.past_year_avg_comments_per_pull_request.round(2) %><br>
+            Past year merged pull request: <%= @project.issue_stats.past_year_merged_pull_requests_count >= 10_000 ? number_to_human(@project.issue_stats.past_year_merged_pull_requests_count.round(2), precision: 1) : @project.issue_stats.past_year_merged_pull_requests_count.round(2) %><br>
+            Past year bot issues: <%= number_to_human @project.issue_stats.past_year_bot_issues_count, precision: 1 %><br>
+            Past year bot pull requests: <%= number_to_human @project.issue_stats.past_year_bot_pull_requests_count, precision: 1 %>
         </div>
       </div>
       More stats: <%= link_to @project.issue_stats_url, @project.issue_stats_url, target: :_blank %><br>
@@ -54,7 +54,7 @@
             <% @project.issue_stats.issue_author_associations_count.each do |author, count| %>
               <li>
                 <%= author.humanize %>
-                (<%= number_with_delimiter count %>, <%= number_to_percentage count.to_f / @project.issue_stats.issues_count * 100, precision: 2 %>)
+                (<%= number_to_human count, precision: 1 %>, <%= number_to_percentage count.to_f / @project.issue_stats.issues_count * 100, precision: 2 %>)
               </li>
             <% end %>
           </ul>
@@ -65,7 +65,7 @@
             <% @project.issue_stats.pull_request_author_associations_count.each do |author, count| %>
               <li>
                 <%= author.humanize %>
-                (<%= number_with_delimiter count %>, <%= number_to_percentage count.to_f / @project.issue_stats.pull_requests_count * 100, precision: 2 %>)
+                (<%= number_to_human count, precision: 1 %>, <%= number_to_percentage count.to_f / @project.issue_stats.pull_requests_count * 100, precision: 2 %>)
               </li>
             <% end %>
           </ul>
@@ -80,7 +80,7 @@
             <% @project.issue_stats.issue_authors.to_h.first(15).each do |author, count| %>
               <li>
                 <%= author %>
-                (<%= number_with_delimiter count %>)
+                (<%= number_to_human count, precision: 1 %>)
               </li>
             <% end %>
           </ul>
@@ -91,7 +91,7 @@
             <% @project.issue_stats.pull_request_authors.to_h.first(15).each do |author, count| %>
               <li>
                 <%= author %>
-                (<%= number_with_delimiter count %>)
+                (<%= number_to_human count, precision: 1 %>)
               </li>
             <% end %>
           </ul>
@@ -106,7 +106,7 @@
             <% @project.issue_stats.issue_labels_count.to_h.first(30).each do |label, count| %>
               <li>
                 <%= label %>
-                (<%= number_with_delimiter count %>)
+                (<%= number_to_human count, precision: 1 %>)
               </li>
             <% end %>
           </ul>
@@ -117,7 +117,7 @@
             <% @project.issue_stats.pull_request_labels_count.to_h.first(30).each do |label, count| %>
               <li>
                 <%= label %>
-                (<%= number_with_delimiter count %>)
+                (<%= number_to_human count, precision: 1 %>)
               </li>
             <% end %>
           </ul>

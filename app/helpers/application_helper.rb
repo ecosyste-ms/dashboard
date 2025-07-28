@@ -37,11 +37,6 @@ module ApplicationHelper
     distance_of_time_in_words(time)
   end
 
-  def rounded_number_with_delimiter(number)
-    return 0 unless number
-    number_with_delimiter(number.round(2))
-  end
-
   def diff_class(count)
     count > 0 ? 'text-success' : 'text-danger'
   end

@@ -8,7 +8,7 @@
         </h5>
       
         <p class="card-subtitle mb-2 text-muted">
-          <%= number_with_delimiter transaction.net_amount.round(2) %> <%= transaction.currency %> - 
+          <%= number_to_human transaction.net_amount.round(2), precision: 1 %> <%= transaction.currency %> - 
           <%= transaction.description %>
         </p>
         

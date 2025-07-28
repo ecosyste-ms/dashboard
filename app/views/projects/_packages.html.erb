@@ -6,7 +6,7 @@
 
     <ul>
       <li>
-        Total packages: <%= number_with_delimiter project.packages_count %>
+        Total packages: <%= number_to_human project.packages_count, precision: 1 %>
       <li>
         Total downloads: 
         <% if project.packages.sum(&:downloads) > 0 %>
@@ -15,7 +15,7 @@
             <% next if pkgs.sum(&:downloads).zero? %>
             <li>
               <%= ecosystem %>:
-              <%= number_with_delimiter pkgs.sum(&:downloads) %>
+              <%= number_to_human(pkgs.sum(&:downloads), precision: 1) %>
               <%= pkgs.first.downloads_period %>
             </li>
           <% end %>
@@ -26,32 +26,32 @@
       </li>
       <% if project.packages.map{|p| p.metadata['docker_downloads_count'] || 0 }.sum > 0 %>
       <li>
-        Total docker downloads: <%= number_with_delimiter project.packages.map{|p| p.metadata['docker_downloads_count'] || 0 }.sum %>
+        Total docker downloads: <%= number_to_human(project.packages.map{|p| p.metadata['docker_downloads_count'] || 0 }.sum, precision: 1) %>
       </li>
       <% end %>
       <li>
-        Total dependent packages: <%= number_with_delimiter project.packages.sum{|p| p.metadata['dependent_packages_count'] || 0 } %>
+        Total dependent packages: <%= number_to_human(project.packages.sum{|p| p.metadata['dependent_packages_count'] || 0 }, precision: 1) %>
         <% if project.packages.length > 1 %>
           <small class='text-muted'>(may contain duplicates)</small>
         <% end %>
       </li>
       <li>
-        Total dependent repositories: <%= number_with_delimiter project.packages.sum{|p| p.metadata['dependent_repos_count'] || 0 } %>
+        Total dependent repositories: <%= number_to_human(project.packages.sum{|p| p.metadata['dependent_repos_count'] || 0 }, precision: 1) %>
         <% if project.packages.length > 1 %>
           <small class='text-muted'>(may contain duplicates)</small>
         <% end %>
       </li>
       <li>
-        Total versions: <%= number_with_delimiter project.packages.sum{|p| p.metadata['versions_count'] || 0 } %>
+        Total versions: <%= number_to_human project.packages.sum{|p| p.metadata['versions_count'] || 0 }, precision: 1 %>
       </li>
       <% if project.packages.map{|p| p.metadata['maintainers'].map{|m| m['uuid'] } }.flatten.uniq.length > 0 %>
       <li>
-        Total maintainers: <%= number_with_delimiter project.packages.map{|p| p.metadata['maintainers'].map{|m| m['uuid'] } }.flatten.uniq.length %>
+        Total maintainers: <%= number_to_human project.packages.map{|p| p.metadata['maintainers'].map{|m| m['uuid'] } }.flatten.uniq.length, precision: 1 %>
       </li>
       <% end %>
       <% if project.packages.map{|p| p.metadata['advisories'] }.flatten.uniq.length > 0 %>
       <li>
-        Total advisories: <%= number_with_delimiter project.packages.map{|p| p.metadata['advisories'] }.flatten.uniq.length %>
+        Total advisories: <%= number_to_human project.packages.map{|p| p.metadata['advisories'] }.flatten.uniq.length, precision: 1 %>
       </li>
       <% end %>
     </ul>
@@ -110,22 +110,22 @@
                   (<%= distance_of_time_in_words_to_now package.metadata['last_synced_at'] %> ago)
                 </li>
                 <li>
-                  Versions: <%= number_with_delimiter package.metadata['versions_count'] %>
+                  Versions: <%= number_to_human package.metadata['versions_count'], precision: 1 %>
                 </li>
                 <li>
-                  Dependent Packages: <%= link_to number_with_delimiter(package.metadata['dependent_packages_count']), package.metadata['dependent_packages_url'].gsub('/api/v1', ''), target: :_blank %>
+                  Dependent Packages: <%= link_to number_to_human(package.metadata['dependent_packages_count'], precision: 1), package.metadata['dependent_packages_url'].gsub('/api/v1', ''), target: :_blank %>
                 </li>
                 <li>
-                  Dependent Repositories: <%= link_to number_with_delimiter(package.metadata['dependent_repos_count']), "https://repos.ecosyste.ms/usage/#{package.metadata['ecosystem']}/#{package.metadata['name']}", target: :_blank %>
+                  Dependent Repositories: <%= link_to number_to_human(package.metadata['dependent_repos_count'], precision: 1), "https://repos.ecosyste.ms/usage/#{package.metadata['ecosystem']}/#{package.metadata['name']}", target: :_blank %>
                 </li>
                 <% if package.metadata['downloads'] %>
                 <li>
-                  Downloads: <%= number_with_delimiter(package.metadata['downloads']) %> <%= package.metadata['downloads_period'].try(:humanize).try(:gsub,'-', ' ') %> 
+                  Downloads: <%= number_to_human(package.metadata['downloads'], precision: 1) %> <%= package.metadata['downloads_period'].try(:humanize).try(:gsub,'-', ' ') %> 
                 </li>
                 <% end %>
                 <% if package.metadata['docker_downloads_count'] %>
                 <li>
-                  Docker Downloads: <%= number_with_delimiter(package.metadata['docker_downloads_count']) %>
+                  Docker Downloads: <%= number_to_human(package.metadata['docker_downloads_count'], precision: 1) %>
                 </li>
                 <% end %>
                 <li>

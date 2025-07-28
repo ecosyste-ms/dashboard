@@ -71,7 +71,7 @@
             <p id="chartDesc" class="visually-hidden">
               This bar chart shows contributions over the last <%= @contributions_per_period.length %> periods. 
               <% @contributions_per_period.each do |period, count| %>
-                <%= period %> had <%= number_with_delimiter(count) %> contributions<%= ", " unless period == @contributions_per_period.keys.last %>.
+                <%= period %> had <%= number_to_human(count, precision: 1) %> contributions<%= ", " unless period == @contributions_per_period.keys.last %>.
               <% end %>
             </p>
 

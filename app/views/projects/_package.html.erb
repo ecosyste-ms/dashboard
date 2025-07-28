@@ -51,22 +51,22 @@
                   (<%= distance_of_time_in_words_to_now package['last_synced_at'] %> ago)
                 </li>
                 <li>
-                  Versions: <%= number_with_delimiter package['versions_count'] %>
+                  Versions: <%= number_to_human package['versions_count'], precision: 1 %>
                 </li>
                 <li>
-                  Dependent Packages: <%= link_to number_with_delimiter(package['dependent_packages_count']), package['dependent_packages_url'].gsub('/api/v1', ''), target: :_blank %>
+                  Dependent Packages: <%= link_to number_to_human(package['dependent_packages_count'], precision: 1), package['dependent_packages_url'].gsub('/api/v1', ''), target: :_blank %>
                 </li>
                 <li>
-                  Dependent Repositories: <%= link_to number_with_delimiter(package['dependent_repos_count']), "https://repos.ecosyste.ms/usage/#{package['ecosystem']}/#{package['name']}", target: :_blank %>
+                  Dependent Repositories: <%= link_to number_to_human(package['dependent_repos_count'], precision: 1), "https://repos.ecosyste.ms/usage/#{package['ecosystem']}/#{package['name']}", target: :_blank %>
                 </li>
                 <% if package['downloads'] %>
                 <li>
-                  Downloads: <%= number_with_delimiter(package['downloads']) %> <%= package['downloads_period'].try(:humanize).try(:gsub,'-', ' ') %> 
+                  Downloads: <%= number_to_human(package['downloads'], precision: 1) %> <%= package['downloads_period'].try(:humanize).try(:gsub,'-', ' ') %> 
                 </li>
                 <% end %>
                 <% if package['docker_downloads_count'] %>
                 <li>
-                  Docker Downloads: <%= number_with_delimiter(package['docker_downloads_count']) %>
+                  Docker Downloads: <%= number_to_human(package['docker_downloads_count'], precision: 1) %>
                 </li>
                 <% end %>
                 <li>

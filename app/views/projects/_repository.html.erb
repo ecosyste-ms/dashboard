@@ -69,18 +69,18 @@
       </li>
       <% end %>
       <li>
-        Stars: <%= number_with_delimiter @project.repository['stargazers_count'] %>
+        Stars: <%= number_to_human(@project.repository['stargazers_count'], precision: 1) %>
       </li>
       <% if  @project.repository['subscribers_count'] %>
       <li>
-        Watchers: <%= number_with_delimiter @project.repository['subscribers_count'] %>
+        Watchers: <%= number_to_human(@project.repository['subscribers_count'], precision: 1) %>
       </li>
       <% end %>
       <li>
-        Forks: <%= number_with_delimiter @project.repository['forks_count'] %>
+        Forks: <%= number_to_human(@project.repository['forks_count'], precision: 1) %>
       </li>
       <li>
-        Open Issues: <%= number_with_delimiter @project.repository['open_issues_count'] %>
+        Open Issues: <%= number_to_human @project.repository['open_issues_count'], precision: 1 %>
       </li>
       <% if @project.repository['metadata']  %>
         <% if @project.repository['metadata']['files'] %>

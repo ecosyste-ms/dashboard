@@ -10,7 +10,7 @@
     <a class="nav-link  <%= 'active' if active == 'issues' %>" href='<%= issues_project_path(@project) %>'>
       Issues and Pull Requests
       <span class="badge bg-light text-dark">
-        <%= number_with_delimiter(@project.issues.count) %>
+        <%= number_to_human(@project.issues.count, precision: 1) %>
       </span>
     </a>
   </li>
@@ -18,7 +18,7 @@
     <a class="nav-link  <%= 'active' if active == 'releases' %>" href='<%= releases_project_path(@project) %>'>
       Releases
       <span class="badge bg-light text-dark">
-        <%= number_with_delimiter(@project.tags.displayable.count) %>
+        <%= number_to_human(@project.tags.displayable.count, precision: 1) %>
       </span>
     </a>
   </li>
@@ -26,7 +26,7 @@
     <a class="nav-link <%= 'active' if active == 'commits' %>" href='<%= commits_project_path(@project) %>'>
       Commits
       <span class="badge bg-light text-dark">
-        <%= number_with_delimiter(@project.commits.count) %>
+        <%= number_to_human(@project.commits.count, precision: 1) %>
       </span>
     </a>
   </li>
@@ -34,7 +34,7 @@
     <a class="nav-link <%= 'active' if active == 'packages' %>" href='<%= packages_project_path(@project) %>'>
       Packages
       <span class="badge bg-light text-dark">
-        <%= number_with_delimiter(@project.packages_count) %>
+        <%= number_to_human(@project.packages_count, precision: 1) %>
       </span>
     </a>
   </li>
@@ -42,7 +42,7 @@
     <a class="nav-link <%= 'active' if active == 'advisories' %>" href='<%= advisories_project_path(@project) %>'>
       Advisories
       <span class="badge bg-light text-dark">
-        <%= number_with_delimiter(@project.advisories_count) %>
+        <%= number_to_human(@project.advisories_count, precision: 1) %>
       </span>
     </a>
   </li>
