@@ -48,6 +48,37 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 'Sync failed: Connection timeout', flash[:alert]
   end
 
+  test "should show syncing page for unsynced project" do
+    project = create(:project, :without_repository, last_synced_at: nil)
+    get project_url(project)  
+    assert_response :success
+    assert_template :syncing
+    assert_select 'h2', text: /Syncing project data/
+    assert_select '.sync-status-content'
+  end
+
+  test "should show syncing page for recently created project" do
+    project = create(:project, :without_repository, last_synced_at: 2.hours.ago)
+    get project_url(project)
+    assert_response :success
+    assert_template :syncing
+  end
+
+  test "should show regular project page for synced project" do
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
+    get project_url(project)
+    assert_response :success
+    assert_template :show
+  end
+
+  test "should show syncing page directly" do
+    project = create(:project, :without_repository)
+    get syncing_project_url(project)
+    assert_response :success
+    assert_template :syncing
+    assert_select 'h2', text: /Syncing project data/
+  end
+
   test "should show project packages" do
     project = create(:project, :with_repository)
     get packages_project_url(project)

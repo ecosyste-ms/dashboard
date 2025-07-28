@@ -1,0 +1,44 @@
+<% @meta_title = "#{@project}" %>
+<% @meta_description = "Syncing #{@project}" %>
+
+<div class="container">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="d-flex align-items-center mb-3">
+        <div class="me-3">
+          <% if @project.repository && @project.repository['owner_avatar_url'] %>
+            <img src="<%= @project.repository['owner_avatar_url'] %>" height="48" width="48" class="rounded" alt="<%= @project.repository['owner'] %>"/>
+          <% else %>
+            <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+              <%= bootstrap_icon 'code-square', width: 24, height: 24, class: 'text-muted' %>
+            </div>
+          <% end %>
+        </div>
+        <div>
+          <h1><%= @project.display_name %></h1>
+          <% if @project.repository && @project.repository['description'] %>
+            <p class="text-muted mb-0"><%= @project.repository['description'] %></p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="well p-4">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+      <h2><%= bootstrap_icon 'arrow-down-up',
+      width: 36, height: 36, aria_hidden: 'true', focusable: 'false', role: 'img',  title: 'Syncing', class: 'flex-shrink-0 me-3'
+      %>Syncing project data</h2>
+      <% if Rails.env.development? %>
+        <%= link_to 'Manual Sync', sync_project_path(@project), method: :get, class: 'btn btn-outline-primary btn-sm' %>
+      <% end %>
+    </div>
+
+    <div id="sync-status" 
+         data-project-id="<%= @project.id %>"
+         data-project-url="<%= project_path(@project) %>">
+      <%= render 'sync_status', project: @project %>
+    </div>
+  </div>
+
+</div>

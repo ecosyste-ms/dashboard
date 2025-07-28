@@ -95,25 +95,42 @@ class Project < ApplicationRecord
 
   def sync
     return if last_synced_at.present? && last_synced_at > 1.day.ago
+    
+    # Broadcast initial sync start
+    broadcast_sync_update
+    
     check_url
     fetch_repository
+    broadcast_sync_update  # After repository fetch
+    
     # Limit packages in test environment to avoid excessive API calls  
     max_pages = Rails.application.config.x.pagination_limits&.dig(:packages) || 100
     fetch_packages(max_pages: max_pages)
+    broadcast_sync_update  # After packages fetch
+    
     if repository && uninteresting_fork?
       # Don't sync tags, commits or issues for uninteresting forks
     else
       fetch_readme
       sync_tags
+      broadcast_sync_update  # After tags sync
+      
       sync_advisories
       sync_issues
-      sync_commits     
+      broadcast_sync_update  # After issues sync
+      
+      sync_commits
+      broadcast_sync_update  # After commits sync
+      
       fetch_dependencies 
+      broadcast_sync_update  # After dependencies fetch
+      
       fetch_collective
       fetch_github_sponsors
     end
     return if destroyed?
     update_column(:last_synced_at, Time.now) 
+    broadcast_sync_update  # Final completion broadcast
     ping
     notify_collections_of_sync
   end
@@ -129,6 +146,89 @@ class Project < ApplicationRecord
 
   def sync_async
     SyncProjectWorker.perform_async(id)
+  end
+
+  def ready?
+    last_synced_at.present? && last_synced_at > 1.hour.ago
+  end
+
+  def sync_progress
+    total_steps = 6
+    completed_steps = 0
+    completed_steps += 1 if repository.present?
+    completed_steps += 1 if packages_last_synced_at.present?
+    completed_steps += 1 if issues_last_synced_at.present?
+    completed_steps += 1 if commits_last_synced_at.present?
+    completed_steps += 1 if tags_last_synced_at.present?
+    completed_steps += 1 if dependencies_last_synced_at.present?
+    
+    {
+      total: total_steps,
+      completed: completed_steps,
+      percentage: (completed_steps.to_f / total_steps * 100).round
+    }
+  end
+
+  def broadcast_sync_progress
+    begin
+      data = {
+        type: 'progress_update',
+        progress: sync_progress,
+        ready: ready?
+      }
+      
+      Rails.logger.info "Broadcasting progress update for project #{id}: #{data}"
+      
+      ProjectSyncChannel.broadcast_to(self, data)
+    rescue => e
+      Rails.logger.error "Error broadcasting progress update for project #{id}: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+    end
+  end
+
+  def broadcast_sync_update
+    begin
+      html_content = ApplicationController.render(
+        partial: 'projects/sync_status',
+        locals: { project: self }
+      )
+      
+      data = {
+        type: 'status_update',
+        ready: ready?,
+        progress: sync_progress,
+        html: html_content
+      }
+      
+      Rails.logger.info "Broadcasting sync update for project #{id}: #{data.except(:html)}"
+      
+      ProjectSyncChannel.broadcast_to(self, data)
+    rescue => e
+      Rails.logger.error "Error broadcasting sync update for project #{id}: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      
+      # Fallback broadcast without HTML
+      fallback_data = {
+        type: 'status_update',
+        ready: ready?,
+        progress: sync_progress
+      }
+      
+      Rails.logger.info "Fallback broadcasting sync update for project #{id}: #{fallback_data}"
+      ProjectSyncChannel.broadcast_to(self, fallback_data)
+    end
+  end
+
+  def test_broadcast
+    Rails.logger.info "Sending test broadcast for project #{id}"
+    ProjectSyncChannel.broadcast_to(
+      self,
+      {
+        type: 'test',
+        message: 'Test broadcast from project',
+        timestamp: Time.current.iso8601
+      }
+    )
   end
 
   def check_url

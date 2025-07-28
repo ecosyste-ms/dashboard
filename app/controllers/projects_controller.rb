@@ -2,6 +2,7 @@ class ProjectsController < ApplicationController
   before_action :set_period_vars, only: [:engagement, :productivity, :finance, :responsiveness]
   before_action :authenticate_user!, only: [:lookup]
   before_action :set_collection, if: :nested_route?
+  before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :packages, :commits, :releases, :issues, :advisories]
 
   def show
     @project = Project.find(params[:id])
@@ -56,6 +57,7 @@ class ProjectsController < ApplicationController
     @project = Project.find_by(url: params[:url].downcase)
     if @project.nil?
       @project = Project.create!(url: params[:url].downcase)
+      @project.broadcast_sync_update  # Initial broadcast for newly created project
       @project.sync_async
     end
     redirect_to @project
@@ -239,6 +241,10 @@ class ProjectsController < ApplicationController
     @project = Project.find(params[:id])
   end
 
+  def syncing
+    @project = Project.find(params[:id])
+  end
+
   private
 
   def nested_route?
@@ -302,5 +308,10 @@ class ProjectsController < ApplicationController
   def period_date
     return Date.new(year) if range == 'year'
     Date.new(year, month)
+  end
+
+  def redirect_if_syncing
+    @project = Project.find(params[:id])
+    render :syncing unless @project.ready?
   end
 end

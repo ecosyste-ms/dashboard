@@ -1,0 +1,156 @@
+<div class="sync-status-content">
+  <% if project.ready? %>
+    <p class="text-success">✅ Project sync completed successfully!</p>
+  <% else %>
+    <p>Currently syncing this project. This may take a few minutes.</p>
+  <% end %>
+  
+  <!-- Repository Status -->
+  <div class="mt-4">
+    <h5>Repository Data</h5>
+    <div class="d-flex align-items-center">
+      <strong class="me-2">Repository metadata:</strong>
+      <% if project.repository.present? %>
+        <span class="badge bg-success">
+          <%= bootstrap_icon 'check-circle', width: 16, height: 16, class: 'me-1' %>
+          Completed
+        </span>
+      <% else %>
+        <span class="badge bg-warning text-dark">
+          <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          Syncing...
+        </span>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Packages Status -->
+  <div class="mt-4">
+    <h5>Package Data</h5>
+    <div class="d-flex align-items-center">
+      <strong class="me-2">Packages:</strong>
+      <% if project.packages_last_synced_at.present? %>
+        <span class="badge bg-success">
+          <%= bootstrap_icon 'check-circle', width: 16, height: 16, class: 'me-1' %>
+          <%= pluralize(project.packages.count, 'package') %> found
+        </span>
+      <% else %>
+        <span class="badge bg-warning text-dark">
+          <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          Syncing...
+        </span>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Issues Status -->
+  <div class="mt-4">
+    <h5>Issues & Pull Requests</h5>
+    <div class="d-flex align-items-center">
+      <strong class="me-2">Issues and PRs:</strong>
+      <% if project.issues_last_synced_at.present? %>
+        <span class="badge bg-success">
+          <%= bootstrap_icon 'check-circle', width: 16, height: 16, class: 'me-1' %>
+          <%= pluralize(project.issues.count, 'issue/PR') %> found
+        </span>
+      <% else %>
+        <span class="badge bg-warning text-dark">
+          <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          Syncing...
+        </span>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Commits Status -->
+  <div class="mt-4">
+    <h5>Commit History</h5>
+    <div class="d-flex align-items-center">
+      <strong class="me-2">Commits:</strong>
+      <% if project.commits_last_synced_at.present? %>
+        <span class="badge bg-success">
+          <%= bootstrap_icon 'check-circle', width: 16, height: 16, class: 'me-1' %>
+          <%= pluralize(project.commits.count, 'commit') %> found
+        </span>
+      <% else %>
+        <span class="badge bg-warning text-dark">
+          <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          Syncing...
+        </span>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Tags/Releases Status -->
+  <div class="mt-4">
+    <h5>Releases</h5>
+    <div class="d-flex align-items-center">
+      <strong class="me-2">Tags and releases:</strong>
+      <% if project.tags_last_synced_at.present? %>
+        <span class="badge bg-success">
+          <%= bootstrap_icon 'check-circle', width: 16, height: 16, class: 'me-1' %>
+          <%= pluralize(project.tags.count, 'release') %> found
+        </span>
+      <% else %>
+        <span class="badge bg-warning text-dark">
+          <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          Syncing...
+        </span>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Dependencies Status -->
+  <div class="mt-4">
+    <h5>Dependencies</h5>
+    <div class="d-flex align-items-center">
+      <strong class="me-2">Dependency analysis:</strong>
+      <% if project.dependencies_last_synced_at.present? %>
+        <span class="badge bg-success">
+          <%= bootstrap_icon 'check-circle', width: 16, height: 16, class: 'me-1' %>
+          Completed
+        </span>
+      <% else %>
+        <span class="badge bg-warning text-dark">
+          <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          Syncing...
+        </span>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Overall Progress Bar -->
+  <% 
+    total_steps = 6
+    completed_steps = 0
+    completed_steps += 1 if project.repository.present?
+    completed_steps += 1 if project.packages_last_synced_at.present?
+    completed_steps += 1 if project.issues_last_synced_at.present?
+    completed_steps += 1 if project.commits_last_synced_at.present?
+    completed_steps += 1 if project.tags_last_synced_at.present?
+    completed_steps += 1 if project.dependencies_last_synced_at.present?
+    progress_percentage = (completed_steps.to_f / total_steps * 100).round
+  %>
+
+  <% if completed_steps < total_steps %>
+    <div class="mt-4">
+      <h5>Overall Progress</h5>
+      <div class="progress mt-2" style="height: 20px;">
+        <div class="progress-bar" role="progressbar" 
+             style="width: <%= progress_percentage %>%"
+             aria-valuenow="<%= completed_steps %>" 
+             aria-valuemin="0" 
+             aria-valuemax="<%= total_steps %>">
+          <%= progress_percentage %>%
+        </div>
+      </div>
+      <small class="text-muted"><%= completed_steps %> of <%= total_steps %> sync steps completed</small>
+    </div>
+  <% end %>
+
+  <% if project.last_synced_at.present? %>
+    <div class="mt-4">
+      <small class="text-muted">Last synced: <%= time_ago_in_words(project.last_synced_at) %> ago</small>
+    </div>
+  <% end %>
+</div>

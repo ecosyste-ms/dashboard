@@ -50,6 +50,41 @@ class ProjectTest < ActiveSupport::TestCase
     end
   end
 
+  test "ready? returns false for never synced project" do
+    project = create(:project, last_synced_at: nil)
+    assert_not project.ready?
+  end
+
+  test "ready? returns false for old synced project" do
+    project = create(:project, last_synced_at: 2.hours.ago)
+    assert_not project.ready?
+  end
+
+  test "ready? returns true for recently synced project" do
+    project = create(:project, last_synced_at: 30.minutes.ago)
+    assert project.ready?
+  end
+
+  test "sync_progress returns correct progress" do
+    project = create(:project, :without_repository, last_synced_at: nil)
+    progress = project.sync_progress
+    
+    assert_equal 6, progress[:total]
+    assert_equal 0, progress[:completed]
+    assert_equal 0, progress[:percentage]
+  end
+
+  test "sync_progress with some components synced" do
+    project = create(:project, :with_repository, 
+                    packages_last_synced_at: 1.hour.ago,
+                    issues_last_synced_at: 1.hour.ago)
+    progress = project.sync_progress
+    
+    assert_equal 6, progress[:total]
+    assert_equal 3, progress[:completed]  # repository + packages + issues
+    assert_equal 50, progress[:percentage]
+  end
+
   test "sync_commits method updates timestamp" do
     VCR.use_cassette("project_sync/sync_commits_rails_project") do
       project = create(:project, :rails_project, :never_synced)

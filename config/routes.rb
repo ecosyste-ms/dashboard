@@ -65,6 +65,7 @@ Rails.application.routes.draw do
 
         get :sync
         get :meta
+        get :syncing
       end
     end
     
@@ -91,6 +92,7 @@ Rails.application.routes.draw do
 
       get :sync
       get :meta
+      get :syncing
     end
   end
   

@@ -6,6 +6,7 @@
 //= require jquery_ujs
 //= require actioncable
 //= require collection_sync
+//= require project_sync
 
 const rootStyles = getComputedStyle(document.documentElement);
 
