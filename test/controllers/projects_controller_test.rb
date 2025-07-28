@@ -238,4 +238,46 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_equal url, project.url
     assert_redirected_to project_url(project)
   end
+
+  test "should default to previous month for engagement page" do
+    project = create(:project, :with_repository)
+    
+    travel_to Time.parse('2024-02-15') do
+      get engagement_project_url(project)
+      assert_response :success
+      
+      # Should default to January 2024 (previous month)
+      controller = @controller
+      assert_equal 2024, controller.send(:year)
+      assert_equal 1, controller.send(:month)
+    end
+  end
+
+  test "should default to previous month for productivity page" do
+    project = create(:project, :with_repository)
+    
+    travel_to Time.parse('2024-02-15') do
+      get productivity_project_url(project)
+      assert_response :success
+      
+      # Should default to January 2024 (previous month)
+      controller = @controller
+      assert_equal 2024, controller.send(:year)
+      assert_equal 1, controller.send(:month)
+    end
+  end
+
+  test "should handle year boundary when defaulting to previous month" do
+    project = create(:project, :with_repository)
+    
+    travel_to Time.parse('2024-01-15') do
+      get engagement_project_url(project)
+      assert_response :success
+      
+      # Should default to December 2023 (previous month across year boundary)
+      controller = @controller
+      assert_equal 2023, controller.send(:year)
+      assert_equal 12, controller.send(:month)
+    end
+  end
 end

@@ -4,8 +4,8 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
   def setup
     @user = create(:user)
     @other_user = create(:user)
-    @collection = create(:collection, :public, user: @user)
-    @private_collection = create(:collection, :private, user: @user)
+    @collection = create(:collection, :public, user: @user, last_synced_at: 1.hour.ago)
+    @private_collection = create(:collection, :private, user: @user, last_synced_at: 2.hours.ago)
   end
 
   # Authentication tests
@@ -13,6 +13,23 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     get collections_url
     assert_response :redirect
     assert_redirected_to login_url
+  end
+
+  test "should show collections index when authenticated" do
+    login_as(@user)
+    
+    # Ensure user has collections to display (using the ones created in setup)
+    assert @user.collections.include?(@collection)
+    assert @user.collections.include?(@private_collection)
+    
+    get collections_url
+    assert_response :success
+    assert_template :index
+    
+    # Verify the collections are actually rendered
+    assert_select '.listing', count: 2  # Should show both public and private collections for the owner
+    assert_select 'h3.listing__title', text: @collection.name
+    assert_select 'h3.listing__title', text: @private_collection.name
   end
 
   test "should redirect to login for new collection when not authenticated" do
@@ -433,6 +450,25 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     login_as(@user)
     get collection_path(@collection)
     assert_response :success
+    assert_template :show
+  end
+
+  test "collection show page renders with projects" do
+    login_as(@user)
+    
+    # Add some projects to the collection to trigger the "more projects" link
+    projects = []
+    6.times do |i|
+      project = create(:project, :with_repository, url: "https://github.com/test/repo#{i}")
+      create(:collection_project, collection: @collection, project: project)
+      projects << project
+    end
+    
+    get collection_path(@collection)
+    assert_response :success
+    
+    # Should show the "and X more..." link when there are more than 5 projects
+    assert_select 'a[href*="projects"]', text: /and .* more/
   end
   
   test "projects view should show detailed sync status for projects" do
@@ -483,5 +519,47 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     # Check that success and secondary badge styles are applied
     assert_select '.badge.bg-success.rounded-pill'
     assert_select '.badge.bg-secondary.rounded-pill'
+  end
+
+  test "should default to previous month for engagement page" do
+    login_as(@user)
+    
+    travel_to Time.parse('2024-02-15') do
+      get engagement_collection_url(@collection)
+      assert_response :success
+      
+      # Should default to January 2024 (previous month)
+      controller = @controller
+      assert_equal 2024, controller.send(:year)
+      assert_equal 1, controller.send(:month)
+    end
+  end
+
+  test "should default to previous month for productivity page" do
+    login_as(@user)
+    
+    travel_to Time.parse('2024-02-15') do
+      get productivity_collection_url(@collection)
+      assert_response :success
+      
+      # Should default to January 2024 (previous month)
+      controller = @controller
+      assert_equal 2024, controller.send(:year)
+      assert_equal 1, controller.send(:month)
+    end
+  end
+
+  test "should handle year boundary when defaulting to previous month" do
+    login_as(@user)
+    
+    travel_to Time.parse('2024-01-15') do
+      get engagement_collection_url(@collection)
+      assert_response :success
+      
+      # Should default to December 2023 (previous month across year boundary)
+      controller = @controller
+      assert_equal 2023, controller.send(:year)
+      assert_equal 12, controller.send(:month)
+    end
   end
 end
