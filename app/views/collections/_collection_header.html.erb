@@ -53,7 +53,7 @@
     <div class="row">
       <div class="col">
         <% @collection.projects.with_repository.first(5).each do |project| %>
-          <a href="<%= project_path(project) %>" class="project-badge badge text-bg-light d-inline-flex align-items-center align-middle py-2 px-3 me-2 mb-2">
+          <a href="<%= collection_project_path(@collection, project) %>" class="project-badge badge text-bg-light d-inline-flex align-items-center align-middle py-2 px-3 me-2 mb-2">
             <img src="<%= project.avatar_url %>" height="24" width="24" class="me-2"/> 
               <%= project.to_s.gsub('github.com/', '') %>
           </a>
