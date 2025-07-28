@@ -150,4 +150,24 @@ class ProjectTest < ActiveSupport::TestCase
       assert_not_nil project.issues_last_synced_at
     end
   end
+
+  test "licenses method flattens and deduplicates package licenses with repository license" do
+    project = create(:project)
+    repository_license = "Apache-2.0"
+    project.update(repository: { 'license' => repository_license })
+    
+    # Create packages with licenses
+    package1 = create(:package, project: project, metadata: { 'licenses' => ['MIT', 'BSD-3-Clause'] })
+    package2 = create(:package, project: project, metadata: { 'licenses' => ['MIT', 'GPL-3.0'] })
+    
+    licenses = project.licenses
+    
+    assert_includes licenses, 'MIT'
+    assert_includes licenses, 'BSD-3-Clause'
+    assert_includes licenses, 'GPL-3.0'
+    assert_includes licenses, repository_license
+    
+    # Should not have duplicates
+    assert_equal licenses.uniq, licenses
+  end
 end
