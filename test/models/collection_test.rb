@@ -380,4 +380,70 @@ class CollectionTest < ActiveSupport::TestCase
     assert collection.projects.find_by(url: "https://github.com/testorg/repo1")
     assert collection.projects.find_by(url: "https://github.com/testorg/repo2")
   end
+
+  test "sync_least_recently_synced should queue collections for syncing" do
+    old_collection = create(:collection, import_status: 'completed', last_synced_at: 2.days.ago)
+    new_collection = create(:collection, import_status: 'completed', last_synced_at: 1.day.ago)
+    never_synced = create(:collection, import_status: 'completed', last_synced_at: nil)
+    importing_collection = create(:collection, import_status: 'importing')
+
+    assert_difference 'SyncCollectionWorker.jobs.size', 4 do
+      Collection.sync_least_recently_synced(10)
+    end
+
+    jobs = SyncCollectionWorker.jobs
+    synced_collection_ids = jobs.map { |job| job['args'][0] }
+    
+    assert_includes synced_collection_ids, never_synced.id
+    assert_includes synced_collection_ids, old_collection.id
+    assert_includes synced_collection_ids, new_collection.id
+    assert_includes synced_collection_ids, importing_collection.id
+  end
+
+  test "sync_least_recently_synced should respect limit parameter" do
+    15.times do |i|
+      create(:collection, last_synced_at: i.days.ago)
+    end
+
+    assert_difference 'SyncCollectionWorker.jobs.size', 5 do
+      Collection.sync_least_recently_synced(5)
+    end
+  end
+
+  test "sync_projects should re-import and queue projects for syncing" do
+    collection = create(:collection, :with_github_org)
+    
+    # Mock the GitHub org API response for re-import
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/testorg/repositories?page=1&per_page=10")
+      .to_return(status: 200, body: [
+        { "html_url" => "https://github.com/testorg/repo1" },
+        { "html_url" => "https://github.com/testorg/repo2" }
+      ].to_json)
+    
+    # Mock empty responses for subsequent pages
+    (2..10).each do |page|
+      stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/testorg/repositories?page=#{page}&per_page=10")
+        .to_return(status: 200, body: [].to_json)
+    end
+
+    assert_difference 'SyncProjectWorker.jobs.size', 2 do
+      collection.sync_projects
+    end
+
+    assert_equal 2, collection.projects.count
+  end
+
+  test "sync_eligible scope should include all collections" do
+    completed1 = create(:collection, import_status: 'completed')
+    completed2 = create(:collection, import_status: 'completed')
+    importing = create(:collection, import_status: 'importing')
+    error = create(:collection, import_status: 'error')
+
+    eligible_collections = Collection.sync_eligible
+
+    assert_includes eligible_collections, completed1
+    assert_includes eligible_collections, completed2
+    assert_includes eligible_collections, importing
+    assert_includes eligible_collections, error
+  end
 end

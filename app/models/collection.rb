@@ -13,6 +13,7 @@ class Collection < ApplicationRecord
   belongs_to :user
 
   scope :visible, -> { where(visibility: 'public') }
+  scope :sync_eligible, -> { all }
 
 
   before_validation :set_name_from_source
@@ -63,6 +64,20 @@ class Collection < ApplicationRecord
 
   def import_projects_async
     ImportCollectionWorker.perform_async(id)
+  end
+
+  def sync_projects
+    Rails.logger.info "Starting sync for collection: #{name} (ID: #{id})"
+    
+    # First re-import to get any new projects
+    import_projects_sync
+    
+    # Then queue all projects for syncing
+    projects.each do |project|
+      SyncProjectWorker.perform_async(project.id)
+    end
+    
+    Rails.logger.info "Queued #{projects.count} projects for syncing in collection: #{name}"
   end
 
   # Deprecated method for backwards compatibility
@@ -252,6 +267,19 @@ class Collection < ApplicationRecord
     end
   end
 
+
+  def self.sync_least_recently_synced(limit = 10)
+    collections_to_sync = sync_eligible
+      .order(Arel.sql('last_synced_at ASC NULLS FIRST'))
+      .limit(limit)
+
+    collections_to_sync.each do |collection|
+      Rails.logger.info "Queuing collection sync for: #{collection.name} (ID: #{collection.id})"
+      SyncCollectionWorker.perform_async(collection.id)
+    end
+
+    Rails.logger.info "Queued #{collections_to_sync.count} collections for syncing"
+  end
 
   def self.import_github_org(org_name, user:)
     collection = Collection.find_or_create_by(name: org_name, user: user) do |collection|
