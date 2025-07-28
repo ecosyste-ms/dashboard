@@ -22,7 +22,7 @@
               <h5 class="card-title small">Created by</h5>
               <div class="stat-card mb-2">
                 <div class="stat-card-body">
-                  <span class="stat-card-text">Ben Nickolls</span>
+                  <span class="stat-card-text"><%= @collection.user.name %></span>
                 </div>
               </div>
             </div>
@@ -33,7 +33,7 @@
               <div class="stat-card mb-2">
                 <div class="stat-card-body">
                   <span class="stat-card-text">
-                    Last week
+                    <%= time_ago_in_words(@collection.created_at) %> ago
                   </span>
                 </div>
               </div>
