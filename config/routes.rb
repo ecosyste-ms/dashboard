@@ -43,7 +43,7 @@ Rails.application.routes.draw do
       get :finance
       get :engagement
       get :adoption
-      get :dependency
+      get :dependencies
 
       get :sync
     end
@@ -61,7 +61,7 @@ Rails.application.routes.draw do
         get :finance
         get :engagement
         get :adoption
-        get :dependency
+        get :dependencies
 
         get :sync
         get :meta
@@ -87,7 +87,7 @@ Rails.application.routes.draw do
       get :finance
       get :engagement
       get :adoption
-      get :dependency
+      get :dependencies
 
       get :sync
       get :meta

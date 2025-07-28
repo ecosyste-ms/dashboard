@@ -122,7 +122,7 @@ class ProjectsController < ApplicationController
     end
   end
 
-  def dependency
+  def dependencies
     @project = Project.find(params[:id])
     @direct_dependencies = @project.direct_dependencies.length
     @development_dependencies = @project.development_dependencies.length

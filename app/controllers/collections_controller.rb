@@ -4,7 +4,7 @@ class CollectionsController < ApplicationController
   before_action :authenticate_user!
 
   before_action :set_collection_with_visibility_check, except: [:index, :new, :create]
-  before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependency, :productivity, :finance, :responsiveness, :projects]
+  before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :projects]
 
   def index
     scope = current_user.collections
@@ -101,7 +101,7 @@ class CollectionsController < ApplicationController
     end
   end
 
-  def dependency
+  def dependencies
     @direct_dependencies = @collection.direct_dependencies.length
     @development_dependencies = @collection.development_dependencies.length
     @transitive_dependencies = @collection.transitive_dependencies.length

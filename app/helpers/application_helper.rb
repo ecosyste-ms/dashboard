@@ -166,8 +166,8 @@ module ApplicationHelper
         adoption_collection_project_path(collection, project)
       when 'engagement'
         engagement_collection_project_path(collection, project)
-      when 'dependency'
-        dependency_collection_project_path(collection, project)
+      when 'dependencies'
+        dependencies_collection_project_path(collection, project)
       when 'productivity'
         productivity_collection_project_path(collection, project)
       when 'finance'
@@ -197,8 +197,8 @@ module ApplicationHelper
         adoption_project_path(project)
       when 'engagement'
         engagement_project_path(project)
-      when 'dependency'
-        dependency_project_path(project)
+      when 'dependencies'
+        dependencies_project_path(project)
       when 'productivity'
         productivity_project_path(project)
       when 'finance'

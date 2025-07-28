@@ -19,7 +19,7 @@
       <a class="nav-link <%= 'active' if action_name == 'adoption' %>" href="<%= project_path_with_collection(@project, 'adoption') %>?<%= request.query_parameters.to_query %>">Adoption</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'dependency' %>" href="<%= project_path_with_collection(@project, 'dependency') %>?<%= request.query_parameters.to_query %>">Dependency</a>
+      <a class="nav-link <%= 'active' if action_name == 'dependencies' %>" href="<%= project_path_with_collection(@project, 'dependencies') %>?<%= request.query_parameters.to_query %>">Dependencies</a>
     </li>
   </ul>
   <hr class="mt-5 me-3" />
