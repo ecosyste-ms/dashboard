@@ -57,4 +57,13 @@ Rails.application.configure do
 
   # Annotate rendered view with file names.
   # config.action_view.annotate_rendered_view_with_filenames = true
+  
+  # Test pagination limits to avoid excessive API calls during testing
+  config.x.pagination_limits = {
+    packages: 2,
+    issues: 2,
+    commits: 2,
+    tags: 2,
+    advisories: 2
+  }
 end

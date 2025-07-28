@@ -17,55 +17,55 @@ class Package < ApplicationRecord
   end
 
   def registry_name
-    metadata["registry"]["name"]
+    metadata&.dig("registry", "name")
   end
 
   def keywords
-    metadata['keywords']
+    metadata&.dig('keywords')
   end
 
   def funding
-    metadata['metadata']['funding']
+    metadata&.dig('metadata', 'funding')
   end
 
   def downloads_period
-    metadata['downloads_period']
+    metadata&.dig('downloads_period')
   end
 
   def downloads
-    metadata['downloads'] || 0
+    metadata&.dig('downloads') || 0
   end
 
   def dependents
-    metadata['dependents'] || 0
+    metadata&.dig('dependents') || 0
   end
 
   def dependent_repos_count
-    metadata['dependent_repos_count'] || 0
+    metadata&.dig('dependent_repos_count') || 0
   end
 
   def licenses
-    metadata['licenses']
+    metadata&.dig('licenses')
   end
 
   def rankings
-    metadata['rankings']
+    metadata&.dig('rankings')
   end
 
   def registry_url
-    metadata['registry_url']
+    metadata&.dig('registry_url')
   end
 
   def latest_release_number
-    metadata['latest_release_number']
+    metadata&.dig('latest_release_number')
   end
 
   def status
-    metadata['status']
+    metadata&.dig('status')
   end
   
   def description
-    metadata['description']
+    metadata&.dig('description')
   end
 
   def description_with_fallback

@@ -152,6 +152,7 @@ FactoryBot.define do
     end
 
     trait :never_synced do
+      last_synced_at { nil }
       issues_last_synced_at { nil }
       commits_last_synced_at { nil }
       tags_last_synced_at { nil }

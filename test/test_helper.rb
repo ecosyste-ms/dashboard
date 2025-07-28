@@ -20,7 +20,21 @@ class ActiveSupport::TestCase
       with.library :rails
     end
   end
+
+  # Log test timing to identify slow tests
+  def setup
+    @test_start_time = Time.now
+  end
+
+  def teardown
+    return unless @test_start_time
+    duration = Time.now - @test_start_time
+    if duration > 1  # Log tests taking more than 50ms
+      puts "⏱️  SLOW TEST: #{self.class}##{@NAME} took #{duration.round(3)}s"
+    end
+  end
 end
+
 
 # VCR Configuration
 VCR.configure do |config|
@@ -28,26 +42,26 @@ VCR.configure do |config|
   config.hook_into :webmock
   config.ignore_localhost = true
   
-  # Use recorded cassettes by default, record new ones if they don't exist
+  # Use recorded cassettes only, no new recordings for offline testing
   config.default_cassette_options = { 
-    record: :once,  # Record once, then playback
-    allow_unused_http_interactions: true
+    record: :none,  # Only use existing cassettes, no new recordings
+    allow_unused_http_interactions: true,
+    match_requests_on: [:method, :host, :path, :query, :body]  # Match ignoring port and query param order
   }
+  
+  # Configure VCR to handle redirects properly  
+  config.allow_http_connections_when_no_cassette = false
+  
+  # Disable all real HTTP connections for offline testing
+  WebMock.disable_net_connect!(allow_localhost: true)
   
   # Filter out sensitive information
   config.filter_sensitive_data('<FILTERED>') { ENV['GITHUB_TOKEN'] }
   config.filter_sensitive_data('<FILTERED>') { ENV['API_KEY'] }
   
-  # Log HTTP interactions
-  config.debug_logger = $stdout if ENV['VCR_DEBUG']
-  
   # Hook to log when VCR is recording vs replaying
   config.before_record do |interaction|
     puts "🎬 VCR RECORDING: #{interaction.request.method.upcase} #{interaction.request.uri}"
-  end
-  
-  config.before_playback do |interaction|
-    puts "📼 VCR PLAYBACK: #{interaction.request.method.upcase} #{interaction.request.uri}"
   end
 end
 

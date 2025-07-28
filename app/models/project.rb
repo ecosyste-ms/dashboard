@@ -97,7 +97,9 @@ class Project < ApplicationRecord
     return if last_synced_at.present? && last_synced_at > 1.day.ago
     check_url
     fetch_repository
-    fetch_packages
+    # Limit packages in test environment to avoid excessive API calls  
+    max_pages = Rails.application.config.x.pagination_limits&.dig(:packages) || 100
+    fetch_packages(max_pages: max_pages)
     if repository && uninteresting_fork?
       # Don't sync tags, commits or issues for uninteresting forks
     else
@@ -211,17 +213,26 @@ class Project < ApplicationRecord
   def fetch_repository
     response = ecosystems_api_request(repos_api_url)
     return unless response&.success?
-    self.repository = JSON.parse(response.body)
+    
+    repo_data = JSON.parse(response.body)
+    self.repository = repo_data
     self.keywords = combined_keywords
-    self.save
+    
+    unless self.save
+      Rails.logger.error "Error saving repository data for #{repository_url}: #{self.errors.full_messages.join(', ')}"
+      return false
+    end
+    
+    true
   rescue => e
     Rails.logger.error "Error fetching repository for #{repository_url}: #{e.message}"
+    false
   end
 
   def combined_keywords
     keywords = []
-    keywords += repository["topics"] if repository.present?
-    keywords += packages.map(&:keywords).flatten unless packages_count.zero?
+    keywords += repository["topics"] if repository.present? && repository["topics"]
+    keywords += packages.map(&:keywords).compact.flatten unless packages_count.zero?
     keywords.uniq.reject(&:blank?)
   end
   
@@ -390,11 +401,10 @@ class Project < ApplicationRecord
     response_data = fetch_json_with_retry(issues_api_url)
     return unless response_data
     
-    self.issues_last_synced_at = response_data['last_synced_at']
-    self.save
-    
     issues_list_url = response_data['issues_url']
-    issues_data = fetch_paginated_data(issues_list_url, max_pages: 50)
+    # Limit pages in test environment to avoid excessive HTTP requests
+    max_pages = Rails.application.config.x.pagination_limits&.dig(:issues) || 50
+    issues_data = fetch_paginated_data(issues_list_url, max_pages: max_pages)
     
     # TODO: Use bulk insert
     issues_data.each do |issue|
@@ -402,6 +412,9 @@ class Project < ApplicationRecord
       i.assign_attributes(issue)
       i.save(touch: false)
     end
+    
+    self.issues_last_synced_at = Time.now
+    self.save
     
   rescue => e
     Rails.logger.error "Error fetching issues for #{repository_url}: #{e.message}"
@@ -417,8 +430,10 @@ class Project < ApplicationRecord
     response_data = fetch_json_with_retry(commits_api_url)
     return unless response_data
     
-    commits_list_url = response_data['commits_url'] + '?sort=timestamp'
-    commits_data = fetch_paginated_data(commits_list_url, max_pages: 50)
+    commits_list_url = response_data['commits_url'] + '?sort=timestamp&per_page=1000'
+    # Limit pages in test environment to avoid excessive HTTP requests
+    max_pages = Rails.application.config.x.pagination_limits&.dig(:commits) || 50
+    commits_data = fetch_paginated_data(commits_list_url, max_pages: max_pages)
     
     # TODO: Use bulk insert
     commits_data.each do |commit|
@@ -445,6 +460,8 @@ class Project < ApplicationRecord
   def sync_tags
     return unless repository.present?
 
+    # Limit pages in test environment to avoid excessive HTTP requests
+    max_pages = Rails.application.config.x.pagination_limits&.dig(:tags) || 50
     page = 1
     loop do
       conn = Faraday.new(url: tags_api_url(page: page)) do |faraday|
@@ -465,7 +482,7 @@ class Project < ApplicationRecord
       end
 
       page += 1
-      break if page > 50 # Stop if there are too many tags
+      break if page > max_pages # Stop if there are too many tags
     end
     
     self.tags_last_synced_at = Time.now
@@ -477,6 +494,8 @@ class Project < ApplicationRecord
   def sync_advisories
     return unless repository.present?
 
+    # Limit pages in test environment to avoid excessive HTTP requests
+    max_pages = Rails.application.config.x.pagination_limits&.dig(:advisories) || 50
     page = 1
     loop do
       conn = Faraday.new(url: advisories_api_url(page: page)) do |faraday|
@@ -497,10 +516,11 @@ class Project < ApplicationRecord
       end
 
       page += 1
-      break if page > 50 # Stop if there are too many advisories
+      break if page > max_pages # Stop if there are too many advisories
     end
-  rescue
-    puts "Error fetching advisories for #{repository_url}"
+  rescue => e
+    Rails.logger.error "Error fetching advisories for #{repository_url}: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
   end
 
   def advisories_api_url(page: 1)
@@ -562,34 +582,21 @@ class Project < ApplicationRecord
   ].flatten.compact.uniq
   end
 
-  def fetch_packages
-    page = 1
-    loop do
-      conn = Faraday.new(url: packages_url(page: page)) do |faraday|
-        faraday.response :follow_redirects
-        faraday.adapter Faraday.default_adapter
-      end
-
-      response = conn.get
-      return unless response.success?
-
-      packages_json = JSON.parse(response.body)
-      break if packages_json.empty? # Stop if there are no more packages
-
-      packages_json.each do |pkg|
-        p = packages.find_or_create_by(ecosystem: pkg['ecosystem'], name: pkg['name'])
-        p.purl = pkg['purl']
-        p.metadata = pkg.except('repo_metadata')
-        p.save(touch: false)
-      end
-
-      page += 1
+  def fetch_packages(max_pages: 10)
+    base_url = "https://packages.ecosyste.ms/api/v1/packages/lookup?repository_url=#{repository_url}"
+    packages_data = fetch_paginated_data(base_url, max_pages: max_pages)
+    
+    packages_data.each do |pkg|
+      p = packages.find_or_create_by(ecosystem: pkg['ecosystem'], name: pkg['name'])
+      p.purl = pkg['purl']
+      p.metadata = pkg.except('repo_metadata')
+      p.save(touch: false)
     end
     
     self.packages_last_synced_at = Time.now
     self.save
-  rescue
-    puts "Error fetching packages for #{repository_url}"
+  rescue => e
+    Rails.logger.error "Error fetching packages for #{repository_url}: #{e.message}"
   end
 
   def packages_count

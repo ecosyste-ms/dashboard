@@ -359,12 +359,18 @@ class CollectionTest < ActiveSupport::TestCase
       user: @user
     )
     
-    # Mock the GitHub org API response
-    stub_request(:get, /repos\.ecosyste\.ms.*hosts\/GitHub\/owners\/testorg\/repositories/)
+    # Mock the GitHub org API response - first page with data, then empty pages
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/testorg/repositories?page=1&per_page=100")
       .to_return(status: 200, body: [
         { "html_url" => "https://github.com/testorg/repo1" },
         { "html_url" => "https://github.com/testorg/repo2" }
       ].to_json)
+    
+    # Mock empty responses for subsequent pages to stop pagination
+    (2..10).each do |page|
+      stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/testorg/repositories?page=#{page}&per_page=100")
+        .to_return(status: 200, body: [].to_json)
+    end
     
     collection.import_projects_sync
     collection.reload
