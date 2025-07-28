@@ -66,4 +66,14 @@ Rails.application.configure do
     tags: 2,
     advisories: 2
   }
+  
+  # Test per_page limits to reduce data fetched per request
+  config.x.per_page_limits = {
+    packages: 10,
+    issues: 10,
+    commits: 10,
+    tags: 10,
+    advisories: 10,
+    repositories: 10
+  }
 end

@@ -276,7 +276,8 @@ class Collection < ApplicationRecord
       end
       
       begin
-        resp = conn.get("https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/#{org_name}/repositories?per_page=100&page=#{page}")
+        per_page = Rails.application.config.x.per_page_limits&.dig(:repositories) || 100
+        resp = conn.get("https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/#{org_name}/repositories?per_page=#{per_page}&page=#{page}")
         break unless resp.status == 200
       rescue Faraday::Error => e
         Rails.logger.error "Error fetching GitHub org repos for #{org_name}, page #{page}: #{e.message}"

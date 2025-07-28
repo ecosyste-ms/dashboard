@@ -333,7 +333,8 @@ class Collective < ApplicationRecord
   def load_org_projects
     page = 1
     loop do
-      resp = Faraday.get("https://repos.ecosyste.ms/api/v1/hosts/#{project_host}/owners/#{project_owner}/repositories?per_page=100&page=#{page}")
+      per_page = Rails.application.config.x.per_page_limits&.dig(:repositories) || 100
+      resp = Faraday.get("https://repos.ecosyste.ms/api/v1/hosts/#{project_host}/owners/#{project_owner}/repositories?per_page=#{per_page}&page=#{page}")
       break unless resp.status == 200
 
       data = JSON.parse(resp.body)

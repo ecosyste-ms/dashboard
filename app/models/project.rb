@@ -404,7 +404,8 @@ class Project < ApplicationRecord
     issues_list_url = response_data['issues_url']
     # Limit pages in test environment to avoid excessive HTTP requests
     max_pages = Rails.application.config.x.pagination_limits&.dig(:issues) || 50
-    issues_data = fetch_paginated_data(issues_list_url, max_pages: max_pages)
+    per_page = Rails.application.config.x.per_page_limits&.dig(:issues) || 100
+    issues_data = fetch_paginated_data(issues_list_url, per_page: per_page, max_pages: max_pages)
     
     # TODO: Use bulk insert
     issues_data.each do |issue|
@@ -430,10 +431,11 @@ class Project < ApplicationRecord
     response_data = fetch_json_with_retry(commits_api_url)
     return unless response_data
     
-    commits_list_url = response_data['commits_url'] + '?sort=timestamp&per_page=1000'
-    # Limit pages in test environment to avoid excessive HTTP requests
+    commits_list_url = response_data['commits_url'] + '?sort=timestamp'
+    # Limit pages in test environment to avoid excessive HTTP requests  
     max_pages = Rails.application.config.x.pagination_limits&.dig(:commits) || 50
-    commits_data = fetch_paginated_data(commits_list_url, max_pages: max_pages)
+    per_page = Rails.application.config.x.per_page_limits&.dig(:commits) || 1000
+    commits_data = fetch_paginated_data(commits_list_url, per_page: per_page, max_pages: max_pages)
     
     # TODO: Use bulk insert
     commits_data.each do |commit|
@@ -453,8 +455,8 @@ class Project < ApplicationRecord
     Rails.logger.error "Error fetching commits for #{repository_url}: #{e.message}"
   end
 
-  def tags_api_url(page: 1)
-    "https://repos.ecosyste.ms/api/v1/hosts/#{repository['host']['name']}/repositories/#{repository['full_name']}/tags?page=#{page}"
+  def tags_api_url(page: 1, per_page: 100)
+    "https://repos.ecosyste.ms/api/v1/hosts/#{repository['host']['name']}/repositories/#{repository['full_name']}/tags?page=#{page}&per_page=#{per_page}"
   end
 
   def sync_tags
@@ -462,9 +464,10 @@ class Project < ApplicationRecord
 
     # Limit pages in test environment to avoid excessive HTTP requests
     max_pages = Rails.application.config.x.pagination_limits&.dig(:tags) || 50
+    per_page = Rails.application.config.x.per_page_limits&.dig(:tags) || 100
     page = 1
     loop do
-      conn = Faraday.new(url: tags_api_url(page: page)) do |faraday|
+      conn = Faraday.new(url: tags_api_url(page: page, per_page: per_page)) do |faraday|
         faraday.response :follow_redirects
         faraday.adapter Faraday.default_adapter
       end
@@ -496,9 +499,10 @@ class Project < ApplicationRecord
 
     # Limit pages in test environment to avoid excessive HTTP requests
     max_pages = Rails.application.config.x.pagination_limits&.dig(:advisories) || 50
+    per_page = Rails.application.config.x.per_page_limits&.dig(:advisories) || 100
     page = 1
     loop do
-      conn = Faraday.new(url: advisories_api_url(page: page)) do |faraday|
+      conn = Faraday.new(url: advisories_api_url(page: page, per_page: per_page)) do |faraday|
         faraday.response :follow_redirects
         faraday.adapter Faraday.default_adapter
       end
@@ -523,8 +527,8 @@ class Project < ApplicationRecord
     Rails.logger.error e.backtrace.join("\n")
   end
 
-  def advisories_api_url(page: 1)
-    "https://advisories.ecosyste.ms/api/v1/advisories?page=#{page}&repository_url=#{repository_url}"
+  def advisories_api_url(page: 1, per_page: 100)
+    "https://advisories.ecosyste.ms/api/v1/advisories?page=#{page}&per_page=#{per_page}&repository_url=#{repository_url}"
   end
 
   def last_activity_at
@@ -584,7 +588,8 @@ class Project < ApplicationRecord
 
   def fetch_packages(max_pages: 10)
     base_url = "https://packages.ecosyste.ms/api/v1/packages/lookup?repository_url=#{repository_url}"
-    packages_data = fetch_paginated_data(base_url, max_pages: max_pages)
+    per_page = Rails.application.config.x.per_page_limits&.dig(:packages) || 100
+    packages_data = fetch_paginated_data(base_url, per_page: per_page, max_pages: max_pages)
     
     packages_data.each do |pkg|
       p = packages.find_or_create_by(ecosystem: pkg['ecosystem'], name: pkg['name'])
@@ -995,12 +1000,12 @@ class Project < ApplicationRecord
     nil
   end
 
-  def fetch_paginated_data(url, max_pages: 10)
+  def fetch_paginated_data(url, per_page: 100, max_pages: 10)
     data = []
     page = 1
     
     loop do
-      page_url = "#{url}#{url.include?('?') ? '&' : '?'}page=#{page}"
+      page_url = "#{url}#{url.include?('?') ? '&' : '?'}per_page=#{per_page}&page=#{page}"
       conn = Faraday.new(url: page_url) do |faraday|
         faraday.response :follow_redirects
         faraday.adapter Faraday.default_adapter
