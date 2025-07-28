@@ -250,8 +250,10 @@ class Collection < ApplicationRecord
       collection.name = org_name
       collection.description = "Collection of repositories for #{org_name}"
       collection.user = user
+      collection.github_organization_url = "https://github.com/#{org_name}"
     end
     collection.import_github_org(org_name)
+    collection
   end
 
   def import_github_org(org_name)
