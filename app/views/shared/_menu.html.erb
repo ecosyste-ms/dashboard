@@ -19,9 +19,21 @@
           <li><p class="dropdown-header"><%= current_user.name %></p></li>
           <li><a class="dropdown-item" href="/logout">Logout</a></li>
           <li><hr class="dropdown-divider"></li>
+          <li><p class="dropdown-header">Projects</p></li>
+          <li><a class="dropdown-item" href="<%= new_project_path %>">
+            <%= bootstrap_icon 'plus-circle', width: 16, height: 16, class: 'me-2' %>
+            Add new project
+          </a></li>
+          <li><hr class="dropdown-divider"></li>
           <li><p class="dropdown-header">Collections</p></li>
-          <li><a class="dropdown-item" href="/collections">Your collections</a></li> 
-          <li><a class="dropdown-item" href="<%= new_collection_path %>">Create a new collection</a></li> 
+          <li><a class="dropdown-item" href="/collections">
+            <%= bootstrap_icon 'collection', width: 16, height: 16, class: 'me-2' %>
+            Your collections
+          </a></li> 
+          <li><a class="dropdown-item" href="<%= new_collection_path %>">
+            <%= bootstrap_icon 'plus-circle', width: 16, height: 16, class: 'me-2' %>
+            Create a new collection
+          </a></li> 
         </ul>
       </div>
     <% else %>

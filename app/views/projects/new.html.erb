@@ -1,0 +1,99 @@
+<% @meta_title = "New Project" %>
+<% @meta_description = "Add a new project to track" %>
+
+<div class="container mt-5">
+  <h1 class="mb-4">Add a new project</h1>
+  <div class="row">
+    <div class="col-12 col-lg-8">
+      <%= form_with model: @project, local: true do |f| %>
+        <% if @project.errors.any? %>
+          <div class="alert alert-danger" role="alert">
+            <h4><%= pluralize(@project.errors.count, "error") %> prohibited this project from being saved:</h4>
+            <ul class="mb-0">
+              <% @project.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <div class="well p-4 mb-4">
+          <div class="d-flex align-items-start gap-3 mb-4">
+            <div class="flex-shrink-0">
+              <%= bootstrap_icon 'code-square', width: 32, height: 32, class: 'text-primary' %>
+            </div>
+            <div>
+              <h3 class="h5 mb-2">Repository URL</h3>
+              <p class="text-muted mb-0">Enter the URL of any repository you'd like to track. We support GitHub, GitLab, and other hosting platforms. We'll automatically sync data about commits, issues, releases, packages, and dependencies.</p>
+            </div>
+          </div>
+
+          <div class="form-group mb-4">
+            <%= f.label :url, "Repository URL", class: "form-label fw-bold" %>
+            <%= f.url_field :url, 
+                class: "form-control", 
+                placeholder: "https://github.com/owner/repository", 
+                required: true,
+                title: "Please enter a valid repository URL",
+                value: params[:url] || @project.url %>
+            <div class="form-text">
+              Examples: https://github.com/rails/rails, https://gitlab.com/gitlab-org/gitlab, https://bitbucket.org/owner/repo
+            </div>
+          </div>
+        </div>
+
+        <div class="well p-4 mb-4">
+          <h3 class="h5 mb-3">What happens next?</h3>
+          <div class="d-flex align-items-start gap-2 mb-2">
+            <span class="badge bg-primary rounded-pill">1</span>
+            <span>We'll create your project and start syncing data</span>
+          </div>
+          <div class="d-flex align-items-start gap-2 mb-2">
+            <span class="badge bg-primary rounded-pill">2</span>
+            <span>You'll see real-time progress as we gather repository data, issues, commits, and more</span>
+          </div>
+          <div class="d-flex align-items-start gap-2 mb-2">
+            <span class="badge bg-primary rounded-pill">3</span>
+            <span>Once complete, you'll have access to comprehensive analytics and insights</span>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <%= f.submit "Add Project", class: "btn btn-primary rounded-pill" %>
+          <%= link_to "Cancel", projects_path, class: "btn btn-outline-secondary rounded-pill" %>
+        </div>
+      <% end %>
+    </div>
+    <div class="col-12 col-lg-4">
+      <div class="bg-light p-4 rounded">
+        <h4 class="h6 mb-3">Features included:</h4>
+        <ul class="list-unstyled">
+          <li class="mb-2">
+            <%= bootstrap_icon 'check-circle', width: 16, height: 16, class: 'text-success me-2' %>
+            Repository metadata and statistics
+          </li>
+          <li class="mb-2">
+            <%= bootstrap_icon 'check-circle', width: 16, height: 16, class: 'text-success me-2' %>
+            Package and dependency tracking
+          </li>
+          <li class="mb-2">
+            <%= bootstrap_icon 'check-circle', width: 16, height: 16, class: 'text-success me-2' %>
+            Issues and pull request analytics
+          </li>
+          <li class="mb-2">
+            <%= bootstrap_icon 'check-circle', width: 16, height: 16, class: 'text-success me-2' %>
+            Commit history and contributor insights
+          </li>
+          <li class="mb-2">
+            <%= bootstrap_icon 'check-circle', width: 16, height: 16, class: 'text-success me-2' %>
+            Release and tag monitoring
+          </li>
+          <li class="mb-2">
+            <%= bootstrap_icon 'check-circle', width: 16, height: 16, class: 'text-success me-2' %>
+            Security advisory tracking
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

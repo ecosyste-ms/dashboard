@@ -1,6 +1,6 @@
 class ProjectsController < ApplicationController
   before_action :set_period_vars, only: [:engagement, :productivity, :finance, :responsiveness]
-  before_action :authenticate_user!, only: [:lookup]
+  before_action :authenticate_user!, only: [:new, :create]
   before_action :set_collection, if: :nested_route?
   before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :packages, :commits, :releases, :issues, :advisories]
 
@@ -53,14 +53,39 @@ class ProjectsController < ApplicationController
     @pagy, @projects = pagy(@scope)
   end
 
+  def new
+    @project = Project.new
+  end
+
+  def create
+    @project = Project.find_by(url: project_params[:url].downcase)
+    
+    if @project.present?
+      # Project already exists, redirect to it
+      redirect_to @project, notice: 'Project already exists in the system.'
+    else
+      # Create new project
+      @project = Project.new(url: project_params[:url].downcase)
+      
+      if @project.save
+        @project.broadcast_sync_update  # Initial broadcast for newly created project
+        @project.sync_async
+        redirect_to @project, notice: 'Project was successfully created and is now syncing.'
+      else
+        render :new
+      end
+    end
+  end
+
   def lookup
     @project = Project.find_by(url: params[:url].downcase)
     if @project.nil?
-      @project = Project.create!(url: params[:url].downcase)
-      @project.broadcast_sync_update  # Initial broadcast for newly created project
-      @project.sync_async
+      # Project doesn't exist, redirect to new project form with the URL pre-filled
+      redirect_to new_project_path(url: params[:url])
+    else
+      # Project exists, redirect to it
+      redirect_to @project
     end
-    redirect_to @project
   end
 
   def packages
@@ -313,5 +338,9 @@ class ProjectsController < ApplicationController
   def redirect_if_syncing
     @project = Project.find(params[:id])
     render :syncing unless @project.ready?
+  end
+
+  def project_params
+    params.require(:project).permit(:url)
   end
 end
