@@ -209,4 +209,25 @@ class CollectionTest < ActiveSupport::TestCase
     
     assert_equal expected_urls.sort, urls.sort
   end
+
+  test "import_github_org class method requires user parameter" do
+    user1 = create(:user)
+    user2 = create(:user)
+    
+    # Mock the HTTP request for GitHub org repos
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/testorg/repositories?per_page=100&page=1")
+      .to_return(status: 200, body: [])
+    
+    # Create collection with user1
+    collection = Collection.import_github_org("testorg", user: user1)
+    
+    assert_equal user1, collection.user
+    assert_equal "testorg", collection.name
+    assert_equal "Collection of repositories for testorg", collection.description
+    
+    # Verify collections are user-specific
+    collection2 = Collection.import_github_org("testorg", user: user2)
+    assert_equal user2, collection2.user
+    assert_not_equal collection.id, collection2.id
+  end
 end

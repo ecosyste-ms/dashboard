@@ -245,10 +245,11 @@ class Collection < ApplicationRecord
   end
 
 
-  def self.import_github_org(org_name)
-    collection = Collection.find_or_create_by(name: org_name) do |collection|
+  def self.import_github_org(org_name, user:)
+    collection = Collection.find_or_create_by(name: org_name, user: user) do |collection|
       collection.name = org_name
       collection.description = "Collection of repositories for #{org_name}"
+      collection.user = user
     end
     collection.import_github_org(org_name)
   end
