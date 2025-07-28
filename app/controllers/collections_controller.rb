@@ -231,7 +231,18 @@ class CollectionsController < ApplicationController
     @month = month
     @period_date = period_date
     @previous_year = @range == 'year' ? (params[:previous_year] || @year - 1).to_i : (params[:previous_year] || @year).to_i
-    @previous_month = @month ? (params[:previous_month] || @month - 1).to_i : nil
+    
+    if @month
+      previous_month_value = (params[:previous_month] || @month - 1).to_i
+      if previous_month_value <= 0
+        @previous_month = 12
+        @previous_year = @previous_year - 1
+      else
+        @previous_month = previous_month_value
+      end
+    else
+      @previous_month = nil
+    end
 
     @this_period_range =
       if @range == 'year'
@@ -253,11 +264,11 @@ class CollectionsController < ApplicationController
   end
 
   def year
-    (params[:year] || Time.current.year).to_i
+    (params[:year] || 1.month.ago.year).to_i
   end
 
   def month
-    range == 'month' ? (params[:month] || Time.current.month).to_i : nil
+    range == 'month' ? (params[:month] || 1.month.ago.month).to_i : nil
   end
 
   def period_date

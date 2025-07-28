@@ -323,11 +323,11 @@ class ProjectsController < ApplicationController
   end
 
   def year
-    (params[:year] || Time.current.year).to_i
+    (params[:year] || 1.month.ago.year).to_i
   end
 
   def month
-    range == 'month' ? (params[:month] || Time.current.month).to_i : nil
+    range == 'month' ? (params[:month] || 1.month.ago.month).to_i : nil
   end
 
   def period_date
