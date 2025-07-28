@@ -1,0 +1,59 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/rails/rails/manifests
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Faraday v2.13.4
+      Expect:
+      - ''
+  response:
+    status:
+      code: 500
+      message: ''
+    headers:
+      Date:
+      - Mon, 28 Jul 2025 11:33:13 GMT
+      Content-Type:
+      - application/json; charset=utf-8
+      Content-Length:
+      - '33'
+      Server:
+      - cloudflare
+      Nel:
+      - '{"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Xss-Protection:
+      - '0'
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      X-Request-Id:
+      - fe2bfcae-ec5f-4856-a0d1-be63acfb7ec1
+      X-Runtime:
+      - '2.241463'
+      Vary:
+      - Origin, accept-encoding
+      Cf-Cache-Status:
+      - BYPASS
+      Report-To:
+      - '{"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=3EH7AgpE9GKFigX20szczZxl%2BQThJQfOXurfazOMPEVKsV8htT%2FYRhyCIgtV%2BevJjw3DiPkv%2BMWJRCZiPiQxLz%2Fc5%2F0Cevs%2Fks9z0YvnXB1j"}]}'
+      Cf-Ray:
+      - 96640ebeda015630-LHR
+      Alt-Svc:
+      - h3=":443"; ma=86400
+    body:
+      encoding: ASCII-8BIT
+      string: '{"error":"internal server error"}'
+  recorded_at: Mon, 28 Jul 2025 11:33:13 GMT
+recorded_with: VCR 6.3.1

@@ -1,0 +1,210 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/testorg/repositories?page=1&per_page=100
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Faraday v2.13.4
+      Expect:
+      - ''
+  response:
+    status:
+      code: 500
+      message: ''
+    headers:
+      Date:
+      - Mon, 28 Jul 2025 11:39:52 GMT
+      Content-Type:
+      - text/html
+      Server:
+      - cloudflare
+      Nel:
+      - '{"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}'
+      Report-To:
+      - '{"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=96KVNr5n1gjDLFPUgTKznMVKEFEZO%2BlMIw7hr5KcmaZKLm%2BDs7CCEpUskbqccFgpufhP8MrdiTLKcAs%2FI4Da3NVQ2RaEzQZY4TTet55tzA%3D%3D"}]}'
+      Cf-Cache-Status:
+      - BYPASS
+      Vary:
+      - accept-encoding
+      Cf-Ray:
+      - 96641932586def4e-LHR
+      Alt-Svc:
+      - h3=":443"; ma=86400
+    body:
+      encoding: ASCII-8BIT
+      string: |
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>We're sorry, but something went wrong (500)</title>
+          <meta name="viewport" content="width=device-width,initial-scale=1">
+          <style>
+          body {
+            background-color: #6CABF7;
+            color: #fff;
+            text-align: center;
+            font-family: arial, sans-serif;
+            margin: 0;
+          }
+          div {
+            position:absolute;
+            top: 50%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-50%);
+          }
+          p {
+            color: #eee;
+          }
+          </style>
+        </head>
+
+        <body>
+          <div>
+            <h1>We're sorry, but something went wrong.</h1>
+            <p>If you are the application owner check the logs for more information.</p>
+          </div>
+        </body>
+        </html>
+  recorded_at: Mon, 28 Jul 2025 11:39:52 GMT
+- request:
+    method: get
+    uri: https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/testorg/repositories?page=1&per_page=100
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Faraday v2.13.4
+      Expect:
+      - ''
+  response:
+    status:
+      code: 200
+      message: ''
+    headers:
+      Date:
+      - Mon, 28 Jul 2025 11:40:20 GMT
+      Content-Type:
+      - application/json; charset=utf-8
+      Server:
+      - cloudflare
+      Nel:
+      - '{"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}'
+      Vary:
+      - Accept-Encoding
+      - Origin
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Xss-Protection:
+      - '0'
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Etag:
+      - W/"68277f8537dc33b7c248b05ed292e636"
+      Last-Modified:
+      - Tue, 26 Mar 2024 17:56:46 GMT
+      Link:
+      - <http://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/testorg/repositories?page=1&per_page=100>;
+        rel="first"
+      Current-Page:
+      - '1'
+      Page-Items:
+      - '100'
+      Cache-Control:
+      - public, max-age=86400
+      X-Request-Id:
+      - e7a24554-15d3-404c-b88d-7daa0f523c35
+      X-Runtime:
+      - '0.626839'
+      Content-Encoding:
+      - gzip
+      Cf-Cache-Status:
+      - MISS
+      Report-To:
+      - '{"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=QARSYzokGp%2F7gJle0e4qa2o9J7xlIq1kB5GmTU9fTpzcjVcLyqeQGToy7%2B8chG%2BhD1epl6KWHxBgbqwG%2BTtaax6FTjMpPfdzn5och1hUiA%3D%3D"}]}'
+      Cf-Ray:
+      - 9664193f298eef4e-LHR
+      Alt-Svc:
+      - h3=":443"; ma=86400
+    body:
+      encoding: ASCII-8BIT
+      string: '[{"id":148595951,"uuid":"5745280","full_name":"testorg/publicrepo","owner":"testorg","description":null,"archived":false,"fork":false,"pushed_at":"2012-09-11T03:26:38.000Z","size":116,"stargazers_count":0,"open_issues_count":0,"forks_count":0,"subscribers_count":2,"default_branch":"master","last_synced_at":"2024-03-26T17:56:46.323Z","etag":null,"topics":[],"latest_commit_sha":null,"homepage":null,"language":"PHP","has_issues":true,"has_wiki":null,"has_pages":null,"mirror_url":null,"source_name":null,"license":null,"status":null,"scm":"git","pull_requests_enabled":true,"icon_url":"https://github.com/testorg.png","metadata":{"files":{"readme":"README.md","changelog":null,"contributing":null,"funding":null,"license":null,"code_of_conduct":null,"threat_model":null,"audit":null,"citation":null,"codeowners":null,"security":null,"support":null}},"created_at":"2012-09-10T05:30:27.000Z","updated_at":"2013-12-09T22:45:25.000Z","dependencies_parsed_at":"2023-03-29T04:28:51.260Z","dependency_job_id":null,"html_url":"https://github.com/testorg/publicrepo","commit_stats":null,"previous_names":[],"tags_count":0,"template":false,"template_full_name":null,"purl":"pkg:github/testorg/publicrepo","repository_url":"https://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/testorg%2Fpublicrepo","tags_url":"https://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/testorg%2Fpublicrepo/tags","releases_url":"https://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/testorg%2Fpublicrepo/releases","manifests_url":"https://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/testorg%2Fpublicrepo/manifests","owner_url":"https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/testorg","download_url":"https://codeload.github.com/testorg/publicrepo/tar.gz/refs/heads/master","sbom_url":"https://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/testorg%2Fpublicrepo/sbom"},{"id":4615701,"uuid":"5759417","full_name":"testorg/publicrepo2","owner":"testorg","description":null,"archived":false,"fork":false,"pushed_at":"2012-09-11T07:36:36.000Z","size":116,"stargazers_count":0,"open_issues_count":0,"forks_count":0,"subscribers_count":2,"default_branch":"master","last_synced_at":"2024-03-26T17:56:46.302Z","etag":null,"topics":[],"latest_commit_sha":null,"homepage":null,"language":null,"has_issues":true,"has_wiki":null,"has_pages":null,"mirror_url":null,"source_name":null,"license":null,"status":null,"scm":"git","pull_requests_enabled":true,"icon_url":"https://github.com/testorg.png","metadata":{"files":{"readme":"README.md","changelog":null,"contributing":null,"funding":null,"license":null,"code_of_conduct":null,"threat_model":null,"audit":null,"citation":null,"codeowners":null,"security":null,"support":null}},"created_at":"2012-09-11T03:28:27.000Z","updated_at":"2024-03-26T17:56:46.303Z","dependencies_parsed_at":"2022-08-26T06:23:46.009Z","dependency_job_id":null,"html_url":"https://github.com/testorg/publicrepo2","commit_stats":null,"previous_names":[],"tags_count":2,"template":false,"template_full_name":null,"purl":"pkg:github/testorg/publicrepo2","repository_url":"https://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/testorg%2Fpublicrepo2","tags_url":"https://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/testorg%2Fpublicrepo2/tags","releases_url":"https://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/testorg%2Fpublicrepo2/releases","manifests_url":"https://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/testorg%2Fpublicrepo2/manifests","owner_url":"https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/testorg","download_url":"https://codeload.github.com/testorg/publicrepo2/tar.gz/refs/heads/master","sbom_url":"https://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/testorg%2Fpublicrepo2/sbom"}]'
+  recorded_at: Mon, 28 Jul 2025 11:40:20 GMT
+- request:
+    method: get
+    uri: https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/testorg/repositories?page=2&per_page=100
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Faraday v2.13.4
+      Expect:
+      - ''
+  response:
+    status:
+      code: 200
+      message: ''
+    headers:
+      Date:
+      - Mon, 28 Jul 2025 11:40:39 GMT
+      Content-Type:
+      - application/json; charset=utf-8
+      Server:
+      - cloudflare
+      Nel:
+      - '{"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Xss-Protection:
+      - '0'
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Etag:
+      - W/"e3b0c44298fc1c149afbf4c8996fb924"
+      Link:
+      - <http://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/testorg/repositories?page=1&per_page=100>;
+        rel="first"
+      Current-Page:
+      - '2'
+      Page-Items:
+      - '0'
+      Cache-Control:
+      - public, max-age=86400
+      X-Request-Id:
+      - ca36b355-e9bb-4a0f-b543-395b9d259d44
+      X-Runtime:
+      - '0.042694'
+      Vary:
+      - Origin, accept-encoding
+      Cf-Cache-Status:
+      - MISS
+      Report-To:
+      - '{"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=N82qBVr3VbHv8U5FbOqZKjzGvImlKky2FhX96IoZf4zvcz8FylER1pLJK11QosWKmKOWl9SUxyQxiV%2Fsm%2FXdesGoGlGZk2BE1wm0T3aXJg%3D%3D"}]}'
+      Content-Encoding:
+      - gzip
+      Cf-Ray:
+      - 966419e4dd33ef4e-LHR
+      Alt-Svc:
+      - h3=":443"; ma=86400
+    body:
+      encoding: ASCII-8BIT
+      string: "[]"
+  recorded_at: Mon, 28 Jul 2025 11:40:39 GMT
+recorded_with: VCR 6.3.1

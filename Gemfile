@@ -58,6 +58,7 @@ group :test do
   gem "shoulda-matchers"
   gem "shoulda-context"
   gem "webmock"
+  gem "vcr"
   gem "mocha"
   gem "rails-controller-testing"
   gem "factory_bot_rails"

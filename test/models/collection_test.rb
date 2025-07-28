@@ -312,4 +312,66 @@ class CollectionTest < ActiveSupport::TestCase
     assert_equal 'ready', collection.sync_status
     assert collection.last_synced_at > 30.seconds.ago
   end
+
+  # Integration tests with real API responses
+  test "import collection from GitHub organization" do
+    VCR.use_cassette("collection_sync/github_org_basic") do
+      collection = create(:collection, 
+        name: "Rails Organization",
+        github_organization_url: "https://github.com/rails",
+        user: @user
+      )
+      
+      initial_project_count = collection.projects.count
+      
+      collection.import_projects_sync
+      collection.reload
+      
+      assert_equal 'completed', collection.import_status
+      assert collection.projects.count > initial_project_count
+      
+      # Verify we got actual Rails org projects
+      assert collection.projects.any? { |p| p.url.include?('github.com/rails/') }
+    end
+  end
+
+  test "import collection from Open Collective" do
+    VCR.use_cassette("collection_sync/opencollective_basic") do
+      collection = create(:collection,
+        name: "Test Open Collective",
+        collective_url: "https://opencollective.com/webpack",
+        user: @user
+      )
+      
+      collection.import_projects_sync
+      collection.reload
+      
+      assert_equal 'completed', collection.import_status
+      assert collection.projects.count > 0
+    end
+  end
+
+  # Test collection import with mocked APIs (fast)
+  test "import collection from GitHub org with mocked API" do
+    collection = create(:collection,
+      name: "Test Org",
+      github_organization_url: "https://github.com/testorg",
+      user: @user
+    )
+    
+    # Mock the GitHub org API response
+    stub_request(:get, /repos\.ecosyste\.ms.*hosts\/GitHub\/owners\/testorg\/repositories/)
+      .to_return(status: 200, body: [
+        { "html_url" => "https://github.com/testorg/repo1" },
+        { "html_url" => "https://github.com/testorg/repo2" }
+      ].to_json)
+    
+    collection.import_projects_sync
+    collection.reload
+    
+    assert_equal 'completed', collection.import_status
+    assert_equal 2, collection.projects.count
+    assert collection.projects.find_by(url: "https://github.com/testorg/repo1")
+    assert collection.projects.find_by(url: "https://github.com/testorg/repo2")
+  end
 end
