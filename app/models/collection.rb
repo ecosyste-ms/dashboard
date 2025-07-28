@@ -17,7 +17,7 @@ class Collection < ApplicationRecord
 
 
   before_validation :set_name_from_source
-  validate :at_least_one_import_source
+  validate :at_least_one_import_source, on: :create
   validate :valid_dependency_file_format
   
   validates :github_organization_url, format: { with: %r{\Ahttps://github\.com/[^/]+/?\z}, message: "must be a valid GitHub organization URL" }, allow_blank: true

@@ -662,21 +662,18 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     
     patch collection_path(@collection), params: {
       collection: {
-        name: "",
-        github_organization_url: "",
-        collective_url: "",
-        github_repo_url: "",
-        dependency_file: ""
+        github_organization_url: "invalid-url"
       }
     }
     
     assert_response :success
     assert_template :edit
     
-    # Verify collection has validation errors
+    # Verify collection has validation errors for invalid URL format
     collection = assigns(:collection)
     assert_not collection.valid?
     assert collection.errors.any?
+    assert collection.errors[:github_organization_url].any?
   end
 
   test "should destroy collection when owner" do
