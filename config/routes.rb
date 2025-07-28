@@ -46,6 +46,7 @@ Rails.application.routes.draw do
       get :dependencies
 
       get :sync
+      get :syncing
     end
     
     resources :projects, constraints: { id: /.*/ }, except: [:index, :new, :create, :destroy] do

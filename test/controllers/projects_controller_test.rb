@@ -239,31 +239,86 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to project_url(project)
   end
 
-  test "should default to previous month for engagement page" do
+  test "should show engagement page with comprehensive metrics" do
     project = create(:project, :with_repository)
+    
+    # Add some issues for testing engagement metrics
+    create_list(:issue, 5, project: project, state: "open", created_at: 2.weeks.ago)
+    create_list(:issue, 3, project: project, state: "closed", created_at: 3.weeks.ago, closed_at: 1.week.ago)
     
     travel_to Time.parse('2024-02-15') do
       get engagement_project_url(project)
       assert_response :success
+      assert_template :engagement
       
-      # Should default to January 2024 (previous month)
+      # Verify project is assigned
+      assigned_project = assigns(:project)
+      assert_equal project, assigned_project
+      
+      # Verify period variables are assigned
+      assert_not_nil assigns(:range)
+      assert_not_nil assigns(:year)
+      assert_not_nil assigns(:month)
+      assert_not_nil assigns(:period_date)
+      
+      # Verify engagement metrics are assigned
+      assert_not_nil assigns(:active_contributors_this_period)
+      assert_not_nil assigns(:active_contributors_last_period)
+      assert_not_nil assigns(:contributions_this_period)
+      assert_not_nil assigns(:contributions_last_period)
+      assert_not_nil assigns(:issue_authors_this_period)
+      assert_not_nil assigns(:issue_authors_last_period)
+      assert_not_nil assigns(:pr_authors_this_period)
+      assert_not_nil assigns(:pr_authors_last_period)
+      assert_not_nil assigns(:all_time_contributors)
+      
+      # Verify default month behavior
       controller = @controller
       assert_equal 2024, controller.send(:year)
-      assert_equal 1, controller.send(:month)
+      assert_equal 1, controller.send(:month)  # Previous month (January)
     end
   end
 
-  test "should default to previous month for productivity page" do
+  test "should show productivity page with comprehensive metrics" do
     project = create(:project, :with_repository)
+    
+    # Add test data for productivity metrics
+    create_list(:commit, 8, project: project, timestamp: 2.weeks.ago)
+    create_list(:tag, 2, project: project, published_at: 3.weeks.ago)
+    create_list(:issue, 6, project: project, state: "open", created_at: 2.weeks.ago)
+    create_list(:issue, 4, project: project, state: "closed", created_at: 3.weeks.ago, closed_at: 1.week.ago)
     
     travel_to Time.parse('2024-02-15') do
       get productivity_project_url(project)
       assert_response :success
+      assert_template :productivity
       
-      # Should default to January 2024 (previous month)
+      # Verify project is assigned
+      assigned_project = assigns(:project)
+      assert_equal project, assigned_project
+      
+      # Verify productivity metrics are assigned
+      assert_not_nil assigns(:commits_this_period)
+      assert_not_nil assigns(:commits_last_period)
+      assert_not_nil assigns(:tags_this_period)
+      assert_not_nil assigns(:tags_last_period)
+      assert_not_nil assigns(:avg_commits_per_author_this_period)
+      assert_not_nil assigns(:avg_commits_per_author_last_period)
+      assert_not_nil assigns(:new_issues_this_period)
+      assert_not_nil assigns(:new_issues_last_period)
+      assert_not_nil assigns(:new_prs_this_period)
+      assert_not_nil assigns(:new_prs_last_period)
+      
+      # Verify metrics are numeric
+      assert_kind_of Integer, assigns(:commits_this_period)
+      assert_kind_of Integer, assigns(:commits_last_period)
+      assert assigns(:avg_commits_per_author_this_period).is_a?(Numeric)
+      assert assigns(:avg_commits_per_author_last_period).is_a?(Numeric)
+      
+      # Verify default month behavior
       controller = @controller
       assert_equal 2024, controller.send(:year)
-      assert_equal 1, controller.send(:month)
+      assert_equal 1, controller.send(:month)  # Previous month (January)
     end
   end
 
@@ -279,5 +334,225 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
       assert_equal 2023, controller.send(:year)
       assert_equal 12, controller.send(:month)
     end
+  end
+
+  # Analytics pages tests
+  test "should show adoption page" do
+    project = create(:project, :with_repository, last_synced_at: 1.hour.ago)
+    get adoption_project_url(project)
+    assert_response :success
+    assert_template :adoption
+    
+    # Verify required instance variables are assigned
+    assigned_project = assigns(:project)
+    assert_equal project, assigned_project
+    
+    # Should assign top package if available
+    top_package = assigns(:top_package)
+    # top_package may be nil if no packages exist, which is fine
+  end
+
+  test "should show dependencies page" do
+    project = create(:project, :with_repository)
+    get dependencies_project_url(project)
+    assert_response :success
+    assert_template :dependencies
+    
+    # Verify project and dependency counts are assigned
+    assigned_project = assigns(:project)
+    assert_equal project, assigned_project
+    
+    direct_dependencies = assigns(:direct_dependencies)
+    development_dependencies = assigns(:development_dependencies)
+    transitive_dependencies = assigns(:transitive_dependencies)
+    
+    assert_not_nil direct_dependencies
+    assert_not_nil development_dependencies
+    assert_not_nil transitive_dependencies
+  end
+
+  test "should show finance page" do
+    project = create(:project, :with_repository)
+    get finance_project_url(project)
+    assert_response :success
+    assert_template :finance
+    
+    # Verify project is assigned
+    assigned_project = assigns(:project)
+    assert_equal project, assigned_project
+    
+    # Finance variables may be nil if no collective/sponsors exist
+    # This is expected behavior
+  end
+
+  test "should show responsiveness page" do
+    project = create(:project, :with_repository)
+    get responsiveness_project_url(project)
+    assert_response :success
+    assert_template :responsiveness
+    
+    # Verify project is assigned
+    assigned_project = assigns(:project)
+    assert_equal project, assigned_project
+    
+    # Verify responsiveness metrics are assigned
+    assert_not_nil assigns(:time_to_close_prs_this_period)
+    assert_not_nil assigns(:time_to_close_prs_last_period)
+    assert_not_nil assigns(:time_to_close_issues_this_period)
+    assert_not_nil assigns(:time_to_close_issues_last_period)
+  end
+
+  test "should redirect to syncing for unready project on analytics pages" do
+    project = create(:project, :without_repository, last_synced_at: nil)
+    
+    # Test that analytics pages redirect to syncing for unready projects
+    get adoption_project_url(project)
+    assert_response :success
+    assert_template :syncing
+    
+    get dependencies_project_url(project)
+    assert_response :success
+    assert_template :syncing
+    
+    get finance_project_url(project)
+    assert_response :success
+    assert_template :syncing
+    
+    get responsiveness_project_url(project)
+    assert_response :success
+    assert_template :syncing
+  end
+
+  # Bot filtering tests
+  test "should handle bot filtering on engagement page" do
+    project = create(:project, :with_repository)
+    create_list(:issue, 3, project: project, state: "open", created_at: 2.weeks.ago)
+    
+    # Test exclude_bots parameter
+    get engagement_project_url(project), params: { exclude_bots: 'true' }
+    assert_response :success
+    assert_template :engagement
+    
+    # Test only_bots parameter  
+    get engagement_project_url(project), params: { only_bots: 'true' }
+    assert_response :success
+    assert_template :engagement
+  end
+
+  test "should handle bot filtering on productivity page" do
+    project = create(:project, :with_repository)
+    create_list(:issue, 3, project: project, state: "open", created_at: 2.weeks.ago)
+    
+    # Test exclude_bots parameter
+    get productivity_project_url(project), params: { exclude_bots: 'true' }
+    assert_response :success
+    assert_template :productivity
+    
+    # Test only_bots parameter
+    get productivity_project_url(project), params: { only_bots: 'true' }
+    assert_response :success
+    assert_template :productivity
+  end
+
+  test "should handle bot filtering on responsiveness page" do
+    project = create(:project, :with_repository)
+    create_list(:issue, 3, project: project, state: "closed", created_at: 3.weeks.ago, closed_at: 2.weeks.ago)
+    
+    # Test exclude_bots parameter
+    get responsiveness_project_url(project), params: { exclude_bots: 'true' }
+    assert_response :success
+    assert_template :responsiveness
+    
+    # Test only_bots parameter
+    get responsiveness_project_url(project), params: { only_bots: 'true' }
+    assert_response :success
+    assert_template :responsiveness
+  end
+
+  # Nested collection routes tests
+  test "should access project through collection context" do
+    user = create(:user)
+    collection = create(:collection, :public, user: user)
+    project = create(:project, :with_repository)
+    create(:collection_project, collection: collection, project: project)
+    
+    # Test nested show route
+    get collection_project_url(collection, project)
+    assert_response :success
+    assert_template :show
+    
+    # Verify both collection and project are assigned
+    assigned_collection = assigns(:collection)
+    assigned_project = assigns(:project)
+    assert_equal collection, assigned_collection
+    assert_equal project, assigned_project
+  end
+
+  test "should access project analytics through collection context" do
+    user = create(:user)
+    collection = create(:collection, :public, user: user)
+    project = create(:project, :with_repository)
+    create(:collection_project, collection: collection, project: project)
+    
+    # Test nested analytics routes
+    get engagement_collection_project_url(collection, project)
+    assert_response :success
+    assert_template :engagement
+    
+    get productivity_collection_project_url(collection, project)
+    assert_response :success
+    assert_template :productivity
+    
+    get adoption_collection_project_url(collection, project)
+    assert_response :success
+    assert_template :adoption
+    
+    # Verify collection context is maintained
+    assigned_collection = assigns(:collection)
+    assert_equal collection, assigned_collection
+  end
+
+  test "should not access private collection projects by non-owner" do
+    owner = create(:user)
+    other_user = create(:user)
+    private_collection = create(:collection, :private, user: owner)
+    project = create(:project, :with_repository)
+    create(:collection_project, collection: private_collection, project: project)
+    
+    # Should raise RecordNotFound (404) for non-owner accessing private collection
+    assert_raises(ActiveRecord::RecordNotFound) do
+      get collection_project_url(private_collection, project)
+    end
+  end
+
+  # Show page with realistic data test
+  test "should show project page with comprehensive data" do
+    project = create(:project, :with_repository)
+    
+    # Add realistic test data
+    create_list(:commit, 10, project: project, timestamp: 1.month.ago)
+    create_list(:issue, 8, project: project, state: "open", created_at: 2.weeks.ago)
+    create_list(:issue, 5, project: project, state: "closed", created_at: 3.weeks.ago, closed_at: 1.week.ago)
+    create_list(:package, 3, project: project)
+    create_list(:tag, 2, project: project, published_at: 1.month.ago)
+    
+    get project_url(project)
+    assert_response :success
+    assert_template :show
+    
+    # Verify project data is assigned
+    assigned_project = assigns(:project)
+    assert_equal project, assigned_project
+    
+    # Verify chart data is assigned
+    assert_not_nil assigns(:commits_per_period)
+    assert_not_nil assigns(:commits_this_period)
+    assert_not_nil assigns(:commits_last_period)
+    
+    # Verify project has the data we created
+    assert_equal 10, project.commits.count
+    assert_equal 13, project.issues.count  # 8 open + 5 closed
+    assert_equal 3, project.packages.count
+    assert_equal 2, project.tags.count
   end
 end
