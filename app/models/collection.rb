@@ -263,7 +263,6 @@ class Collection < ApplicationRecord
     end
   end
 
-
   def self.sync_least_recently_synced(limit = 10)
     collections_to_sync = sync_eligible
       .order(Arel.sql('last_synced_at ASC NULLS FIRST'))

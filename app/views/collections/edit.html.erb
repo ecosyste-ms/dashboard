@@ -7,6 +7,14 @@
     <div class="col-12 col-lg-8">
            
       <%= form_with model: @collection, local: true do |f| %>
+        <% if @collection.errors[:base].any? %>
+          <div class="alert alert-danger" role="alert">
+            <% @collection.errors[:base].each do |error| %>
+              <%= error %>
+            <% end %>
+          </div>
+        <% end %>
+        
         <div class="form-group mb-3">
           <%= f.label :name, "Collection name", class: "form-label" %>
           <%= f.text_field :name, class: "form-control  border-purple-light" %>

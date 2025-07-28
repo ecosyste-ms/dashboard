@@ -94,7 +94,6 @@ class Project < ApplicationRecord
   end
 
   def sync
-    return if last_synced_at.present? && last_synced_at > 1.day.ago
     return if sync_status == 'syncing'
     
     update_column(:sync_status, 'syncing')
