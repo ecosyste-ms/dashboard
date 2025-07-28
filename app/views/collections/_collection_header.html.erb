@@ -60,7 +60,7 @@
         <% end %>
         <% projects_count = @collection.projects.with_repository.count %>
         <% if projects_count > 5 %>
-          <a href="<%= projects_collection_path(@collection) %>" class="project-badge badge text-bg-light d-inline-flex align-items-center align-middle py-2 px-3 me-2 mb-2" style="min-height: 40px">
+          <a href="<%= collection_projects_path(@collection) %>" class="project-badge badge text-bg-light d-inline-flex align-items-center align-middle py-2 px-3 me-2 mb-2" style="min-height: 40px">
             and <%= projects_count - 5 %> more&hellip;
           </a>
         <% end %>
