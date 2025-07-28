@@ -266,7 +266,8 @@ class CollectionsController < ApplicationController
   end
 
   def set_collection_with_visibility_check
-    @collection = Collection.find_by_uuid(params[:id])
+    collection_id = params[:id] || params[:collection_id]
+    @collection = Collection.find_by_uuid(collection_id)
     raise ActiveRecord::RecordNotFound if @collection.nil?
     if @collection.visibility == 'private' && @collection.user != current_user
       raise ActiveRecord::RecordNotFound

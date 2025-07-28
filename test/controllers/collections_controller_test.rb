@@ -428,4 +428,60 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     assert_select 'input[name="collection[name]"]'
     assert_select 'textarea[name="collection[description]"]'
   end
+
+  test "can access collection show page" do
+    login_as(@user)
+    get collection_path(@collection)
+    assert_response :success
+  end
+  
+  test "projects view should show detailed sync status for projects" do
+    login_as(@user)
+    
+    # Create projects with different sync states
+    synced_project = create(:project, :with_repository, 
+                           packages_last_synced_at: 30.minutes.ago,
+                           issues_last_synced_at: 30.minutes.ago,
+                           commits_last_synced_at: 30.minutes.ago,
+                           tags_last_synced_at: 30.minutes.ago,
+                           dependencies_last_synced_at: 30.minutes.ago,
+                           last_synced_at: 30.minutes.ago)
+    
+    partially_synced_project = create(:project, :with_repository,
+                                     packages_last_synced_at: 1.hour.ago,
+                                     last_synced_at: nil)
+    
+    unsynced_project = create(:project, :without_repository, 
+                             last_synced_at: nil)
+    
+    # Add projects to collection
+    create(:collection_project, collection: @collection, project: synced_project)
+    create(:collection_project, collection: @collection, project: partially_synced_project)
+    create(:collection_project, collection: @collection, project: unsynced_project)
+    
+    get collection_projects_path(@collection)
+    
+    assert_response :success
+    
+    # Check that sync status badges are shown
+    assert_select '.sync-overview'
+    
+    # Check for "Fully Synced" badge for the synced project
+    assert_select '.badge.bg-success', text: /Fully Synced/
+    
+    # Check for "Syncing" badge for partially synced projects
+    assert_select '.badge.bg-warning', text: /Syncing/
+    
+    # Check that individual sync status badges are present
+    assert_select '.sync-details .badge', text: /Repo/
+    assert_select '.sync-details .badge', text: /Packages/
+    assert_select '.sync-details .badge', text: /Issues/
+    assert_select '.sync-details .badge', text: /Commits/
+    assert_select '.sync-details .badge', text: /Tags/
+    assert_select '.sync-details .badge', text: /Deps/
+    
+    # Check that success and secondary badge styles are applied
+    assert_select '.badge.bg-success.rounded-pill'
+    assert_select '.badge.bg-secondary.rounded-pill'
+  end
 end
