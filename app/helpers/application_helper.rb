@@ -145,4 +145,71 @@ module ApplicationHelper
       'info'
     end
   end
+
+  def project_path_with_collection(project, action = nil, collection = nil)
+    collection ||= @collection
+    if collection
+      case action
+      when nil
+        collection_project_path(collection, project)
+      when 'issues'
+        issues_collection_project_path(collection, project)
+      when 'releases'
+        releases_collection_project_path(collection, project)
+      when 'commits'
+        commits_collection_project_path(collection, project)
+      when 'packages'
+        packages_collection_project_path(collection, project)
+      when 'advisories'
+        advisories_collection_project_path(collection, project)
+      when 'adoption'
+        adoption_collection_project_path(collection, project)
+      when 'engagement'
+        engagement_collection_project_path(collection, project)
+      when 'dependency'
+        dependency_collection_project_path(collection, project)
+      when 'productivity'
+        productivity_collection_project_path(collection, project)
+      when 'finance'
+        finance_collection_project_path(collection, project)
+      when 'responsiveness'
+        responsiveness_collection_project_path(collection, project)
+      when 'meta'
+        meta_collection_project_path(collection, project)
+      else
+        collection_project_path(collection, project)
+      end
+    else
+      case action
+      when nil
+        project_path(project)
+      when 'issues'
+        issues_project_path(project)
+      when 'releases'
+        releases_project_path(project)
+      when 'commits'
+        commits_project_path(project)
+      when 'packages'
+        packages_project_path(project)
+      when 'advisories'
+        advisories_project_path(project)
+      when 'adoption'
+        adoption_project_path(project)
+      when 'engagement'
+        engagement_project_path(project)
+      when 'dependency'
+        dependency_project_path(project)
+      when 'productivity'
+        productivity_project_path(project)
+      when 'finance'
+        finance_project_path(project)
+      when 'responsiveness'
+        responsiveness_project_path(project)
+      when 'meta'
+        meta_project_path(project)
+      else
+        project_path(project)
+      end
+    end
+  end
 end

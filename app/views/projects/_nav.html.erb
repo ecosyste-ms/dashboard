@@ -1,25 +1,25 @@
 <div class="dashboard-layout__navigation">
   <ul class="nav nav-pills flex-column dboard-nav me-4">
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'show' %>" href="<%= project_path(@project, request.query_parameters) %>">Overview</a>
+      <a class="nav-link <%= 'active' if action_name == 'show' %>" href="<%= project_path_with_collection(@project) %>?<%= request.query_parameters.to_query %>">Overview</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'productivity' %>" aria-current="page" href="<%= productivity_project_path(@project, request.query_parameters) %>">Productivity</a>
+      <a class="nav-link <%= 'active' if action_name == 'productivity' %>" aria-current="page" href="<%= project_path_with_collection(@project, 'productivity') %>?<%= request.query_parameters.to_query %>">Productivity</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'responsiveness' %>" href="<%= responsiveness_project_path(@project, request.query_parameters) %>">Responsiveness</a>
+      <a class="nav-link <%= 'active' if action_name == 'responsiveness' %>" href="<%= project_path_with_collection(@project, 'responsiveness') %>?<%= request.query_parameters.to_query %>">Responsiveness</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'finance' %>" href="<%= finance_project_path(@project, request.query_parameters) %>">Finance</a>
+      <a class="nav-link <%= 'active' if action_name == 'finance' %>" href="<%= project_path_with_collection(@project, 'finance') %>?<%= request.query_parameters.to_query %>">Finance</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'engagement' %>" href="<%= engagement_project_path(@project, request.query_parameters) %>">Engagement</a>
+      <a class="nav-link <%= 'active' if action_name == 'engagement' %>" href="<%= project_path_with_collection(@project, 'engagement') %>?<%= request.query_parameters.to_query %>">Engagement</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'adoption' %>" href="<%= adoption_project_path(@project, request.query_parameters) %>">Adoption</a>
+      <a class="nav-link <%= 'active' if action_name == 'adoption' %>" href="<%= project_path_with_collection(@project, 'adoption') %>?<%= request.query_parameters.to_query %>">Adoption</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'dependency' %>" href="<%= dependency_project_path(@project, request.query_parameters) %>">Dependency</a>
+      <a class="nav-link <%= 'active' if action_name == 'dependency' %>" href="<%= project_path_with_collection(@project, 'dependency') %>?<%= request.query_parameters.to_query %>">Dependency</a>
     </li>
   </ul>
   <hr class="mt-5 me-3" />
@@ -28,12 +28,12 @@
     <h5 class="text-muted fs-6 font-weight-normal"><%= bootstrap_icon 'arrow-down-up',
     width: 18, height: 18, aria_hidden: 'true', focusable: 'false', role: 'img',  title: 'Last synced', class: 'flex-shrink-0 me-1'
     %>  Last sync</h5>
-    <p class="small ms-4"><a href="<%= meta_project_path(@project, request.query_parameters) %>"><%= @project.last_synced_at ? "#{time_ago_in_words(@project.last_synced_at)} ago" : 'Never' %></a></p>
+    <p class="small ms-4"><a href="<%= project_path_with_collection(@project, 'meta') %>?<%= request.query_parameters.to_query %>"><%= @project.last_synced_at ? "#{time_ago_in_words(@project.last_synced_at)} ago" : 'Never' %></a></p>
  
 
     <% if Rails.env.development? %>
       <div class="dboard-nav__actions mt-4">
-        <a href="<%= sync_project_path(@project, request.query_parameters) %>" class="btn btn-primary rounded-pill">Sync Project</a>
+        <a href="<%= @collection ? sync_collection_project_path(@collection, @project) : sync_project_path(@project) %>?<%= request.query_parameters.to_query %>" class="btn btn-primary rounded-pill">Sync Project</a>
       </div>
   <% end %>
   </div>

@@ -1,11 +1,11 @@
 <div class="card mb-3 pb-4 listing d-flex flex-row" id="project_<%= project.id %>"> 
-  <a href="<%= project_path(project) %>" class="flex-shrink-0">
+  <a href="<%= project_path_with_collection(project, nil, defined?(@collection) ? @collection : nil) %>" class="flex-shrink-0">
     <img src="<%= project.avatar_url %>" alt="<%= project.name %> logo" class="card-img img-fluid" onerror="this.style.display='none'" style="max-width: 60px;">
   </a>
   <div class="card-body p-0 ms-3">
     
     <h3 class="card-title listing__title fs-5">
-      <%= link_to project, project_path(project) %>
+      <%= link_to project, project_path_with_collection(project, nil, defined?(@collection) ? @collection : nil) %>
     </h3>
   
     <p class="listing__meta mb-2  ">

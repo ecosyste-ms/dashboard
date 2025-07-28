@@ -7,6 +7,18 @@
       </div>
       <% end %>
       <div class="col-md-10 col-lg-11">
+        <% if @collection %>
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb bg-transparent p-0 mb-2">
+              <li class="breadcrumb-item">
+                <%= link_to @collection.name, collection_path(@collection), class: "text-light" %>
+              </li>
+              <li class="breadcrumb-item active text-light" aria-current="page">
+                <%= @project.name || @project.to_s.split('/').last %>
+              </li>
+            </ol>
+          </nav>
+        <% end %>
         <p class="h3 mb-0 text-muted"><%= @project.to_s %></p>
         <h1 class="display-1 extra-bold"><%= @project.name || @project.to_s.split('/').last %></h1>
         <% if @project.last_synced_at %>

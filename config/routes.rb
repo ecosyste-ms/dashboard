@@ -32,7 +32,6 @@ Rails.application.routes.draw do
 
   resources :collections do
     member do
-      get :projects
       get :packages
       get :issues
       get :releases
@@ -48,6 +47,28 @@ Rails.application.routes.draw do
 
       get :sync
     end
+    
+    resources :projects, constraints: { id: /.*/ }, except: [:index, :new, :create, :destroy] do
+      member do
+        get :packages
+        get :issues
+        get :releases
+        get :commits
+        get :advisories
+
+        get :productivity
+        get :responsiveness
+        get :finance
+        get :engagement
+        get :adoption
+        get :dependency
+
+        get :sync
+        get :meta
+      end
+    end
+    
+    get :projects, to: 'collections#projects'
   end
 
   resources :projects, constraints: { id: /.*/ } do

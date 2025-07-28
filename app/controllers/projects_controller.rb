@@ -1,6 +1,7 @@
 class ProjectsController < ApplicationController
   before_action :set_period_vars, only: [:engagement, :productivity, :finance, :responsiveness]
   before_action :authenticate_user!, only: [:lookup]
+  before_action :set_collection, if: :nested_route?
 
   def show
     @project = Project.find(params[:id])
@@ -239,6 +240,18 @@ class ProjectsController < ApplicationController
   end
 
   private
+
+  def nested_route?
+    params[:collection_id].present?
+  end
+
+  def set_collection
+    @collection = Collection.find_by_uuid(params[:collection_id])
+    raise ActiveRecord::RecordNotFound if @collection.nil?
+    if @collection.visibility == 'private' && @collection.user != current_user
+      raise ActiveRecord::RecordNotFound
+    end
+  end
 
   def set_period_vars
     @range = range

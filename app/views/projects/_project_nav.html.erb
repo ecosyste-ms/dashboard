@@ -2,12 +2,12 @@
 
 <ul class="nav nav-tabs my-3">
   <li class="nav-item">
-    <a class="nav-link <%= 'active' if active == 'overview' %>" href='<%= project_path(@project) %>'>
+    <a class="nav-link <%= 'active' if active == 'overview' %>" href='<%= project_path_with_collection(@project) %>'>
       Overview
     </a>
   </li>    
   <li class="nav-item">
-    <a class="nav-link  <%= 'active' if active == 'issues' %>" href='<%= issues_project_path(@project) %>'>
+    <a class="nav-link  <%= 'active' if active == 'issues' %>" href='<%= project_path_with_collection(@project, 'issues') %>'>
       Issues and Pull Requests
       <span class="badge bg-light text-dark">
         <%= number_to_human(@project.issues.count, precision: 1) %>
@@ -15,7 +15,7 @@
     </a>
   </li>
   <li class="nav-item">
-    <a class="nav-link  <%= 'active' if active == 'releases' %>" href='<%= releases_project_path(@project) %>'>
+    <a class="nav-link  <%= 'active' if active == 'releases' %>" href='<%= project_path_with_collection(@project, 'releases') %>'>
       Releases
       <span class="badge bg-light text-dark">
         <%= number_to_human(@project.tags.displayable.count, precision: 1) %>
@@ -23,7 +23,7 @@
     </a>
   </li>
   <li class="nav-item">
-    <a class="nav-link <%= 'active' if active == 'commits' %>" href='<%= commits_project_path(@project) %>'>
+    <a class="nav-link <%= 'active' if active == 'commits' %>" href='<%= project_path_with_collection(@project, 'commits') %>'>
       Commits
       <span class="badge bg-light text-dark">
         <%= number_to_human(@project.commits.count, precision: 1) %>
@@ -31,7 +31,7 @@
     </a>
   </li>
   <li class="nav-item">
-    <a class="nav-link <%= 'active' if active == 'packages' %>" href='<%= packages_project_path(@project) %>'>
+    <a class="nav-link <%= 'active' if active == 'packages' %>" href='<%= project_path_with_collection(@project, 'packages') %>'>
       Packages
       <span class="badge bg-light text-dark">
         <%= number_to_human(@project.packages_count, precision: 1) %>
@@ -39,7 +39,7 @@
     </a>
   </li>
   <li class="nav-item">
-    <a class="nav-link <%= 'active' if active == 'advisories' %>" href='<%= advisories_project_path(@project) %>'>
+    <a class="nav-link <%= 'active' if active == 'advisories' %>" href='<%= project_path_with_collection(@project, 'advisories') %>'>
       Advisories
       <span class="badge bg-light text-dark">
         <%= number_to_human(@project.advisories_count, precision: 1) %>
