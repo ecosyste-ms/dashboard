@@ -33,51 +33,63 @@
                 <li class="mb-3">
                   <%= link_to '#', target: "_blank", rel: "noopener noreferrer", class: "link-with-icon text-decoration-none text-body" do %>
                     <%= bootstrap_icon 'kanban', width: 18, height: 18, class: "link-with-icon__icon", aria_hidden: "true" %>
-                    <span class="link-with-icon__text">Project: <%= @project.last_synced_at %></span>
+                    <span class="link-with-icon__text">Project: <%= @project.last_synced_at ? time_ago_in_words(@project.last_synced_at) + ' ago' : 'Never' %></span>
                   <% end %>
                 </li>
                 <li class="mb-3">
                   <%= link_to '#', target: "_blank", rel: "noopener noreferrer", class: "link-with-icon text-decoration-none text-body" do %>
                     <%= bootstrap_icon 'git', width: 18, height: 18, class: "link-with-icon__icon", aria_hidden: "true" %>
-                    <span class="link-with-icon__text">Repository: <%= @project.repository&.dig('last_synced_at') || 'Never' %></span>
+                    <span class="link-with-icon__text">Repository: <%= @project.repository&.dig('last_synced_at') ? time_ago_in_words(Time.parse(@project.repository['last_synced_at'])) + ' ago' : 'Never' %></span>
                   <% end %>
                 </li>
                 <li class="mb-3">
                   <%= link_to '#', target: "_blank", rel: "noopener noreferrer", class: "link-with-icon text-decoration-none text-body" do %>
                     <%= bootstrap_icon 'bug', width: 18, height: 18, class: "link-with-icon__icon", aria_hidden: "true" %>
-                    <span class="link-with-icon__text">Issues: <%= @project.issues_last_synced_at || 'Never' %> </span>
+                    <span class="link-with-icon__text">Issues: <%= @project.issues_last_synced_at ? time_ago_in_words(@project.issues_last_synced_at) + ' ago' : 'Never' %></span>
+                  <% end %>
+                </li>
+                <li class="mb-3">
+                  <%= link_to '#', target: "_blank", rel: "noopener noreferrer", class: "link-with-icon text-decoration-none text-body" do %>
+                    <%= bootstrap_icon 'journal-code', width: 18, height: 18, class: "link-with-icon__icon", aria_hidden: "true" %>
+                    <span class="link-with-icon__text">Commits: <%= @project.commits_last_synced_at ? time_ago_in_words(@project.commits_last_synced_at) + ' ago' : 'Never' %></span>
                   <% end %>
                 </li>
                 <li class="mb-3">
                   <%= link_to '#', target: "_blank", rel: "noopener noreferrer", class: "link-with-icon text-decoration-none text-body" do %>
                     <%= bootstrap_icon 'tag', width: 18, height: 18, class: "link-with-icon__icon", aria_hidden: "true" %>
-                    <span class="link-with-icon__text">Tags: <%= @project.repository&.dig('last_synced_at') || 'Never' %></span>
+                    <span class="link-with-icon__text">Tags: <%= @project.tags_last_synced_at ? time_ago_in_words(@project.tags_last_synced_at) + ' ago' : 'Never' %></span>
+                  <% end %>
+                </li>
+                <li class="mb-3">
+                  <%= link_to '#', target: "_blank", rel: "noopener noreferrer", class: "link-with-icon text-decoration-none text-body" do %>
+                    <%= bootstrap_icon 'diagram-3', width: 18, height: 18, class: "link-with-icon__icon", aria_hidden: "true" %>
+                    <span class="link-with-icon__text">Dependencies: <%= @project.dependencies_last_synced_at ? time_ago_in_words(@project.dependencies_last_synced_at) + ' ago' : 'Never' %></span>
                   <% end %>
                 </li>
                 <li class="mb-3">
                   <%= link_to '#', target: "_blank", rel: "noopener noreferrer", class: "link-with-icon text-decoration-none text-body" do %>
                     <%= bootstrap_icon 'opencollective', width: 18, height: 18, class: "link-with-icon__icon", aria_hidden: "true" %>
-                    <span class="link-with-icon__text">Collective: <%= @project.collective ? @project.collective.try(:last_synced_at) : 'N/A' %></span>
+                    <span class="link-with-icon__text">Collective: <%= @project.collective&.last_synced_at ? time_ago_in_words(@project.collective.last_synced_at) + ' ago' : 'N/A' %></span>
                   <% end %>
                 </li>
-                <% if @project.packages.any? %>
                 <li class="mb-3">
                   <%= link_to '#', target: "_blank", rel: "noopener noreferrer", class: "link-with-icon text-decoration-none text-body" do %>
                     <%= bootstrap_icon 'boxes', width: 18, height: 18, class: "link-with-icon__icon", aria_hidden: "true" %>
-                    <span class="link-with-icon__text">Packages</span>
+                    <span class="link-with-icon__text">Packages: <%= @project.packages_last_synced_at ? time_ago_in_words(@project.packages_last_synced_at) + ' ago' : 'Never' %></span>
                   <% end %>
-                  <ul class="my-2 ms-2 list-unstyled">
-                    <% @project.packages.each do |package| %>
-                      <li class="mb-2">
-                        <%= link_to '#', target: "_blank", rel: "noopener noreferrer", class: "link-with-icon text-decoration-none text-body" do %>
-                          <%= bootstrap_icon 'box', width: 18, height: 18, class: "link-with-icon__icon", aria_hidden: "true" %>
-                          <span class="link-with-icon__text"><%= package.ecosystem %>/<%= package.name %>: <%= package.last_synced_at %></span>
-                        <% end %>
-                      </li>
-                    <% end %>
-                  </ul>
+                  <% if @project.packages.any? %>
+                    <ul class="my-2 ms-2 list-unstyled">
+                      <% @project.packages.each do |package| %>
+                        <li class="mb-2">
+                          <%= link_to '#', target: "_blank", rel: "noopener noreferrer", class: "link-with-icon text-decoration-none text-body small" do %>
+                            <%= bootstrap_icon 'box', width: 16, height: 16, class: "link-with-icon__icon", aria_hidden: "true" %>
+                            <span class="link-with-icon__text"><%= package.ecosystem %>/<%= package.name %></span>
+                          <% end %>
+                        </li>
+                      <% end %>
+                    </ul>
+                  <% end %>
                 </li>
-                <% end %>
 
                 
               </ul>

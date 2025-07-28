@@ -430,6 +430,9 @@ class Project < ApplicationRecord
       c.assign_attributes(commit_attributes)
       c.save(touch: false)
     end
+    
+    self.commits_last_synced_at = Time.now
+    self.save
 
   rescue => e
     Rails.logger.error "Error fetching commits for #{repository_url}: #{e.message}"
@@ -464,6 +467,9 @@ class Project < ApplicationRecord
       page += 1
       break if page > 50 # Stop if there are too many tags
     end
+    
+    self.tags_last_synced_at = Time.now
+    self.save
   rescue
     puts "Error fetching tags for #{repository_url}"
   end
@@ -579,6 +585,9 @@ class Project < ApplicationRecord
 
       page += 1
     end
+    
+    self.packages_last_synced_at = Time.now
+    self.save
   rescue
     puts "Error fetching packages for #{repository_url}"
   end
@@ -859,6 +868,7 @@ class Project < ApplicationRecord
     response = conn.get
     return unless response.success?
     self.dependencies = JSON.parse(response.body)
+    self.dependencies_last_synced_at = Time.now
     self.save
   rescue
     puts "Error fetching dependencies for #{url}"
@@ -957,5 +967,52 @@ class Project < ApplicationRecord
     collections.where(sync_status: 'syncing').each do |collection|
       collection.broadcast_sync_progress
     end
+  end
+
+  private
+
+  def fetch_json_with_retry(url, retries: 3)
+    conn = Faraday.new(url: url) do |faraday|
+      faraday.response :follow_redirects
+      faraday.adapter Faraday.default_adapter
+    end
+    
+    response = conn.get
+    return nil unless response.success?
+    
+    JSON.parse(response.body)
+  rescue => e
+    retries -= 1
+    retry if retries > 0
+    Rails.logger.error "Failed to fetch JSON from #{url}: #{e.message}"
+    nil
+  end
+
+  def fetch_paginated_data(url, max_pages: 10)
+    data = []
+    page = 1
+    
+    loop do
+      page_url = "#{url}#{url.include?('?') ? '&' : '?'}page=#{page}"
+      conn = Faraday.new(url: page_url) do |faraday|
+        faraday.response :follow_redirects
+        faraday.adapter Faraday.default_adapter
+      end
+      
+      response = conn.get
+      break unless response.success?
+      
+      page_data = JSON.parse(response.body)
+      break if page_data.empty?
+      
+      data.concat(page_data)
+      page += 1
+      break if page > max_pages
+    end
+    
+    data
+  rescue => e
+    Rails.logger.error "Failed to fetch paginated data from #{url}: #{e.message}"
+    []
   end
 end
