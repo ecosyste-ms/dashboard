@@ -629,9 +629,13 @@ class Project < ApplicationRecord
   def sync_tags
     return unless repository.present?
 
-    # Limit pages in test environment to avoid excessive HTTP requests
+    # Fetch all tags first using existing paginated method
+    base_url = tags_api_url(page: 1, per_page: 100)
     max_pages = Rails.application.config.x.pagination_limits&.dig(:tags) || 50
     per_page = Rails.application.config.x.per_page_limits&.dig(:tags) || 100
+    
+    # Collect all tags from all pages
+    all_tags = []
     page = 1
     loop do
       conn = Faraday.new(url: tags_api_url(page: page, per_page: per_page)) do |faraday|
@@ -642,23 +646,51 @@ class Project < ApplicationRecord
       return unless response.success?
 
       tags_json = JSON.parse(response.body)
-      break if tags_json.empty? # Stop if there are no more tags
-
-      tags_json.each do |tag|
-        t = tags.find_or_create_by(name: tag['name'])
-        tag_attributes = tag.slice('sha', 'kind', 'published_at', 'html_url')
-        t.assign_attributes(tag_attributes)
-        t.save(touch: false)
-      end
-
+      break if tags_json.empty?
+      
+      all_tags.concat(tags_json)
       page += 1
-      break if page > max_pages # Stop if there are too many tags
+      break if page > max_pages
+    end
+    
+    # Use bulk insert for performance
+    return if all_tags.empty?
+    
+    tag_records = all_tags.map do |tag|
+      tag_attributes = tag.slice('sha', 'kind', 'published_at', 'html_url')
+      tag_attributes['name'] = tag['name']
+      tag_attributes['project_id'] = id
+      tag_attributes['created_at'] = Time.current
+      tag_attributes['updated_at'] = Time.current
+      tag_attributes
+    end
+    
+    # Remove duplicates from the current batch to avoid conflicts
+    unique_tag_records = tag_records.uniq { |record| [record['project_id'], record['name']] }
+    
+    # Get existing tag names for this project to avoid duplicates
+    existing_names = tags.where(name: unique_tag_records.map { |r| r['name'] }).pluck(:name).to_set
+    
+    # Split into new and existing records
+    new_records = unique_tag_records.reject { |record| existing_names.include?(record['name']) }
+    update_records = unique_tag_records.select { |record| existing_names.include?(record['name']) }
+    
+    # Bulk insert new records
+    Tag.insert_all(new_records) if new_records.any?
+    
+    # Update existing records if needed
+    if update_records.any?
+      update_records.each do |record|
+        tags.where(name: record['name']).update_all(
+          record.except('project_id', 'created_at', 'name')
+        )
+      end
     end
     
     self.tags_last_synced_at = Time.now
     self.save
-  rescue
-    puts "Error fetching tags for #{repository_url}"
+  rescue => e
+    Rails.logger.error "Error fetching tags for #{repository_url}: #{e.message}"
   end
 
   def sync_advisories

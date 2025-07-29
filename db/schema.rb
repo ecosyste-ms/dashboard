@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_29_161433) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_29_162146) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -196,6 +196,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_29_161433) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "html_url"
+    t.index ["project_id", "name"], name: "index_tags_on_project_id_and_name", unique: true
     t.index ["project_id"], name: "index_tags_on_project_id"
   end
 
