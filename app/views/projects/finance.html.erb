@@ -88,6 +88,13 @@
         </div>
       <% end %>
 
+      <% if @project.collective.blank? && @project.github_sponsors.blank? && @project.other_funding_links.blank? %>
+        <div class="text-center mt-5">
+          <h3>No funding sources found</h3>
+          <p class="text-muted">This project doesn't have any configured funding sources.</p>
+        </div>
+      <% end %>
+
     </div>
   </div>
 </div>
