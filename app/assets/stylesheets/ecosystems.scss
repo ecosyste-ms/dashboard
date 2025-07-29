@@ -148,6 +148,10 @@ $card-border-color: $color-grey;
   }
 }
 
+.btn-primary--dark {
+  background: linear-gradient(180deg, $color-purple-dark 0%, darken($color-purple-dark, 5%) 100%);
+}
+
 .btn-secondary {
   background: linear-gradient(180deg, $color-grey-light 0%, $color-grey 100%);
   &:hover,

@@ -12,15 +12,30 @@
       </div>
   
       <div class="col-md-11">
-        <p class="h3 mb-0 text-muted">
-          <% if @collection.visibility == 'private' %>
-            <%= bootstrap_icon 'lock-fill',
-            width: 20, height: 20, aria_hidden: 'true', focusable: 'false', role: 'img',  title: 'This collection is private', class: 'flex-shrink-0 me-1'
-            %> Private collection 
-          <% else %>
-            Collection
-          <% end %>
-        </p>
+        <div class="d-md-flex justify-content-between align-items-center">
+          <p class="h3 mb-0 text-muted">
+            <% if @collection.visibility == 'private' %>
+              <%= bootstrap_icon 'lock-fill',
+              width: 20, height: 20, aria_hidden: 'true', focusable: 'false', role: 'img',  title: 'This collection is private', class: 'flex-shrink-0 me-1'
+              %> Private collection 
+            <% else %>
+              Collection
+            <% end %>
+          </p>
+          <a id="copyLink"
+            href="javascript:void(0)"
+            role="button"
+            class="btn btn-primary btn-primary--dark btn-sm rounded-pill"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="Copy URL">
+            <%= bootstrap_icon 'copy',
+                  width:12, height:12, aria_hidden:'true',
+                  focusable:'false', role:'img', class:'me-1' %>
+            Share
+          </a>
+        </div>
+        
         <h1 class="display-1 extra-bold">
           <%= @collection.to_s %>
         </h1>
@@ -34,21 +49,9 @@
 <div class="dboard-collection-bar mb-5">
   <div class="container pb-4 <% unless @collection.ready? %>border-0<% end %>">
   <% if @collection.ready? %>
-    <div class="d-md-flex justify-content-between align-items-center mb-2">
-      <h2 class="h4 mb-3">Showing</h2>
-      <a id="copyLink"
-        href="javascript:void(0)"
-        role="button"
-        class="btn btn-secondary rounded-pill"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Copy URL">
-        <%= bootstrap_icon 'copy',
-              width:16, height:16, aria_hidden:'true',
-              focusable:'false', role:'img', class:'me-1' %>
-        Share
-      </a>
-    </div>
+    <h2 class="h4 mb-3">Showing</h2>
+  <% else %>
+    <h2 class="h4 mb-3">Syncing</h2>
   <% end %>
     <div class="row">
       <div class="col">
