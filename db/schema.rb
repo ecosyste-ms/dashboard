@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_28_150944) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_29_160640) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -113,6 +113,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_28_150944) do
     t.integer "additions"
     t.integer "deletions"
     t.integer "files_changed"
+    t.index ["project_id", "sha"], name: "index_commits_on_project_id_and_sha", unique: true
     t.index ["project_id"], name: "index_commits_on_project_id"
   end
 

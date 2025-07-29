@@ -545,15 +545,48 @@ class Project < ApplicationRecord
     per_page = Rails.application.config.x.per_page_limits&.dig(:commits) || 1000
     commits_data = fetch_paginated_data(commits_list_url, per_page: per_page, max_pages: max_pages)
     
-    # TODO: Use bulk insert
-    commits_data.each do |commit|
-      c = commits.find_or_create_by(sha: commit['sha']) 
+    # Use bulk upsert for performance
+    return if commits_data.empty?
+    
+    commit_records = commits_data.map do |commit|
       commit_attributes = commit.except('stats', 'html_url')
-      commit_attributes['additions'] = commit['stats']['additions']
-      commit_attributes['deletions'] = commit['stats']['deletions']
-      commit_attributes['files_changed'] = commit['stats']['files_changed']
-      c.assign_attributes(commit_attributes)
-      c.save(touch: false)
+      commit_attributes['additions'] = commit['stats']&.dig('additions')
+      commit_attributes['deletions'] = commit['stats']&.dig('deletions') 
+      commit_attributes['files_changed'] = commit['stats']&.dig('files_changed')
+      commit_attributes['project_id'] = id
+      commit_attributes['created_at'] = Time.current
+      commit_attributes['updated_at'] = Time.current
+      commit_attributes
+    end
+    
+    # Remove duplicates from the current batch to avoid conflicts
+    unique_commit_records = commit_records.uniq { |record| [record['project_id'], record['sha']] }
+    
+    # Get existing commit shas for this project to avoid duplicates
+    existing_shas = commits.where(sha: unique_commit_records.map { |r| r['sha'] }).pluck(:sha).to_set
+    
+    # Split into new and existing records
+    new_records = unique_commit_records.reject { |record| existing_shas.include?(record['sha']) }
+    update_records = unique_commit_records.select { |record| existing_shas.include?(record['sha']) }
+    
+    # Bulk insert new records
+    Commit.insert_all(new_records) if new_records.any?
+    
+    # Update existing records if needed
+    if update_records.any?
+      update_records.each do |record|
+        commits.where(sha: record['sha']).update_all(
+          message: record['message'],
+          timestamp: record['timestamp'],
+          merge: record['merge'],
+          author: record['author'],
+          committer: record['committer'],
+          additions: record['additions'],
+          deletions: record['deletions'],
+          files_changed: record['files_changed'],
+          updated_at: record['updated_at']
+        )
+      end
     end
     
     self.commits_last_synced_at = Time.now
