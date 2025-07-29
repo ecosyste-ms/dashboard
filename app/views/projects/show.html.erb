@@ -84,7 +84,7 @@
               <h5 class="card-title small">Links</h5>
               <div class="limit-size-and-scroll">
                 <ul class="list-unstyled">
-                  <% @project.links.each do |link| %>
+                  <% @project.essential_links.each do |link| %>
 
                     <li class="mb-3">
                       <%= link_to link, target: "_blank", rel: "noopener noreferrer", class: "link-with-icon text-decoration-none text-body" do %>

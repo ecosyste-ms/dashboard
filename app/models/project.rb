@@ -785,6 +785,15 @@ class Project < ApplicationRecord
   ].flatten.compact.uniq
   end
 
+  def essential_links
+    [
+      url,
+      homepage_url,
+      documentation_urls,
+      funding_links
+  ].flatten.compact.uniq
+  end
+
   def fetch_packages(max_pages: 10)
     base_url = "https://packages.ecosyste.ms/api/v1/packages/lookup?repository_url=#{repository_url}"
     per_page = Rails.application.config.x.per_page_limits&.dig(:packages) || 100

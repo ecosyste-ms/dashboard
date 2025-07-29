@@ -388,6 +388,10 @@ class Collection < ApplicationRecord
     projects.map(&:links).flatten.uniq
   end
 
+  def essential_links
+    projects.map(&:essential_links).flatten.uniq
+  end
+
   def licenses
     projects.map(&:licenses).flatten.uniq
   end
