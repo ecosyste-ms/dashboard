@@ -1,14 +1,18 @@
 <nav class="header__local__navigation">
   <ul class="nav">
-  <li class="nav-item">
-        <a class="nav-link" href="https://opencollective.com/ecosystems" target="_blank">Support</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="https://github.com/ecosyste-ms/<%= github_repo_name %>" target="_blank">GitHub</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="/docs">API</a>
-      </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/docs">API</a>
+    </li>
+    <li class="nav-item">
+      <a href="<%= new_project_path %>" class="spesh-link">
+          <% if logged_in? %>
+          Add a new project
+          <% else %>
+          View a project
+          <% end %>
+        </a>
+    </li>
+    
     <% if logged_in? %>
       <div class="dropdown nav-item user-menu" id="user-menu">
         <a class="" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
