@@ -67,7 +67,7 @@
         <% first_project = projects.first %>
         <div class="d-md-flex justify-content-between align-items-center mb-2 mt-5">
           <h2>
-            Open Collective
+            Open Collective: <%= first_project.collective.to_s %>
             <% if projects.length > 1 %>
               <small class="text-muted">(<%= projects.length %> projects)</small>
             <% end %>
@@ -126,7 +126,7 @@
         <% first_project = projects.first %>
         <div class="d-md-flex justify-content-between align-items-center mb-2 mt-5">
           <h2>
-            GitHub Sponsors
+            GitHub Sponsors: <%= github_sponsors_url.split('/').last %>
             <% if projects.length > 1 %>
               <small class="text-muted">(<%= projects.length %> projects)</small>
             <% end %>
