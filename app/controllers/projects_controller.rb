@@ -2,7 +2,7 @@ class ProjectsController < ApplicationController
   before_action :set_period_vars, only: [:engagement, :productivity, :finance, :responsiveness]
   before_action :authenticate_user!, only: [:new, :create]
   before_action :set_collection, if: :nested_route?
-  before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :packages, :commits, :releases, :issues, :advisories]
+  before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :packages, :commits, :releases, :issues, :advisories, :security]
 
   def show
     @project = Project.find(params[:id])
@@ -109,6 +109,11 @@ class ProjectsController < ApplicationController
   end
 
   def advisories
+    @project = Project.find(params[:id])
+    @pagy, @advisories = pagy(@project.advisories.order('published_at DESC'))
+  end
+
+  def security
     @project = Project.find(params[:id])
     @pagy, @advisories = pagy(@project.advisories.order('published_at DESC'))
   end

@@ -189,6 +189,12 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "should show project security" do
+    project = create(:project, :with_repository)
+    get security_project_url(project)
+    assert_response :success
+  end
+
   test "should redirect to new project form for non-existent project" do
     url = "https://github.com/newuser/newrepo"
     

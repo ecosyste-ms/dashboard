@@ -24,6 +24,9 @@
     <li class="nav-item">
       <a class="nav-link <%= 'active' if action_name == 'packages' %>" href="<%= project_path_with_collection(@project, 'packages') %>?<%= request.query_parameters.to_query %>">Packages</a>
     </li>
+    <li class="nav-item">
+      <a class="nav-link <%= 'active' if action_name == 'security' %>" href="<%= project_path_with_collection(@project, 'security') %>?<%= request.query_parameters.to_query %>">Security</a>
+    </li>
   </ul>
   <hr class="mt-5 me-3" />
   <div class="p-3 ">

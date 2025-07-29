@@ -25,6 +25,9 @@
       <a class="nav-link <%= 'active' if action_name == 'packages' %>" href="<%= packages_collection_path(@collection, request.query_parameters) %>">Packages</a>
     </li>
     <li class="nav-item">
+      <a class="nav-link <%= 'active' if action_name == 'security' %>" href="<%= security_collection_path(@collection, request.query_parameters) %>">Security</a>
+    </li>
+    <li class="nav-item">
       <a class="nav-link <%= 'active' if action_name == 'projects' %>" href="<%= collection_projects_path(@collection, request.query_parameters) %>">Projects</a>
     </li>
   </ul>

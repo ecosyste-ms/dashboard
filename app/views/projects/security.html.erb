@@ -1,0 +1,25 @@
+<% @meta_title = "#{@project} security" %>
+<% @meta_description = "Security advisories for #{@project}" %>
+
+<%= render 'project_header' %>
+<div class="container">
+
+  <div class="dashboard-layout">
+    <%= render 'nav' %>
+
+    <div class="dashboard-layout__dboard">
+      <div class="d-md-flex justify-content-between align-items-center mb-4">
+        <h1>Security</h1>
+      </div>
+      
+      <% if @pagy.count > 0 %>
+        <%= render @advisories %>
+        <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+      <% else %>
+        <p>
+          No security advisories found.
+        </p>
+      <% end %>
+    </div>
+  </div>
+</div>

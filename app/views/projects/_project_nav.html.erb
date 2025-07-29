@@ -39,8 +39,8 @@
     </a>
   </li>
   <li class="nav-item">
-    <a class="nav-link <%= 'active' if active == 'advisories' %>" href='<%= project_path_with_collection(@project, 'advisories') %>'>
-      Advisories
+    <a class="nav-link <%= 'active' if active == 'security' %>" href='<%= project_path_with_collection(@project, 'security') %>'>
+      Security
       <span class="badge bg-light text-dark">
         <%= number_to_human(@project.advisories_count, precision: 1) %>
       </span>

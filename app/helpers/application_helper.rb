@@ -162,6 +162,8 @@ module ApplicationHelper
         packages_collection_project_path(collection, project)
       when 'advisories'
         advisories_collection_project_path(collection, project)
+      when 'security'
+        security_collection_project_path(collection, project)
       when 'adoption'
         adoption_collection_project_path(collection, project)
       when 'engagement'
@@ -193,6 +195,8 @@ module ApplicationHelper
         packages_project_path(project)
       when 'advisories'
         advisories_project_path(project)
+      when 'security'
+        security_project_path(project)
       when 'adoption'
         adoption_project_path(project)
       when 'engagement'

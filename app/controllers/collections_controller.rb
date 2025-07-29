@@ -4,7 +4,7 @@ class CollectionsController < ApplicationController
   before_action :authenticate_user!
 
   before_action :set_collection_with_visibility_check, except: [:index, :new, :create]
-  before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :packages, :projects]
+  before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :packages, :projects, :security]
 
   def index
     scope = current_user.collections
@@ -192,6 +192,10 @@ class CollectionsController < ApplicationController
 
   def packages
     @pagy, @packages = pagy(@collection.packages.active.order_by_rankings)
+  end
+
+  def security
+    @pagy, @advisories = pagy(@collection.advisories.order('published_at DESC'))
   end
 
   def projects

@@ -37,6 +37,7 @@ Rails.application.routes.draw do
       get :releases
       get :commits
       get :advisories
+      get :security
 
       get :productivity
       get :responsiveness
@@ -56,6 +57,7 @@ Rails.application.routes.draw do
         get :releases
         get :commits
         get :advisories
+        get :security
 
         get :productivity
         get :responsiveness
@@ -83,6 +85,7 @@ Rails.application.routes.draw do
       get :releases
       get :commits
       get :advisories
+      get :security
 
       get :productivity
       get :responsiveness
