@@ -753,7 +753,7 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     assert_template :dependencies
     
     # Verify filter parameter is preserved
-    assert_equal 'direct', params[:filter]
+    assert_equal 'direct', @request.params[:filter]
   end
   
   test "should show dependencies page with development filter" do
@@ -765,7 +765,7 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     assert_template :dependencies
     
     # Verify filter parameter is preserved
-    assert_equal 'development', params[:filter]
+    assert_equal 'development', @request.params[:filter]
   end
   
   test "should show dependencies page with transitive filter" do
@@ -777,7 +777,7 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     assert_template :dependencies
     
     # Verify filter parameter is preserved
-    assert_equal 'transitive', params[:filter]
+    assert_equal 'transitive', @request.params[:filter]
   end
 
   test "should show finance page" do

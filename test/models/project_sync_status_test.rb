@@ -2,12 +2,12 @@ require "test_helper"
 
 class ProjectSyncStatusTest < ActiveSupport::TestCase
   setup do
-    @project = create(:project, repository: { 'host' => { 'name' => 'GitHub' }, 'full_name' => 'test/repo' })
+    @project = create(:project, :with_repository)
   end
 
   test "sync methods update individual last_synced_at timestamps" do
     # Mock the external API calls for commits
-    stub_request(:get, /commits\.ecosyste\.ms/)
+    stub_request(:get, @project.commits_api_url)
       .to_return(status: 200, body: { commits_url: "http://example.com/commits" }.to_json)
     
     stub_request(:get, /example\.com\/commits/)
@@ -20,7 +20,7 @@ class ProjectSyncStatusTest < ActiveSupport::TestCase
     assert @project.commits_last_synced_at > 1.minute.ago
 
     # Test packages sync updates packages_last_synced_at  
-    stub_request(:get, /packages\.ecosyste\.ms/)
+    stub_request(:get, @project.packages_url)
       .to_return(status: 200, body: [].to_json)
     
     @project.fetch_packages
