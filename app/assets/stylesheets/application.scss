@@ -1,5 +1,28 @@
 @import "ecosystems";
 
+// Dependencies filter active state
+.filter-active {
+  background-color: $color-purple !important;
+  color: $color-white !important;
+  border-color: $color-purple !important;
+
+  .card-title,
+  .stat-card-title {
+    color: $color-white !important;
+  }
+
+  &:hover {
+    background-color: $color-purple-dark !important;
+    border-color: $color-purple-dark !important;
+  }
+}
+
+.card.well:hover:not(.filter-active) {
+  transform: translateY(-2px);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 html {
   scroll-behavior: smooth;
 }

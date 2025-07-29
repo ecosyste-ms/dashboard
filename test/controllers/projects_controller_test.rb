@@ -376,6 +376,36 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_not_nil development_dependencies
     assert_not_nil transitive_dependencies
   end
+  
+  test "should show dependencies page with direct filter" do
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
+    get dependencies_project_url(project, filter: 'direct')
+    assert_response :success
+    assert_template :dependencies
+    
+    # Verify filter parameter is preserved
+    assert_equal 'direct', params[:filter]
+  end
+  
+  test "should show dependencies page with development filter" do
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
+    get dependencies_project_url(project, filter: 'development')
+    assert_response :success
+    assert_template :dependencies
+    
+    # Verify filter parameter is preserved
+    assert_equal 'development', params[:filter]
+  end
+  
+  test "should show dependencies page with transitive filter" do
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
+    get dependencies_project_url(project, filter: 'transitive')
+    assert_response :success
+    assert_template :dependencies
+    
+    # Verify filter parameter is preserved
+    assert_equal 'transitive', params[:filter]
+  end
 
   test "should show finance page" do
     project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)

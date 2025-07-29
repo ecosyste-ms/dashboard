@@ -102,9 +102,10 @@ class CollectionsController < ApplicationController
   end
 
   def dependencies
-    @direct_dependencies = @collection.direct_dependencies.length
-    @development_dependencies = @collection.development_dependencies.length
-    @transitive_dependencies = @collection.transitive_dependencies.length
+    # Counts should match the unique dependencies shown in the table
+    @direct_dependencies = @collection.direct_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }.length
+    @development_dependencies = @collection.development_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }.length
+    @transitive_dependencies = @collection.transitive_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }.length
   end
 
   def productivity

@@ -156,9 +156,25 @@ class ProjectsController < ApplicationController
 
   def dependencies
     @project = Project.find(params[:id])
-    @direct_dependencies = @project.direct_dependencies.length
-    @development_dependencies = @project.development_dependencies.length
-    @transitive_dependencies = @project.transitive_dependencies.length
+    # Calculate unique counts for filter buttons (to match table display)
+    @direct_dependencies = @project.direct_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }.length
+    @development_dependencies = @project.development_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }.length
+    @transitive_dependencies = @project.transitive_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }.length
+    
+    # Get filtered dependencies based on params
+    @filtered_dependencies = case params[:filter]
+    when 'direct'
+      @project.direct_dependencies
+    when 'development'
+      @project.development_dependencies
+    when 'transitive'
+      @project.transitive_dependencies
+    else
+      @project.direct_dependencies + @project.development_dependencies + @project.transitive_dependencies
+    end
+    
+    # Remove duplicates by package name while preserving first occurrence
+    @unique_dependencies = @filtered_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }
   end
 
   def productivity

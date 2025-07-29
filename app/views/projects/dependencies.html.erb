@@ -14,9 +14,92 @@
       </div>
         <div class="dashboard-grid">
           <div class="three-equal-widgets">
-            <%= stat_card_widget 'Direct dependencies', @project.direct_dependencies.length, nil, title_class: "card-title small", stat_size: "large" %>
-            <%= stat_card_widget 'Development dependencies', @project.development_dependencies.length, nil, title_class: "card-title small", stat_size: "large" %>
-            <%= stat_card_widget 'Transitive dependencies', @project.transitive_dependencies.length, nil, title_class: "card-title small", stat_size: "large" %>
+            <%= link_to (params[:filter] == 'direct' ? dependencies_project_path(@project) : dependencies_project_path(@project, filter: 'direct')), class: "card well p-3 border-0 text-decoration-none #{'filter-active' if params[:filter] == 'direct'}" do %>
+              <div class="card-body">
+                <h5 class="card-title small">Unique direct dependencies</h5>
+                <div class="stat-card mb-2">
+                  <div class="stat-card-body">
+                    <span class="stat-card-title stat-card-title--large"><%= @direct_dependencies %></span>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+            <%= link_to (params[:filter] == 'development' ? dependencies_project_path(@project) : dependencies_project_path(@project, filter: 'development')), class: "card well p-3 border-0 text-decoration-none #{'filter-active' if params[:filter] == 'development'}" do %>
+              <div class="card-body">
+                <h5 class="card-title small">Unique development dependencies</h5>
+                <div class="stat-card mb-2">
+                  <div class="stat-card-body">
+                    <span class="stat-card-title stat-card-title--large"><%= @development_dependencies %></span>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+            <%= link_to (params[:filter] == 'transitive' ? dependencies_project_path(@project) : dependencies_project_path(@project, filter: 'transitive')), class: "card well p-3 border-0 text-decoration-none #{'filter-active' if params[:filter] == 'transitive'}" do %>
+              <div class="card-body">
+                <h5 class="card-title small">Unique transitive dependencies</h5>
+                <div class="stat-card mb-2">
+                  <div class="stat-card-body">
+                    <span class="stat-card-title stat-card-title--large"><%= @transitive_dependencies %></span>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+          
+          <div class="full-width-widget">
+            <div class="card well p-3 border-0">
+              <div class="card-body">
+                <h5 class="card-title">Dependencies</h5>
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th style="width: 30%;">Package Name</th>
+                        <th style="width: 10%;">Type</th>
+                        <th style="width: 15%;">Requirements</th>
+                        <th style="width: 15%;">Kind</th>
+                        <th style="width: 15%;">Ecosystem</th>
+                        <th style="width: 15%;">Optional</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% @unique_dependencies.each do |dep| %>
+                        <% dep_type = if @project.direct_dependencies.any? { |d| (d['package_name'] || d['name']) == (dep['package_name'] || dep['name']) }
+                                        'direct'
+                                      elsif @project.development_dependencies.any? { |d| (d['package_name'] || d['name']) == (dep['package_name'] || dep['name']) }
+                                        'development'
+                                      else
+                                        'transitive'
+                                      end %>
+                        <tr>
+                          <td><%= dep['package_name'] || dep['name'] || 'N/A' %></td>
+                          <td>
+                            <% case dep_type %>
+                            <% when 'direct' %>
+                              <span class="badge bg-primary">Direct</span>
+                            <% when 'development' %>
+                              <span class="badge bg-warning">Dev</span>
+                            <% else %>
+                              <span class="badge bg-secondary">Transitive</span>
+                            <% end %>
+                          </td>
+                          <td style="word-break: break-word; max-width: 150px;"><%= dep['requirements'] || 'N/A' %></td>
+                          <td><%= dep['kind'] || 'N/A' %></td>
+                          <td><%= dep['ecosystem'] || 'N/A' %></td>
+                          <td>
+                            <% if dep['optional'] == true %>
+                              <span class="badge bg-warning">Yes</span>
+                            <% else %>
+                              <span class="badge bg-success">No</span>
+                            <% end %>
+                          </td>
+                        </tr>
+                      <% end %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           </div>
     </div>
   </div>

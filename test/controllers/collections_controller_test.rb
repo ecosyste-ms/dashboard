@@ -743,6 +743,42 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     assert_not_nil development_dependencies
     assert_not_nil transitive_dependencies
   end
+  
+  test "should show dependencies page with direct filter" do
+    login_as(@user)
+    @collection.update(import_status: "completed", sync_status: "ready")
+    
+    get dependencies_collection_path(@collection, filter: 'direct')
+    assert_response :success
+    assert_template :dependencies
+    
+    # Verify filter parameter is preserved
+    assert_equal 'direct', params[:filter]
+  end
+  
+  test "should show dependencies page with development filter" do
+    login_as(@user)
+    @collection.update(import_status: "completed", sync_status: "ready")
+    
+    get dependencies_collection_path(@collection, filter: 'development')
+    assert_response :success
+    assert_template :dependencies
+    
+    # Verify filter parameter is preserved
+    assert_equal 'development', params[:filter]
+  end
+  
+  test "should show dependencies page with transitive filter" do
+    login_as(@user)
+    @collection.update(import_status: "completed", sync_status: "ready")
+    
+    get dependencies_collection_path(@collection, filter: 'transitive')
+    assert_response :success
+    assert_template :dependencies
+    
+    # Verify filter parameter is preserved
+    assert_equal 'transitive', params[:filter]
+  end
 
   test "should show finance page" do
     login_as(@user)
