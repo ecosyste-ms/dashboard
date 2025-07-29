@@ -515,11 +515,37 @@ class Project < ApplicationRecord
     per_page = Rails.application.config.x.per_page_limits&.dig(:issues) || 100
     issues_data = fetch_paginated_data(issues_list_url, per_page: per_page, max_pages: max_pages)
     
-    # TODO: Use bulk insert
-    issues_data.each do |issue|
-      i = issues.find_or_create_by(number: issue['number']) 
-      i.assign_attributes(issue)
-      i.save(touch: false)
+    # Use bulk insert for performance
+    return if issues_data.empty?
+    
+    issue_records = issues_data.map do |issue|
+      issue_attributes = issue.dup
+      issue_attributes['project_id'] = id
+      issue_attributes['created_at'] = Time.current
+      issue_attributes['updated_at'] = Time.current
+      issue_attributes
+    end
+    
+    # Remove duplicates from the current batch to avoid conflicts
+    unique_issue_records = issue_records.uniq { |record| [record['project_id'], record['number']] }
+    
+    # Get existing issue numbers for this project to avoid duplicates
+    existing_numbers = issues.where(number: unique_issue_records.map { |r| r['number'] }).pluck(:number).to_set
+    
+    # Split into new and existing records  
+    new_records = unique_issue_records.reject { |record| existing_numbers.include?(record['number']) }
+    update_records = unique_issue_records.select { |record| existing_numbers.include?(record['number']) }
+    
+    # Bulk insert new records (this will trigger counter_culture callbacks)
+    Issue.insert_all(new_records) if new_records.any?
+    
+    # Update existing records if needed
+    if update_records.any?
+      update_records.each do |record|
+        issues.where(number: record['number']).update_all(
+          record.except('project_id', 'created_at', 'number')
+        )
+      end
     end
     
     self.issues_last_synced_at = Time.now
