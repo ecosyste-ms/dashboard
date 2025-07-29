@@ -86,16 +86,27 @@ class ProjectTest < ActiveSupport::TestCase
   end
 
   test "sync_commits method updates timestamp" do
-    VCR.use_cassette("project_sync/sync_commits_rails_project") do
-      project = create(:project, :rails_project, :never_synced)
-      
-      project.sync_commits
-      project.reload
-      
-      assert_not_nil project.commits_last_synced_at
-      # The main thing we're testing is that the timestamp gets set
-      assert project.commits_last_synced_at > 1.minute.ago
-    end
+    WebMock.enable!
+    project = create(:project, :rails_project, :never_synced)
+    
+    # Mock the commits API response with correct structure
+    stub_request(:get, project.commits_api_url)
+      .to_return(status: 200, body: { 
+        commits_url: "https://commits.ecosyste.ms/api/v1/hosts/GitHub/repositories/rails/rails/commits" 
+      }.to_json)
+    
+    # Mock the commits list API
+    stub_request(:get, /commits\.ecosyste\.ms\/api\/v1\/hosts\/GitHub\/repositories\/rails\/rails\/commits/)
+      .to_return(status: 200, body: [].to_json)
+    
+    project.sync_commits
+    project.reload
+    
+    assert_not_nil project.commits_last_synced_at
+    # The main thing we're testing is that the timestamp gets set
+    assert project.commits_last_synced_at > 1.minute.ago
+  ensure
+    WebMock.reset!
   end
 
   test "fetch repository data updates repository field" do
@@ -124,15 +135,26 @@ class ProjectTest < ActiveSupport::TestCase
   end
 
   test "sync respects individual timestamps" do
-    VCR.use_cassette("project_sync/sync_commits_timestamps_individual") do
-      project = create(:project, :rails_project, :never_synced)
-      
-      project.sync_commits
-      project.reload
-      
-      assert_not_nil project.commits_last_synced_at
-      assert project.commits_last_synced_at > 1.minute.ago
-    end
+    WebMock.enable!
+    project = create(:project, :rails_project, :never_synced)
+    
+    # Mock the commits API response with correct structure
+    stub_request(:get, project.commits_api_url)
+      .to_return(status: 200, body: { 
+        commits_url: "https://commits.ecosyste.ms/api/v1/hosts/GitHub/repositories/rails/rails/commits" 
+      }.to_json)
+    
+    # Mock the commits list API
+    stub_request(:get, /commits\.ecosyste\.ms\/api\/v1\/hosts\/GitHub\/repositories\/rails\/rails\/commits/)
+      .to_return(status: 200, body: [].to_json)
+    
+    project.sync_commits
+    project.reload
+    
+    assert_not_nil project.commits_last_synced_at
+    assert project.commits_last_synced_at > 1.minute.ago
+  ensure
+    WebMock.reset!
   end
 
   test "full sync updates all timestamps" do

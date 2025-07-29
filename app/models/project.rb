@@ -571,8 +571,8 @@ class Project < ApplicationRecord
     per_page = Rails.application.config.x.per_page_limits&.dig(:commits) || 1000
     commits_data = fetch_paginated_data(commits_list_url, per_page: per_page, max_pages: max_pages)
     
-    # Use bulk upsert for performance
-    return if commits_data.empty?
+    # Process commits if we have any
+    unless commits_data.empty?
     
     commit_records = commits_data.map do |commit|
       commit_attributes = commit.except('stats', 'html_url')
@@ -614,7 +614,9 @@ class Project < ApplicationRecord
         )
       end
     end
+    end
     
+    # Always set the timestamp when we successfully get a response
     self.commits_last_synced_at = Time.now
     self.save
 
@@ -1180,7 +1182,86 @@ class Project < ApplicationRecord
   end
 
   def other_funding_links
-    funding_links.reject{|f| f.include?('github.com/sponsors') || f.include?('opencollective.com') }
+    funding_links
+      .reject{|f| f.include?('github.com/sponsors') || f.include?('opencollective.com') }
+      .map { |link| normalize_funding_link(link) }
+      .uniq
+      .reject { |link| reject_invalid_funding_link?(link) }
+  end
+
+  private
+
+  def reject_invalid_funding_link?(link)
+    uri = URI.parse(link)
+    
+    case uri.host
+    when 'tidelift.com'
+      return reject_generic_tidelift_link?(link)
+    when 'img.buymeacoffee.com'
+      # Reject image/button API links
+      return true
+    when 'blog.tidelift.com'
+      # Reject blog links
+      return true
+    when /^(www\.)?ko-fi\.com$/
+      # Reject ko-fi links that are just random IDs (like O5O86SNP4)
+      path_parts = uri.path.split('/').reject(&:empty?)
+      return path_parts.any? && path_parts.first.match?(/^[A-Z0-9]+$/) && path_parts.first.length > 6
+    end
+    
+    false
+  end
+
+  def reject_generic_tidelift_link?(link)
+    uri = URI.parse(link)
+    return false unless uri.host == 'tidelift.com'
+    
+    # Remove query params to check the clean path
+    clean_path = uri.path
+    
+    # Reject generic paths like /funding/github
+    return true if clean_path == '/funding/github' || clean_path == '/funding/github/'
+    
+    # Check if the link contains the project name (only if we have a project name)
+    return false if name.blank?
+    
+    project_name_variants = [
+      name,
+      name&.downcase,
+      name&.gsub(/[-_]/, ''),
+      name&.gsub(/[-_]/, '')&.downcase
+    ].compact.uniq
+    
+    project_name_variants.none? { |variant| clean_path.include?(variant) }
+  end
+
+  def normalize_funding_link(link)
+    uri = URI.parse(link)
+    uri.query = nil
+    
+    # Remove www. subdomain for consistency
+    if uri.host&.start_with?('www.')
+      uri.host = uri.host[4..-1]
+    end
+    
+    # Normalize specific funding platforms
+    case uri.host
+    when 'tidelift.com'
+      # Keep only the base tidelift.com/funding or tidelift.com/subscription path
+      if uri.path.start_with?('/funding/')
+        uri.path = uri.path.split('/')[0..2].join('/')
+      elsif uri.path.start_with?('/subscription/')
+        uri.path = uri.path.split('/')[0..3].join('/')
+      end
+    when 'liberapay.com'
+      # Keep only the username part, remove /donate
+      path_parts = uri.path.split('/')
+      if path_parts.last == 'donate' && path_parts.length > 2
+        uri.path = path_parts[0..-2].join('/')
+      end
+    end
+    
+    uri.to_s
   end
 
   def notify_collections_of_sync

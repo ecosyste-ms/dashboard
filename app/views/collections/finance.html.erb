@@ -15,25 +15,128 @@
       </div>
       <%= render 'date_nav' %>
 
-      <h1 class="text-center d-block mb-4">
-        🐉🐉🐉
-      </h1>
+      <% 
+        # Group projects by their finance sources
+        projects_with_collective = @collection.projects.select(&:collective)
+        projects_with_github_sponsors = @collection.projects.select { |p| p.github_sponsors.present? }
+        projects_with_other_funding = @collection.projects.select { |p| p.other_funding_links.present? }
+      %>
 
-      <% if @collection.collective.present? %>
-        <div class="dashboard-grid">
+      <% projects_with_collective.each_with_index do |project, index| %>
+        <% if index > 0 %>
+          <hr class="my-4">
+        <% end %>
+        <div class="d-md-flex justify-content-between align-items-center mb-2 mt-5">
+          <h2>
+            <%= link_to project.name, project_path(project), class: "text-decoration-none" %>
+            - Open Collective
+          </h2>
+          <a href="<%= project.collective_url %>" class="spesh-link">View on Open Collective</a>
+        </div>
+
+        <div class="dashboard-grid mb-5">
           <div class="three-equal-widgets">
-            <%= small_widget 'Contributions', @contributions_this_period, @contributions_last_period, symbol: '$', currency: true %>
-            <%= small_widget 'Payments', @payments_this_period, @payments_last_period, symbol: '$', currency: true %>
-            <%= small_widget 'Balance', @balance_this_period, @balance_last_period, symbol: '$', currency: true %>
+            <%
+              contributions_this_period = project.collective&.transactions&.donations&.between(@this_period_range.begin, @this_period_range.end)&.count || 0
+              contributions_last_period = project.collective&.transactions&.donations&.between(@last_period_range.begin, @last_period_range.end)&.count || 0
+              payments_this_period = project.collective&.transactions&.expenses&.between(@this_period_range.begin, @this_period_range.end)&.count || 0
+              payments_last_period = project.collective&.transactions&.expenses&.between(@last_period_range.begin, @last_period_range.end)&.count || 0
+            %>
+            <%= small_widget 'Contributions', contributions_this_period, contributions_last_period, symbol: '$', currency: true %>
+            <%= small_widget 'Payments', payments_this_period, payments_last_period, symbol: '$', currency: true %>
+            <%= small_widget 'Balance', 0, 0, symbol: '$', currency: true %>
           </div>
           <div class="two-thirds-widgets">
-            <%= stat_card_widget 'Donors', @donors_this_period, @donors_last_period, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
+            <%
+              donors_this_period = project.collective&.transactions&.donations&.between(@this_period_range.begin, @this_period_range.end)&.group(:from_account)&.count&.length || 0
+              donors_last_period = project.collective&.transactions&.donations&.between(@last_period_range.begin, @last_period_range.end)&.group(:from_account)&.count&.length || 0
+            %>
+            <%= stat_card_widget 'Donors', donors_this_period, donors_last_period, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
             <%= stat_card_widget 'Recurring donors', 75, 65, symbol: '%', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
           </div>
           <div class="two-thirds-widgets">
-            <%= stat_card_widget 'Unique payees', @payees_this_period, @payees_last_period, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
+            <%
+              payees_this_period = project.collective&.transactions&.expenses&.between(@this_period_range.begin, @this_period_range.end)&.group(:to_account)&.count&.length || 0
+              payees_last_period = project.collective&.transactions&.expenses&.between(@last_period_range.begin, @last_period_range.end)&.group(:to_account)&.count&.length || 0
+            %>
+            <%= stat_card_widget 'Unique payees', payees_this_period, payees_last_period, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
             <%= stat_card_widget 'Reimbursements', 10000, 9000, symbol: '$', currency: true, stat_size: "small",  title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
           </div>
+        </div>
+      <% end %>
+
+      <% unless projects_with_collective.empty? && projects_with_github_sponsors.empty? %>
+        <hr class="my-5">
+      <% end %>
+
+      <% projects_with_github_sponsors.each_with_index do |project, index| %>
+        <% if index > 0 %>
+          <hr class="my-4">
+        <% end %>
+        <div class="d-md-flex justify-content-between align-items-center mb-2 mt-5">
+          <h2>
+            <%= link_to project.name, project_path(project), class: "text-decoration-none" %>
+            - GitHub Sponsors
+          </h2>
+          <a href="<%= project.github_sponsors_url %>" class="spesh-link">View on GitHub Sponsors</a>
+        </div>
+
+        <div class="dashboard-grid mb-5">
+          <div class="three-equal-widgets">
+            <%= small_widget 'Current sponsors', project.current_github_sponsors_count, nil %>
+            <%= small_widget 'Past sponsors', project.past_github_sponsors_count, nil %>
+            <%= small_widget 'Total sponsors', project.total_github_sponsors_count, nil %>
+          </div>
+
+          <div class="two-thirds-widgets">
+            <%= small_widget 'Minimum sponsorship', project.github_minimum_sponsorship_amount, nil, symbol: '$', currency: true %>
+            <%= no_data_widget 'Missing Data', card_class: "well--grey two-thirds-widgets__large" do %>
+              We can't show financial data for <strong>GitHub Sponsors</strong> due to limits in their API.
+            <% end %>
+          </div>
+
+          <div class="three-equal-widgets">
+            <%= no_data_widget "Contributions" %>
+            <%= no_data_widget "Payments" %>
+            <%= no_data_widget "Balance" %>
+          </div>
+        </div>
+      <% end %>
+
+      <% unless projects_with_github_sponsors.empty? && projects_with_other_funding.empty? %>
+        <hr class="my-5">
+      <% end %>
+
+      <% projects_with_other_funding.each_with_index do |project, index| %>
+        <% if index > 0 %>
+          <hr class="my-4">
+        <% end %>
+        <div class="d-md-flex justify-content-between align-items-center mt-5 mb-2">
+          <h2>
+            <%= link_to project.name, project_path(project), class: "text-decoration-none" %>
+            - Other Funding Links
+          </h2>
+        </div>
+        <div class="card one-third-widget-group__small well p-3 border-0 mb-5">
+          <div class="card-body">
+            <ul class="list-unstyled">
+              <% project.other_funding_links.sort.each do |link| %>
+                <li class="mb-3">
+                  <%= link_to link, target: "_blank", rel: "noopener noreferrer", class: "link-with-icon text-decoration-none text-body" do %>
+                    <%= bootstrap_icon link_icon(link), width: 18, height: 18, class: "link-with-icon__icon", aria_hidden: "true" %>
+                    <span class="link-with-icon__text"><%= display_link link %></span>
+                  <% end %>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      <% end %>
+
+      <% if projects_with_collective.empty? && projects_with_github_sponsors.empty? && projects_with_other_funding.empty? %>
+        <div class="text-center mt-5">
+          <h3>No funding sources found</h3>
+          <p class="text-muted">None of the projects in this collection have configured funding sources.</p>
         </div>
       <% end %>
     </div>

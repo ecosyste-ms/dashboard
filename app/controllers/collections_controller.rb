@@ -149,23 +149,6 @@ class CollectionsController < ApplicationController
   end
 
   def finance
-    if @collection.collective.present?
-
-      @contributions_last_period = @collection.collective.transactions.donations.between(@last_period_range.begin, @last_period_range.end).count
-      @contributions_this_period = @collection.collective.transactions.donations.between(@this_period_range.begin, @this_period_range.end).count
-
-      @payments_last_period = @collection.collective.transactions.expenses.between(@last_period_range.begin, @last_period_range.end).count
-      @payments_this_period = @collection.collective.transactions.expenses.between(@this_period_range.begin, @this_period_range.end).count
-
-      @balance_last_period = 0 # TODO: Fix this
-      @balance_this_period = 0 # TODO: Fix this
-
-      @donors_last_period =  @collection.collective.transactions.donations.between(@last_period_range.begin, @last_period_range.end).group(:from_account).count.length
-      @donors_this_period =  @collection.collective.transactions.donations.between(@this_period_range.begin, @this_period_range.end).group(:from_account).count.length
-
-      @payees_last_period = @collection.collective.transactions.expenses.between(@last_period_range.begin, @last_period_range.end).group(:to_account).count.length
-      @payees_this_period = @collection.collective.transactions.expenses.between(@this_period_range.begin, @this_period_range.end).group(:to_account).count.length
-    end
   end
 
   def responsiveness
