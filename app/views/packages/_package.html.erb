@@ -31,8 +31,8 @@
     <% end %>
 
     <small class='text-muted'>
-      <% if @project.nil? %>
-        <%= link_to package.project, package.project %> - 
+      <% if @project.nil? && @collection.present? %>
+        <%= link_to package.project, collection_project_path(@collection, package.project) %> - 
       <% end %>
 
       <% if package.versions_count > 0 %>

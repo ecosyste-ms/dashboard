@@ -4,7 +4,7 @@ class CollectionsController < ApplicationController
   before_action :authenticate_user!
 
   before_action :set_collection_with_visibility_check, except: [:index, :new, :create]
-  before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :projects]
+  before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :packages, :projects]
 
   def index
     scope = current_user.collections
@@ -188,6 +188,10 @@ class CollectionsController < ApplicationController
     @time_to_close_issues_this_period = (issues_scope.issue.closed_between(@this_period_range.begin, @this_period_range.end)
       .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
     @time_to_close_issues_this_period = @time_to_close_issues_this_period.round(1)
+  end
+
+  def packages
+    @pagy, @packages = pagy(@collection.packages.active.order_by_rankings)
   end
 
   def projects
