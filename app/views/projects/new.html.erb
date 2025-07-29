@@ -17,56 +17,48 @@
           </div>
         <% end %>
 
-        <div class="well p-4 mb-4">
-          <div class="d-flex align-items-start gap-3 mb-4">
-            <div class="flex-shrink-0">
-              <%= bootstrap_icon 'code-square', width: 32, height: 32, class: 'text-primary' %>
-            </div>
-            <div>
-              <h3 class="h5 mb-2">Repository URL</h3>
-              <p class="text-muted mb-0">Enter the URL of any repository you'd like to track. We support GitHub, GitLab, and other hosting platforms. We'll automatically sync data about commits, issues, releases, packages, and dependencies.</p>
-            </div>
-          </div>
+        <fieldset class="form-group mb-5">
 
-          <div class="form-group mb-4">
-            <%= f.label :url, "Repository URL", class: "form-label fw-bold" %>
+        
+            <%= f.label :url, "Repository URL", class: "form-label" do %>
+              <p class="mb-0">Repository URL</p>
+              <p class="text-muted small mb-0">Enter a valid URL to a repository, we support GitHub, GitLab, and other hosting platforms</p>
+            <% end %>
             <%= f.url_field :url, 
-                class: "form-control", 
+                class: "form-control  border-purple-light", 
                 placeholder: "https://github.com/owner/repository", 
                 required: true,
                 title: "Please enter a valid repository URL",
                 value: params[:url] || @project.url %>
-            <div class="form-text">
-              Examples: https://github.com/rails/rails, https://gitlab.com/gitlab-org/gitlab, https://bitbucket.org/owner/repo
-            </div>
-          </div>
-        </div>
+           
+   
 
-        <div class="well p-4 mb-4">
-          <h3 class="h5 mb-3">What happens next?</h3>
+        
+          <h3 class="h5 mb-3 mt-5">What happens next?</h3>
           <div class="d-flex align-items-start gap-2 mb-2">
-            <span class="badge bg-primary rounded-pill">1</span>
-            <span>We'll create your project and start syncing data</span>
+            <span class="badge text-bg-light rounded-pill">1</span>
+            <span>We&apos;ll create your project and start syncing data</span>
           </div>
           <div class="d-flex align-items-start gap-2 mb-2">
-            <span class="badge bg-primary rounded-pill">2</span>
-            <span>You'll see real-time progress as we gather repository data, issues, commits, and more</span>
+            <span class="badge text-bg-light rounded-pill">2</span>
+            <span>You&apos;ll see real-time progress as we gather repository data, issues, commits, and more</span>
           </div>
-          <div class="d-flex align-items-start gap-2 mb-2">
-            <span class="badge bg-primary rounded-pill">3</span>
-            <span>Once complete, you'll have access to comprehensive analytics and insights</span>
+          <div class="d-flex align-items-start gap-2 mb-5">
+            <span class="badge text-bg-light rounded-pill">3</span>
+            <span>Once complete, you&apos;ll have access to comprehensive analytics and insights</span>
           </div>
-        </div>
+         <hr />
 
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 mt-5">
           <%= f.submit "Add Project", class: "btn btn-primary rounded-pill" %>
           <%= link_to "Cancel", projects_path, class: "btn btn-outline-secondary rounded-pill" %>
         </div>
       <% end %>
+    </fieldset>
     </div>
     <div class="col-12 col-lg-4">
       <div class="bg-light p-4 rounded">
-        <h4 class="h6 mb-3">Features included:</h4>
+        <h4 class="h6 mb-3">Insights available</h4>
         <ul class="list-unstyled">
           <li class="mb-2">
             <%= bootstrap_icon 'check-circle', width: 16, height: 16, class: 'text-success me-2' %>
