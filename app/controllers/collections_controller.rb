@@ -149,6 +149,14 @@ class CollectionsController < ApplicationController
   end
 
   def finance
+    # Calculate summary statistics
+    projects_with_funding = @collection.projects.select { |p| 
+      p.collective.present? || p.github_sponsors.present? || p.other_funding_links.present? 
+    }
+    
+    @projects_with_funding_count = projects_with_funding.count
+    @unique_collectives_count = @collection.projects.select(&:collective).map(&:collective_url).compact.uniq.count
+    @unique_github_sponsors_count = @collection.projects.select { |p| p.github_sponsors.present? }.count
   end
 
   def responsiveness

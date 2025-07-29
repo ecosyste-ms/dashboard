@@ -15,6 +15,41 @@
       </div>
       <%= render 'date_nav' %>
 
+      <div class="dashboard-grid mb-5">
+        <div class="three-equal-widgets">
+          <div class="card well p-3 border-0">
+            <div class="card-body">
+              <h5 class="card-title small">Projects with funding</h5>
+              <div class="stat-card mb-2">
+                <div class="stat-card-body">
+                  <span class="stat-card-title stat-card-title--large"><%= @projects_with_funding_count %></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card well p-3 border-0">
+            <div class="card-body">
+              <h5 class="card-title small">Unique Open Collectives</h5>
+              <div class="stat-card mb-2">
+                <div class="stat-card-body">
+                  <span class="stat-card-title stat-card-title--large"><%= @unique_collectives_count %></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card well p-3 border-0">
+            <div class="card-body">
+              <h5 class="card-title small">Unique GitHub Sponsors</h5>
+              <div class="stat-card mb-2">
+                <div class="stat-card-body">
+                  <span class="stat-card-title stat-card-title--large"><%= @unique_github_sponsors_count %></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <% 
         # Group projects by their finance sources
         projects_with_collective = @collection.projects.select(&:collective)
