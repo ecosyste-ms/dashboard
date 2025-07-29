@@ -1,27 +1,25 @@
 <% @meta_title = "#{@project} packages" %>
 <% @meta_description = "Packages published from #{@project}" %>
 
-<div class="container-md">
+<%= render 'project_header' %>
+<div class="container">
 
-  <%= render 'nav' %>
+  <div class="dashboard-layout">
+    <%= render 'nav' %>
 
-  <h1>
-    <%= @project.to_s %>
-  </h1>
-
-  <p>
-    <%= @project.description %> <br/>
-    <%= link_to @project.url, @project.url %>
-  </p>
-
-  <%= render partial: 'project_nav', locals: {active: 'packages'} %>
-
-  <% if @pagy.count > 0 %>
-    <%= render @packages %>
-    <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
-  <% else %>
-    <p>
-      No packages found.
-    </p>
-  <% end %>
+    <div class="dashboard-layout__dboard">
+      <div class="d-md-flex justify-content-between align-items-center mb-4">
+        <h1>Packages</h1>
+      </div>
+      
+      <% if @pagy.count > 0 %>
+        <%= render @packages %>
+        <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+      <% else %>
+        <p>
+          No packages found.
+        </p>
+      <% end %>
+    </div>
+  </div>
 </div>
