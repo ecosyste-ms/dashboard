@@ -420,4 +420,24 @@ class CollectionTest < ActiveSupport::TestCase
     assert_includes eligible_collections, importing
     assert_includes eligible_collections, error
   end
+
+  test "sync_stuck? returns true for syncing collection with old updated_at" do
+    collection = create(:collection, sync_status: 'syncing', updated_at: 1.hour.ago)
+    assert collection.sync_stuck?
+  end
+
+  test "sync_stuck? returns false for syncing collection with recent updated_at" do
+    collection = create(:collection, sync_status: 'syncing', updated_at: 15.minutes.ago)
+    assert_not collection.sync_stuck?
+  end
+
+  test "sync_stuck? returns false for ready collection" do
+    collection = create(:collection, sync_status: 'ready', updated_at: 1.hour.ago)
+    assert_not collection.sync_stuck?
+  end
+
+  test "sync_stuck? returns false for pending collection" do
+    collection = create(:collection, sync_status: 'pending', updated_at: 1.hour.ago)
+    assert_not collection.sync_stuck?
+  end
 end

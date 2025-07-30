@@ -290,6 +290,12 @@ class CollectionsController < ApplicationController
   end
 
   def redirect_if_syncing
+    # Restart stuck syncs
+    if @collection.sync_stuck?
+      Rails.logger.info "Restarting stuck sync for collection #{@collection.id}"
+      @collection.import_projects_async
+    end
+    
     render :syncing unless @collection.ready?
   end
 end

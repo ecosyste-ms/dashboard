@@ -344,6 +344,10 @@ class Collection < ApplicationRecord
     import_status == 'completed' && sync_status == 'ready'
   end
 
+  def sync_stuck?
+    sync_status == 'syncing' && updated_at < 30.minutes.ago
+  end
+
   def check_and_update_sync_status
     # Check if all projects have been synced
     total_projects = projects.count
