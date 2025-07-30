@@ -19,7 +19,7 @@
                 <h5 class="card-title small">Unique direct dependencies</h5>
                 <div class="stat-card mb-2">
                   <div class="stat-card-body">
-                    <span class="stat-card-title stat-card-title--large"><%= @direct_dependencies %></span>
+                    <span class="stat-card-title stat-card-title--large stat-card-number-neutral"><%= @direct_dependencies %></span>
                   </div>
                 </div>
               </div>
@@ -29,7 +29,7 @@
                 <h5 class="card-title small">Unique development dependencies</h5>
                 <div class="stat-card mb-2">
                   <div class="stat-card-body">
-                    <span class="stat-card-title stat-card-title--large"><%= @development_dependencies %></span>
+                    <span class="stat-card-title stat-card-title--large stat-card-number-neutral"><%= @development_dependencies %></span>
                   </div>
                 </div>
               </div>
@@ -39,7 +39,7 @@
                 <h5 class="card-title small">Unique transitive dependencies</h5>
                 <div class="stat-card mb-2">
                   <div class="stat-card-body">
-                    <span class="stat-card-title stat-card-title--large"><%= @transitive_dependencies %></span>
+                    <span class="stat-card-title stat-card-title--large stat-card-number-neutral"><%= @transitive_dependencies %></span>
                   </div>
                 </div>
               </div>
@@ -51,7 +51,7 @@
               <div class="card-body">
                 <h5 class="card-title">Dependencies</h5>
                 <div class="table-responsive">
-                  <table class="table table-hover">
+                  <table class="table table-hover table--purple">
                     <thead>
                       <tr>
                         <th style="width: 35%;">Package Name</th>

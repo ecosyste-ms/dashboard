@@ -808,6 +808,20 @@ body {
 	}
 }
 
+.table--purple {
+  // a table that is purple, used for tables on widgets
+  --bs-table-bg: #{$color-grey-light};
+  --bs-table-hover-bg: #{$color-purple-transparent};
+  --bs-table-active-bg: #{$color-purple-light};
+  --bs-table-border-color: #{$color-purple-transparent};
+  th, 
+  td,
+  tr {
+    border-color: var(--bs-table-border-color) !important;
+  }
+}
+
+
 .label-rejected {
   background-color: $color-orange-dark; 
 }
