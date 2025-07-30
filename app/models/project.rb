@@ -157,7 +157,13 @@ class Project < ApplicationRecord
   end
 
   def ready?
+    return true if sync_status == 'completed'
+    return false if sync_status == 'error' || sync_status == 'syncing'
     last_synced_at.present? && last_synced_at > 1.hour.ago
+  end
+
+  def sync_stuck?
+    sync_status == 'syncing' && updated_at < 30.minutes.ago
   end
 
   def sync_progress

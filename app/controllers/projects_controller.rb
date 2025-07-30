@@ -358,6 +358,13 @@ class ProjectsController < ApplicationController
 
   def redirect_if_syncing
     @project = Project.find(params[:id])
+    
+    # Restart stuck syncs
+    if @project.sync_stuck?
+      Rails.logger.info "Restarting stuck sync for project #{@project.id}"
+      @project.sync_async
+    end
+    
     render :syncing unless @project.ready?
   end
 

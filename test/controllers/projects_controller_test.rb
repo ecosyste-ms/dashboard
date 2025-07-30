@@ -49,7 +49,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should show syncing page for unsynced project" do
-    project = create(:project, :without_repository, last_synced_at: nil)
+    project = create(:project, :without_repository, last_synced_at: nil, sync_status: 'pending')
     get project_url(project)  
     assert_response :success
     assert_template :syncing
@@ -58,7 +58,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should show syncing page for recently created project" do
-    project = create(:project, :without_repository, last_synced_at: 2.hours.ago)
+    project = create(:project, :without_repository, last_synced_at: 2.hours.ago, sync_status: 'pending')
     get project_url(project)
     assert_response :success
     assert_template :syncing
@@ -439,7 +439,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should redirect to syncing for unready project on analytics pages" do
-    project = create(:project, :without_repository, last_synced_at: nil)
+    project = create(:project, :without_repository, last_synced_at: nil, sync_status: 'pending')
     
     # Test that analytics pages redirect to syncing for unready projects
     get adoption_project_url(project)

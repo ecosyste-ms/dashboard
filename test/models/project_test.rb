@@ -51,18 +51,48 @@ class ProjectTest < ActiveSupport::TestCase
   end
 
   test "ready? returns false for never synced project" do
-    project = create(:project, last_synced_at: nil)
+    project = create(:project, last_synced_at: nil, sync_status: 'pending')
     assert_not project.ready?
   end
 
   test "ready? returns false for old synced project" do
-    project = create(:project, last_synced_at: 2.hours.ago)
+    project = create(:project, last_synced_at: 2.hours.ago, sync_status: 'pending')
     assert_not project.ready?
   end
 
   test "ready? returns true for recently synced project" do
     project = create(:project, last_synced_at: 30.minutes.ago)
     assert project.ready?
+  end
+
+  test "ready? returns true for completed sync even if last_synced_at is old" do
+    project = create(:project, last_synced_at: 2.hours.ago, sync_status: 'completed')
+    assert project.ready?
+  end
+
+  test "ready? returns false for error sync status" do
+    project = create(:project, last_synced_at: 30.minutes.ago, sync_status: 'error')
+    assert_not project.ready?
+  end
+
+  test "ready? returns false for syncing status with old last_synced_at" do
+    project = create(:project, last_synced_at: 2.hours.ago, sync_status: 'syncing')
+    assert_not project.ready?
+  end
+
+  test "sync_stuck? returns true for syncing project with old updated_at" do
+    project = create(:project, sync_status: 'syncing', updated_at: 1.hour.ago)
+    assert project.sync_stuck?
+  end
+
+  test "sync_stuck? returns false for syncing project with recent updated_at" do
+    project = create(:project, sync_status: 'syncing', updated_at: 15.minutes.ago)
+    assert_not project.sync_stuck?
+  end
+
+  test "sync_stuck? returns false for completed project" do
+    project = create(:project, sync_status: 'completed', updated_at: 1.hour.ago)
+    assert_not project.sync_stuck?
   end
 
   test "sync_progress returns correct progress" do
