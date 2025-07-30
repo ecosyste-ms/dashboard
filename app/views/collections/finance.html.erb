@@ -22,7 +22,7 @@
               <h5 class="card-title small">Projects with funding</h5>
               <div class="stat-card mb-2">
                 <div class="stat-card-body">
-                  <span class="stat-card-title stat-card-title--large"><%= @projects_with_funding_count %></span>
+                  <span class="stat-card-title stat-card-title--large stat-card-number-neutral"><%= @projects_with_funding_count %></span>
                 </div>
               </div>
             </div>
@@ -32,7 +32,7 @@
               <h5 class="card-title small">Unique Open Collectives</h5>
               <div class="stat-card mb-2">
                 <div class="stat-card-body">
-                  <span class="stat-card-title stat-card-title--large"><%= @unique_collectives_count %></span>
+                  <span class="stat-card-title stat-card-title--large stat-card-number-neutral"><%= @unique_collectives_count %></span>
                 </div>
               </div>
             </div>
@@ -42,7 +42,7 @@
               <h5 class="card-title small">Unique GitHub Sponsors</h5>
               <div class="stat-card mb-2">
                 <div class="stat-card-body">
-                  <span class="stat-card-title stat-card-title--large"><%= @unique_github_sponsors_count %></span>
+                  <span class="stat-card-title stat-card-title--large stat-card-number-neutral"><%= @unique_github_sponsors_count %></span>
                 </div>
               </div>
             </div>
@@ -78,7 +78,7 @@
         <div class="mb-3">
           <div class="d-flex flex-wrap gap-2">
             <% projects.each do |project| %>
-              <%= link_to project.name, project_path(project), class: "badge bg-secondary text-decoration-none" %>
+              <%= link_to project.name, project_path(project), class: "badge text-bg-light text-decoration-none" %>
             <% end %>
           </div>
         </div>
@@ -137,7 +137,7 @@
         <div class="mb-3">
           <div class="d-flex flex-wrap gap-2">
             <% projects.each do |project| %>
-              <%= link_to project.name, project_path(project), class: "badge bg-secondary text-decoration-none" %>
+              <%= link_to project.name, project_path(project), class: "badge text-bg-light text-decoration-none" %>
             <% end %>
           </div>
         </div>
@@ -158,7 +158,7 @@
           <div class="two-thirds-widgets">
             <%= small_widget 'Minimum sponsorship', first_project.github_minimum_sponsorship_amount, nil, symbol: '$', currency: true %>
             <%= no_data_widget 'Missing Data', card_class: "well--grey two-thirds-widgets__large" do %>
-              We can't show financial data for <strong>GitHub Sponsors</strong> due to limits in their API.
+              We can&apos;t show financial data for <strong>GitHub Sponsors</strong> due to limits in their API.
             <% end %>
           </div>
 
@@ -182,7 +182,7 @@
         <div class="mb-3">
           <div class="d-flex flex-wrap gap-2">
             <% @collection.projects.select { |p| p.other_funding_links.present? }.each do |project| %>
-              <%= link_to project.name, project_path(project), class: "badge bg-secondary text-decoration-none" %>
+              <%= link_to project.name, project_path(project), class: "badge text-bg-light text-decoration-none" %>
             <% end %>
           </div>
         </div>
