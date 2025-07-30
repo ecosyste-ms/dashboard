@@ -440,4 +440,76 @@ class CollectionTest < ActiveSupport::TestCase
     collection = create(:collection, sync_status: 'pending', updated_at: 1.hour.ago)
     assert_not collection.sync_stuck?
   end
+
+  test "dependency counts are deduplicated across projects" do
+    collection = create(:collection)
+    
+    # Create first project with:
+    # - react: direct runtime
+    # - lodash: transitive runtime  
+    # - jest: direct development (both direct AND development)
+    project1 = build(:project,
+      url: "https://github.com/test/project1",
+      dependencies: [{
+        'dependencies' => [
+          {'package_name' => 'react', 'direct' => true, 'kind' => 'runtime'},
+          {'package_name' => 'lodash', 'direct' => false, 'kind' => 'runtime'},
+          {'package_name' => 'jest', 'direct' => true, 'kind' => 'development'}
+        ]
+      }],
+      direct_dependencies_count: 2, # react, jest
+      development_dependencies_count: 1, # jest  
+      transitive_dependencies_count: 1 # lodash
+    )
+    project1.save!
+    
+    # Create second project with:
+    # - react: direct runtime (duplicate with project1)
+    # - express: direct runtime
+    # - webpack: direct development (both direct AND development)
+    project2 = build(:project,
+      url: "https://github.com/test/project2",
+      dependencies: [{
+        'dependencies' => [
+          {'package_name' => 'react', 'direct' => true, 'kind' => 'runtime'}, # duplicate
+          {'package_name' => 'express', 'direct' => true, 'kind' => 'runtime'},
+          {'package_name' => 'webpack', 'direct' => true, 'kind' => 'development'}
+        ]
+      }],
+      direct_dependencies_count: 3, # react, express, webpack
+      development_dependencies_count: 1, # webpack
+      transitive_dependencies_count: 0
+    )
+    project2.save!
+    
+    # Add projects to collection
+    collection.collection_projects.create!(project: project1)
+    collection.collection_projects.create!(project: project2)
+    
+    # Test that summing project counts would give wrong answer (double counting)
+    sum_direct = collection.projects.sum(:direct_dependencies_count)
+    sum_development = collection.projects.sum(:development_dependencies_count)
+    sum_transitive = collection.projects.sum(:transitive_dependencies_count)
+    
+    assert_equal 5, sum_direct # Would be 5 (2+3) with double counting react
+    assert_equal 2, sum_development # Would be 2 (1+1)
+    assert_equal 1, sum_transitive # Would be 1 (1+0)
+    
+    # Test that our new methods properly deduplicate
+    collection.recalculate_dependency_counts!
+    
+    assert_equal 4, collection.direct_dependencies_count # react, jest, express, webpack (react deduplicated)
+    assert_equal 2, collection.development_dependencies_count # jest, webpack
+    assert_equal 1, collection.transitive_dependencies_count # lodash
+    
+    # Test that the dependency arrays are also properly deduplicated
+    assert_equal 4, collection.direct_dependencies.length
+    assert_equal 2, collection.development_dependencies.length  
+    assert_equal 1, collection.transitive_dependencies.length
+    
+    # Test that cached values are used
+    assert_equal 4, collection[:direct_dependencies_count]
+    assert_equal 2, collection[:development_dependencies_count]
+    assert_equal 1, collection[:transitive_dependencies_count]
+  end
 end

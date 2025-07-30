@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_30_093943) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_30_095337) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -66,6 +66,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_30_093943) do
     t.datetime "last_error_at"
     t.string "import_status", default: "pending"
     t.datetime "last_synced_at"
+    t.integer "direct_dependencies_count", default: 0, null: false
+    t.integer "development_dependencies_count", default: 0, null: false
+    t.integer "transitive_dependencies_count", default: 0, null: false
     t.index ["user_id"], name: "index_collections_on_user_id"
   end
 

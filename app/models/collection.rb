@@ -357,7 +357,8 @@ class Collection < ApplicationRecord
       # No projects found during import - mark as ready
       update_with_broadcast(sync_status: 'ready', last_synced_at: Time.current)
     elsif synced_projects == total_projects
-      # All projects have been synced - mark as ready and set last_synced_at
+      # All projects have been synced - recalculate dependency counts and mark as ready
+      recalculate_dependency_counts!
       update_with_broadcast(sync_status: 'ready', last_synced_at: Time.current)
     else
       # Still syncing projects - broadcast progress update
@@ -417,27 +418,30 @@ class Collection < ApplicationRecord
   end
 
   def direct_dependencies_count
-    @direct_dependencies_count ||= projects.sum(:direct_dependencies_count)
+    # Use cached database value - will be updated after project syncing
+    self[:direct_dependencies_count]
   end
 
   def development_dependencies_count  
-    @development_dependencies_count ||= projects.sum(:development_dependencies_count)
+    # Use cached database value - will be updated after project syncing
+    self[:development_dependencies_count]
   end
 
   def transitive_dependencies_count
-    @transitive_dependencies_count ||= projects.sum(:transitive_dependencies_count)
+    # Use cached database value - will be updated after project syncing
+    self[:transitive_dependencies_count]
   end
 
   def direct_dependencies
-    @direct_dependencies ||= projects.map(&:direct_dependencies).flatten.uniq
+    @direct_dependencies ||= projects.map(&:direct_dependencies).flatten.uniq { |dep| dep['package_name'] || dep['name'] }
   end
 
   def development_dependencies
-    @development_dependencies ||= projects.map(&:development_dependencies).flatten.uniq
+    @development_dependencies ||= projects.map(&:development_dependencies).flatten.uniq { |dep| dep['package_name'] || dep['name'] }
   end
 
   def transitive_dependencies
-    @transitive_dependencies ||= projects.map(&:transitive_dependencies).flatten.uniq
+    @transitive_dependencies ||= projects.map(&:transitive_dependencies).flatten.uniq { |dep| dep['package_name'] || dep['name'] }
   end
 
   def dependent_packages_count
@@ -450,6 +454,30 @@ class Collection < ApplicationRecord
 
   def downloads
     projects.map(&:downloads).compact.sum
+  end
+
+  def calculate_and_cache_dependency_counts
+    # Calculate unique dependency counts by deduplicating across projects
+    direct_count = direct_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }.length
+    development_count = development_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }.length
+    transitive_count = transitive_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }.length
+    
+    # Update the cached counts
+    update_columns(
+      direct_dependencies_count: direct_count,
+      development_dependencies_count: development_count,
+      transitive_dependencies_count: transitive_count
+    )
+    
+    {
+      direct: direct_count,
+      development: development_count,
+      transitive: transitive_count
+    }
+  end
+
+  def recalculate_dependency_counts!
+    calculate_and_cache_dependency_counts
   end
 
   def broadcast_sync_progress

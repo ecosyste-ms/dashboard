@@ -185,7 +185,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
 
   test "should show project advisories" do
     project = create(:project, :with_repository)
-    get advisories_project_url(project)
+    get security_project_url(project)
     assert_response :success
   end
 
