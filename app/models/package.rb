@@ -10,7 +10,7 @@ class Package < ApplicationRecord
   scope :package_urls, ->(package_urls) { where(purl: package_urls.map{|p| Package.purl_without_version(p) }) }
 
   scope :active, -> { where("(metadata ->> 'status') is null") }
-  scope :order_by_rankings, -> { order(Arel.sql("metadata -> 'rankings' ->> 'average' asc")) }
+  scope :order_by_rankings, -> { order(Arel.sql("(metadata -> 'rankings' ->> 'average')::numeric asc nulls last")) }
 
   def self.purl_without_version(purl)
     PackageURL.new(**PackageURL.parse(purl.to_s).to_h.except(:version, :scheme)).to_s
