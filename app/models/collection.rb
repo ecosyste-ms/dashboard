@@ -429,15 +429,15 @@ class Collection < ApplicationRecord
   end
 
   def direct_dependencies
-    @direct_dependencies ||= projects.includes(:projects).map(&:direct_dependencies).flatten.uniq
+    @direct_dependencies ||= projects.map(&:direct_dependencies).flatten.uniq
   end
 
   def development_dependencies
-    @development_dependencies ||= projects.includes(:projects).map(&:development_dependencies).flatten.uniq
+    @development_dependencies ||= projects.map(&:development_dependencies).flatten.uniq
   end
 
   def transitive_dependencies
-    @transitive_dependencies ||= projects.includes(:projects).map(&:transitive_dependencies).flatten.uniq
+    @transitive_dependencies ||= projects.map(&:transitive_dependencies).flatten.uniq
   end
 
   def dependent_packages_count
