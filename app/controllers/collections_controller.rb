@@ -102,10 +102,19 @@ class CollectionsController < ApplicationController
   end
 
   def dependencies
-    # Counts should match the unique dependencies shown in the table
-    @direct_dependencies = @collection.direct_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }.length
-    @development_dependencies = @collection.development_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }.length
-    @transitive_dependencies = @collection.transitive_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }.length
+    # Use cached dependency counts for performance
+    @direct_dependencies = @collection.direct_dependencies_count
+    @development_dependencies = @collection.development_dependencies_count  
+    @transitive_dependencies = @collection.transitive_dependencies_count
+
+    # Only load full dependency data if we need to display the table
+    @direct_deps = @collection.direct_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }
+    @development_deps = @collection.development_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }
+    @transitive_deps = @collection.transitive_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }
+    
+    # Create lookup sets for faster type checking
+    @direct_dep_names = Set.new(@direct_deps.map { |dep| dep['package_name'] || dep['name'] })
+    @development_dep_names = Set.new(@development_deps.map { |dep| dep['package_name'] || dep['name'] })
   end
 
   def productivity
@@ -278,7 +287,7 @@ class CollectionsController < ApplicationController
 
   def set_collection_with_visibility_check
     collection_id = params[:id] || params[:collection_id]
-    @collection = Collection.find_by_uuid(collection_id)
+    @collection = Collection.includes(:projects).find_by_uuid(collection_id)
     raise ActiveRecord::RecordNotFound if @collection.nil?
     if @collection.visibility == 'private' && @collection.user != current_user
       raise ActiveRecord::RecordNotFound

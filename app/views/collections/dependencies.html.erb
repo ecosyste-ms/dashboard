@@ -65,23 +65,23 @@
                     <tbody>
                       <% dependencies = case params[:filter]
                          when 'direct'
-                           @collection.direct_dependencies
+                           @direct_deps
                          when 'development'
-                           @collection.development_dependencies
+                           @development_deps
                          when 'transitive'
-                           @collection.transitive_dependencies
+                           @transitive_deps
                          else
-                           @collection.direct_dependencies + @collection.development_dependencies + @collection.transitive_dependencies
-                         end.uniq { |dep| dep['package_name'] || dep['name'] } %>
+                           (@direct_deps + @development_deps + @transitive_deps).uniq { |dep| dep['package_name'] || dep['name'] }
+                         end %>
                       <% dependencies.each do |dep| %>
-                        <% dep_type = if @collection.direct_dependencies.any? { |d| (d['package_name'] || d['name']) == (dep['package_name'] || dep['name']) }
+                        <% package_name = dep['package_name'] || dep['name'] || 'N/A'
+                           dep_type = if @direct_dep_names.include?(package_name)
                                         'direct'
-                                      elsif @collection.development_dependencies.any? { |d| (d['package_name'] || d['name']) == (dep['package_name'] || dep['name']) }
+                                      elsif @development_dep_names.include?(package_name)
                                         'development'
                                       else
                                         'transitive'
                                       end
-                           package_name = dep['package_name'] || dep['name'] || 'N/A'
                            usage_count = 1  # Simple count for now
                         %>
                         <tr>

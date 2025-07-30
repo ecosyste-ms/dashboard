@@ -416,16 +416,28 @@ class Collection < ApplicationRecord
     projects.map(&:stars).compact.sum
   end
 
+  def direct_dependencies_count
+    @direct_dependencies_count ||= projects.sum(:direct_dependencies_count)
+  end
+
+  def development_dependencies_count  
+    @development_dependencies_count ||= projects.sum(:development_dependencies_count)
+  end
+
+  def transitive_dependencies_count
+    @transitive_dependencies_count ||= projects.sum(:transitive_dependencies_count)
+  end
+
   def direct_dependencies
-    projects.map(&:direct_dependencies).flatten.uniq
+    @direct_dependencies ||= projects.includes(:projects).map(&:direct_dependencies).flatten.uniq
   end
 
   def development_dependencies
-    projects.map(&:development_dependencies).flatten.uniq
+    @development_dependencies ||= projects.includes(:projects).map(&:development_dependencies).flatten.uniq
   end
 
   def transitive_dependencies
-    projects.map(&:transitive_dependencies).flatten.uniq
+    @transitive_dependencies ||= projects.includes(:projects).map(&:transitive_dependencies).flatten.uniq
   end
 
   def dependent_packages_count

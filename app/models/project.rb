@@ -1096,10 +1096,16 @@ class Project < ApplicationRecord
     response = conn.get
     return unless response.success?
     self.dependencies = JSON.parse(response.body)
+    
+    # Calculate and cache dependency counts
+    self.direct_dependencies_count = direct_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }.length
+    self.development_dependencies_count = development_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }.length
+    self.transitive_dependencies_count = transitive_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }.length
+    
     self.dependencies_last_synced_at = Time.now
     self.save
-  rescue
-    puts "Error fetching dependencies for #{url}"
+  rescue => e
+    Rails.logger.error "Error fetching dependencies for #{url}: #{e.message}"
   end
 
   def all_dependencies
