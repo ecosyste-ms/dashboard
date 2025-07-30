@@ -72,7 +72,7 @@
                            @transitive_deps
                          else
                            (@direct_deps + @development_deps + @transitive_deps).uniq { |dep| dep['package_name'] || dep['name'] }
-                         end %>
+                         end.sort_by { |dep| -(@dependency_usage_counts[dep['package_name'] || dep['name']] || 0) } %>
                       <% dependencies.each do |dep| %>
                         <% package_name = dep['package_name'] || dep['name'] || 'N/A'
                            dep_type = if @direct_dep_names.include?(package_name)
@@ -82,7 +82,8 @@
                                       else
                                         'transitive'
                                       end
-                           usage_count = 1  # Simple count for now
+                           # Get pre-calculated usage count
+                           usage_count = @dependency_usage_counts[package_name] || 0
                         %>
                         <tr>
                           <td><%= package_name %></td>

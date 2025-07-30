@@ -115,6 +115,16 @@ class CollectionsController < ApplicationController
     # Create lookup sets for faster type checking
     @direct_dep_names = Set.new(@direct_deps.map { |dep| dep['package_name'] || dep['name'] })
     @development_dep_names = Set.new(@development_deps.map { |dep| dep['package_name'] || dep['name'] })
+    
+    # Pre-calculate usage counts for performance
+    @dependency_usage_counts = {}
+    @collection.projects.each do |project|
+      project.all_dependencies.each do |dep|
+        package_name = dep['package_name'] || dep['name']
+        @dependency_usage_counts[package_name] ||= 0
+        @dependency_usage_counts[package_name] += 1
+      end
+    end
   end
 
   def productivity
