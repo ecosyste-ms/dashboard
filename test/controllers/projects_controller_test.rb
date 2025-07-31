@@ -1,9 +1,17 @@
 require "test_helper"
 
 class ProjectsControllerTest < ActionDispatch::IntegrationTest
-  test "should get index" do
+  test "should get index when logged in" do
+    user = create(:user)
+    login_as user
+    
     get projects_url
     assert_response :success
+  end
+
+  test "should require authentication for index" do
+    get projects_url
+    assert_redirected_to login_url
   end
 
   test "should show project" do
