@@ -139,7 +139,7 @@
                     <span class="stat-card-title stat-card-title--large <%= @commits_this_period >= @commits_last_period ? 'stat-card-number-positive' : 'stat-card-number-negative' %>">
                       <%= number_to_human(@commits_this_period, precision: 1) %> <%= bootstrap_icon(@commits_this_period >= @commits_last_period ? 'caret-up-fill' : 'caret-down-fill', width: 18, height: 18, class: 'flex-shrink-0') %>
                     </span>
-                    <span class="stat-card-text stat-card-text"><%= number_to_human(@commits_last_period, precision: 1) %> last period</span>
+                    <span class="stat-card-text stat-card-text"><%= number_to_human(@commits_last_period, precision: 1) %> <%= last_period_text %></span>
                   </div>
                 </div>
                 <div class="chart-wrapper">

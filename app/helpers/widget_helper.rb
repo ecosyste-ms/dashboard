@@ -30,7 +30,7 @@ module WidgetHelper
                 ])
               end +
               if previous_value.present?
-                content_tag(:span, "#{currency ? number_to_currency(previous_value, unit: symbol || '$') : "#{number_with_delimiter(previous_value)}#{symbol}"} last period", class: "stat-card-text")
+                content_tag(:span, "#{currency ? number_to_currency(previous_value, unit: symbol || '$') : "#{number_with_delimiter(previous_value)}#{symbol}"} #{last_period_text}", class: "stat-card-text")
               else
                 "".html_safe
               end
@@ -205,5 +205,9 @@ module WidgetHelper
     domain_icons[domain] || 'link-45deg'
   rescue
     'link-45deg'
+  end
+
+  def last_period_text
+    @range == 'year' ? 'last year' : 'last month'
   end
 end
