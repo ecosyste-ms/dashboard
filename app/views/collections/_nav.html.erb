@@ -19,10 +19,20 @@
       <a class="nav-link <%= 'active' if action_name == 'adoption' %>" href="<%= adoption_collection_path(@collection, request.query_parameters) %>">Adoption</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'dependencies' %>" href="<%= dependencies_collection_path(@collection, request.query_parameters) %>">Dependencies</a>
+      <a class="nav-link <%= 'active' if action_name == 'dependencies' %>" href="<%= dependencies_collection_path(@collection, request.query_parameters) %>">Dependencies
+        <% total_deps = @collection.direct_dependencies_count + @collection.development_dependencies_count + @collection.transitive_dependencies_count %>
+        <% if total_deps > 0 %>
+          <span class="badge bg-secondary ms-1"><%= total_deps %></span>
+        <% end %>
+      </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'packages' %>" href="<%= packages_collection_path(@collection, request.query_parameters) %>">Packages</a>
+      <a class="nav-link <%= 'active' if action_name == 'packages' %>" href="<%= packages_collection_path(@collection, request.query_parameters) %>">Packages
+        <% packages_count = @collection.projects.sum(:packages_count) %>
+        <% if packages_count > 0 %>
+          <span class="badge bg-secondary ms-1"><%= packages_count %></span>
+        <% end %>
+      </a>
     </li>
     <li class="nav-item">
       <a class="nav-link <%= 'active' if action_name == 'security' %>" href="<%= security_collection_path(@collection, request.query_parameters) %>">Security</a>
