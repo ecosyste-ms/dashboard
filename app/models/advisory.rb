@@ -23,4 +23,8 @@ class Advisory < ApplicationRecord
   def package_names
     packages.map{|p| p['package_name'] }.uniq
   end
+
+  def withdrawn?
+    withdrawn_at.present?
+  end
 end

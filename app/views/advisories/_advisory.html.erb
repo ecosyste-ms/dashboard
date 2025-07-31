@@ -1,0 +1,40 @@
+<div class="card mb-3">
+  <div class="card-body">
+    <% if advisory.severity.present? %>
+      <span class="badge badge-<%= advisory.severity.downcase == 'critical' ? 'danger' : advisory.severity.downcase == 'high' ? 'warning' : advisory.severity.downcase == 'medium' ? 'info' : 'secondary' %>">
+        <%= advisory.severity.humanize %>
+      </span>
+    <% end %>
+    <div class="text-muted float-end">
+      <% if advisory.withdrawn_at.present? %>
+        <span title="<%= advisory.withdrawn_at %>">Withdrawn <%= time_ago_in_words advisory.withdrawn_at %> ago</span>
+      <% elsif advisory.published_at.present? %>
+        <span title="<%= advisory.published_at %>"><%= time_ago_in_words advisory.published_at %> ago</span>
+      <% end %>
+    </div>
+    <strong>
+      <% if advisory.url.present? %>
+        <%= link_to advisory.title, advisory.url %>
+      <% else %>
+        <%= advisory.title %>
+      <% end %>
+      <% if advisory.uuid.present? %>
+        <span class="text-muted"> <%= advisory.uuid %> </span>
+      <% end %>
+    </strong><br/>
+    <% if advisory.description.present? %>
+      <%= simple_format truncate(advisory.description, length: 200) %>
+    <% end %>
+    <div class="mt-2">
+      <% if advisory.ecosystems.any? %>
+        <span class="me-3"><strong>Ecosystems:</strong> <%= advisory.ecosystems.join(', ') %></span>
+      <% end %>
+      <% if advisory.package_names.any? %>
+        <span><strong>Packages:</strong> <%= advisory.package_names.join(', ') %></span>
+      <% end %>
+      <% if advisory.cvss_score.present? %>
+        <span class="ms-3"><strong>CVSS:</strong> <%= advisory.cvss_score %></span>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -424,21 +424,6 @@ class Collection < ApplicationRecord
     projects.map(&:stars).compact.sum
   end
 
-  def direct_dependencies_count
-    # Use cached database value - will be updated after project syncing
-    self[:direct_dependencies_count]
-  end
-
-  def development_dependencies_count  
-    # Use cached database value - will be updated after project syncing
-    self[:development_dependencies_count]
-  end
-
-  def transitive_dependencies_count
-    # Use cached database value - will be updated after project syncing
-    self[:transitive_dependencies_count]
-  end
-
   def direct_dependencies
     @direct_dependencies ||= projects.map(&:direct_dependencies).flatten.uniq { |dep| dep['package_name'] || dep['name'] }
   end
@@ -485,6 +470,14 @@ class Collection < ApplicationRecord
 
   def recalculate_dependency_counts!
     calculate_and_cache_dependency_counts
+  end
+
+  def total_dependencies_count
+    direct_dependencies_count + development_dependencies_count + transitive_dependencies_count
+  end
+
+  def advisories_count
+    advisories.count
   end
 
   def broadcast_sync_progress

@@ -1144,6 +1144,14 @@ class Project < ApplicationRecord
     all_dependencies.select{|d| d['direct'] == false }
   end
 
+  def total_dependencies_count
+    direct_dependencies_count + development_dependencies_count + transitive_dependencies_count
+  end
+
+  def advisories_count
+    advisories.count
+  end
+
   def fetch_collective
     return unless funding_links.any?{|f| f.include?('opencollective.com') }
     return if collective_id.present?
