@@ -512,4 +512,84 @@ class CollectionTest < ActiveSupport::TestCase
     assert_equal 2, collection[:development_dependencies_count]
     assert_equal 1, collection[:transitive_dependencies_count]
   end
+
+  test "collections should only show active projects" do
+    collection = create(:collection)
+    project1 = create(:project, url: "https://github.com/test/project1")
+    project2 = create(:project, url: "https://github.com/test/project2")
+    
+    # Create collection_projects
+    cp1 = collection.collection_projects.create!(project: project1)
+    cp2 = collection.collection_projects.create!(project: project2)
+    
+    assert_equal 2, collection.projects.count
+    assert_includes collection.projects, project1
+    assert_includes collection.projects, project2
+    
+    # Soft delete one collection_project
+    cp1.soft_delete!
+    collection.reload
+    
+    assert_equal 1, collection.projects.count
+    assert_not_includes collection.projects, project1
+    assert_includes collection.projects, project2
+    
+    # Restore the soft-deleted collection_project
+    cp1.restore!
+    collection.reload
+    
+    assert_equal 2, collection.projects.count
+    assert_includes collection.projects, project1
+    assert_includes collection.projects, project2
+  end
+
+  test "add_project_to_collection should work with collections" do
+    collection = create(:collection)
+    project = create(:project)
+    
+    assert_difference 'collection.projects.count', 1 do
+      CollectionProject.add_project_to_collection(collection, project)
+    end
+    
+    assert_includes collection.projects, project
+    
+    # Adding the same project again should not create a duplicate
+    assert_no_difference 'collection.projects.count' do
+      CollectionProject.add_project_to_collection(collection, project)
+    end
+    
+    # Soft delete the collection_project and add again - should restore
+    cp = collection.collection_projects.find_by(project: project)
+    cp.soft_delete!
+    collection.reload
+    assert_not_includes collection.projects, project
+    
+    assert_no_difference 'CollectionProject.count' do
+      CollectionProject.add_project_to_collection(collection, project)
+    end
+    
+    collection.reload
+    assert_includes collection.projects, project
+  end
+
+  test "collection import methods should restore soft deleted projects" do
+    collection = create(:collection)
+    project = create(:project, url: "https://github.com/test/existing")
+    
+    # Create and then soft delete a collection_project
+    cp = collection.collection_projects.create!(project: project)
+    cp.soft_delete!
+    collection.reload
+    assert_not_includes collection.projects, project
+    assert_equal 0, collection.projects.count
+    
+    # Use add_project_to_collection which should restore the soft-deleted record
+    result = CollectionProject.add_project_to_collection(collection, project)
+    
+    collection.reload
+    assert_includes collection.projects, project
+    assert_equal 1, collection.projects.count
+    assert result.active?
+    assert_equal cp, result # Should be the same record, just restored
+  end
 end

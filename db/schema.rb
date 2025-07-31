@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_31_115449) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_31_121918) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -43,7 +43,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_31_115449) do
   create_table "collection_projects", force: :cascade do |t|
     t.bigint "collection_id", null: false
     t.bigint "project_id", null: false
+    t.datetime "deleted_at"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.index ["collection_id", "project_id"], name: "index_collection_projects_on_collection_id_and_project_id", unique: true
     t.index ["collection_id"], name: "index_collection_projects_on_collection_id"
+    t.index ["deleted_at"], name: "index_collection_projects_on_deleted_at"
     t.index ["project_id"], name: "index_collection_projects_on_project_id"
   end
 

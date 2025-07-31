@@ -3,7 +3,8 @@ class Project < ApplicationRecord
   include EcosystemsApiClient
 
   has_many :collection_projects, dependent: :destroy
-  has_many :collections, through: :collection_projects
+  has_many :active_collection_projects, -> { active }, class_name: 'CollectionProject'
+  has_many :collections, through: :active_collection_projects
 
   has_many :user_projects, dependent: :destroy
   has_many :users, through: :user_projects

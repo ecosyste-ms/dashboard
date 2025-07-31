@@ -2,7 +2,8 @@ class Collection < ApplicationRecord
   include EcosystemsApiClient
   
   has_many :collection_projects, dependent: :destroy
-  has_many :projects, through: :collection_projects
+  has_many :active_collection_projects, -> { active }, class_name: 'CollectionProject'
+  has_many :projects, through: :active_collection_projects
 
   has_many :issues, through: :projects
   has_many :commits, through: :projects
@@ -147,7 +148,7 @@ class Collection < ApplicationRecord
           project = Project.find_or_create_by(url: url)
           next unless project&.persisted?
           
-          collection_projects.find_or_create_by(project: project)
+          CollectionProject.add_project_to_collection(self, project)
           
           
           broadcast_sync_progress
@@ -198,7 +199,7 @@ class Collection < ApplicationRecord
               project = Project.find_or_create_by(url: url)
               next unless project&.persisted?
               
-              collection_projects.find_or_create_by(project: project)
+              CollectionProject.add_project_to_collection(self, project)
               
               # Queue individual sync job for each project if it needs syncing
               if project.last_synced_at.blank?
@@ -242,7 +243,7 @@ class Collection < ApplicationRecord
           project = Project.find_or_create_by(url: url)
           next unless project&.persisted?
           
-          collection_projects.find_or_create_by(project: project)
+          CollectionProject.add_project_to_collection(self, project)
           
           
           broadcast_sync_progress
@@ -324,7 +325,7 @@ class Collection < ApplicationRecord
           project = Project.find_or_create_by(url: url)
           next unless project&.persisted?
           
-          collection_projects.find_or_create_by(project: project)
+          CollectionProject.add_project_to_collection(self, project)
           
           
           broadcast_sync_progress
