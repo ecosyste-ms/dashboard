@@ -1,148 +1,21 @@
-<% @meta_title = "Projects" %>
-<% @meta_description = "Project dashboards" %>
-<div class="hero dashboard-home__hero">
-  <div class="container mt-5">
-    <h1 class="display-1 mb-3">Measure what matters</h1>
-    <h2 class="fw-normal mb-4">Support Open Source for the right reasons</h2>
-    <p class="dashboard-home__hero__para mb-5">Shift the conversation toward the <em>direct</em> benefits of supporting vibrant, productive, and sustainable Open Source communities on which we can <i>all</i> depend.</p>
+<% content_for :title, "Your Projects" %>
 
-    <div class="well p-5 mx-lg-5 dashboard-home__hero__cta">
-      <div class="row">
-        <div class="col-12 col-lg-5 col-xl-4">
-          <p class="h3"><span class="spesh-link">Ecosystem Dashboards</span> are a free set of tools from ecosyste.ms to help you understand the impact of your open source software contributions</p>
-        </div>
-        <div class="col-12 col-lg-7 col-xl-8">
-          <p>Find a project and see it in our dashboard, with statistics on responsiveness, productivity, finance and more available to compare over time</p>
-          <%= form_with url: lookup_projects_path, method: :post, html: { class: "row g-2 justify-content-center" } do %>
-          <label for="url" class="fw-bold">Enter a github repository URL</label>
-          <div class="input-group rounded-input-group mt-3 mb-4">
-            <%= text_field_tag :url, nil, class: "form-control", id: "url", placeholder: "https://github.com/ecosyste-ms/packages", size: 50 %>
-            <%= submit_tag "View dashboard", class: "btn btn-danger pe-4" %>
-          </div>
-          <% end %>
-           <p class="small">Or <a href="/projects/52" class="spesh-link">view an example project</a> or <a href="/collections/new"  class="spesh-link">create a collection</a></p>
-        </div>
-      </div>
-
-    </div>
+<div class="container">
+  <div class="d-md-flex justify-content-between align-items-center mt-5 mb-2">
+    <h1 class="my-4">Your projects</h1>
+    <%= link_to new_project_path, class: "btn btn-primary rounded-pill" do %>
+      <%= bootstrap_icon 'plus-circle', width: 16, height: 16, class: 'me-2' %>
+      Add a new project
+    <% end %>
   </div>
-</div>
 
-<div class="dashboard-home__benefits dark-section purple-grad-bg py-5">
-  <div class="container">
-    <div class="row text-center my-5">
-      <div class="col-12 col-md-6 col-lg-3">
-        <h4>Fewer metrics, clearer picture</h4>
-        <p>Get started quickly with fewer metrics, pre-selected and organized into six, simple facets.</p> 
-      </div>
-      <div class="col-12 col-md-6 col-lg-3">
-        <h4>Accurate and comprehensive</h4>
-        <p>Built on the world&apos;s most accurate and comprehensive database of open source software.</p> 
-      </div><div class="col-12 col-md-6 col-lg-3">
-        <h4>Based on fact, not judgement</h4>
-        <p>We lead with the data, leaving you to decide what&apos;s important to you and your organization.</p> 
-      </div><div class="col-12 col-md-6 col-lg-3">
-        <h4>Impact-driven decision-making</h4>
-        <p>Justify the investments you&apos;ve made with insights from the past month, quarter, or year.</p> 
-      </div>
+  <% if @user_projects.empty? %>
+    <div class="text-center py-5">
+      <p class="lead text-muted">You haven't added any projects yet.</p>
     </div>
-  </div>
-</div>
-
-<div class="dashboard-home__howitworks py-5">
-  <div class="container">
-    <h2 class="h1 mt-5 mb-5">How it works</h2>
-    <div class="row">
-      <div class="col-12 col-lg-4 mb-5">
-        <%= image_tag("howitworks-single.svg", alt: " ", size: "200x200", class: "mb-4") %>
-        <h4>Single project view</h4>
-        <p>Find a project and view it in our dashboard, with statistics on responsiveness, productivity, finance and more available to compare over time</p>
-      </div>
-      <div class="col-12 col-md-6 col-lg-4 mb-5">
-        <%= image_tag("howitworks-collection.svg", alt: " ", size: "200x200", class: "mb-4") %>
-        <h4>A complete picture</h4>
-        <p>Bring projects together into a custom Collection, giving you the whole picture of your dependencies or tech stack in a single view</p>
-      </div>
-      <div class="col-12 col-md-6 col-lg-4 mb-5">
-        <%= image_tag("howitworks-metrics.svg", alt: " ", size: "200x200", class: "mb-4") %>
-        <h4>Share your insights</h4>
-        <p>Share Collections with others to get the backing you need to secure your software dependency and ensure the longevity of your technology</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="dashboard-home__ecosystems-data grey-bg">
-  <div class="container">
-    <div class="row">
-      <div class="col-12 col-lg-6">
-        <h2 class="mb-4 mt-5">All built on ecosyste.ms data</h2>
-        <p class="h2 mb-4">The world&rsquo;s most comprehensive and accurate dataset about open source production and use</p>
-        <p><a href="https://ecosyste.ms" class="spesh-link mb-5">Find out more</a></p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="dashboard-home__whywebuilt py-5">
-  <div class="container">
-    <div class="row mb-5">
-      <div class="col-12 col-lg-5 offset-lg-1">
-        <h2 class="h1 mb-4 mt-5">Why we built dashboards</h2>
-        <p class="mb-4">Many of the organisations supporting open source today do so because of a few dedicated people, deep within the belly of their corporate structure, doing the <em>good work</em> of convincing leadership that it’s a <em>good idea</em>.</p>
-        <p class="mb-4">But without tools to support them this is difficult, exhausting and often fruitless. We want to change that. </p>
-        <p><a href="#" class="spesh-link mb-5">Read the blog post</a></p>
-      </div>
-      <div class="col-12 col-lg-5 ">   
-        <%= image_tag("why-we-built.svg", alt: " ", size: "520x390", class: "mt-4 ms-lg-4 dashboard-home__whywebuilt__img") %>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="dashboard-home__getstarted py-5 border-top">
-  <div class="container">
-    <div class="row">
-      <div class="col-12 col-lg-8 offset-lg-2 text-center">
-        <div class="col-lg-7 container text-center">
-          <h2 class="h1 mb-4 mt-5">Get started</h2>
-          <p class="mb-4">Find a project and see it in our dashboard, with statistics on responsiveness, productivity, finance and more available to compare over time</p>
-        </div>
-        <div class="well p-4 my-5">
-          <div class="col-lg-12 container text-center">
-            <%= form_with url: lookup_projects_path, method: :post, html: { class: "row g-2 justify-content-center" } do %>
-              <label for="url">Enter a github repository URL</label>
-              <div class="input-group rounded-input-group mt-3 mb-4">
-                <%= text_field_tag :url, nil, class: "form-control", id: "url", placeholder: "URL: eg https://github.com/ecosyste-ms/packages", size: 50 %>
-                <%= submit_tag "View dashboard", class: "btn btn-danger pe-4" %>
-              </div>
-            <% end %>
-          </div>
-        </div>
-        <div>
-          <p>Or view an existing project</p>
-          <ul class="list-unstyled list-inline">
-            <li class="list-inline-item">
-              <a href="/projects/52" class="project-badge badge text-bg-light d-inline-flex align-items-center align-middle py-2 px-3 me-2 mb-2">
-                <img src="https://avatars.githubusercontent.com/u/16401334?s=200&v=4" height="24" width="24" class="me-2"/> 
-                  Async API
-              </a>
-            </li>
-            <li class="list-inline-item">
-              <a href="/projects/51" class="project-badge badge text-bg-light d-inline-flex align-items-center align-middle py-2 px-3 me-2 mb-2">
-                <img src="https://avatars.githubusercontent.com/u/6019716?s=48&v=4" height="24" width="24" class="me-2"/> 
-                  ESLint
-              </a>
-            </li>
-            <li class="list-inline-item">
-              <a href="/projects/54" class="project-badge badge text-bg-light d-inline-flex align-items-center align-middle py-2 px-3 me-2 mb-2">
-                <img src="https://github.com/ecosyste-ms.png" height="24" width="24" class="me-2"/> 
-                  ecosyste.ms
-              </a>
-            </li>
-          </ul>
-          </div>
-      </div>
-    </div>
-  </div>
+  <% else %>
+    <% @user_projects.each do |user_project| %>
+      <%= render 'user_project', user_project: user_project %>
+    <% end %>
+  <% end %>
 </div>

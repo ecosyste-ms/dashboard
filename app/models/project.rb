@@ -5,6 +5,9 @@ class Project < ApplicationRecord
   has_many :collection_projects, dependent: :destroy
   has_many :collections, through: :collection_projects
 
+  has_many :user_projects, dependent: :destroy
+  has_many :users, through: :user_projects
+
   has_many :issues, dependent: :delete_all
   has_many :commits, dependent: :delete_all
   has_many :tags, dependent: :delete_all

@@ -7,6 +7,7 @@ Sidekiq::Web.use Rack::Auth::Basic do |username, password|
 end if Rails.env.production?
 
 Rails.application.routes.draw do
+  get "home/index"
 
   
   mount Rswag::Ui::Engine => '/docs'
@@ -97,6 +98,8 @@ Rails.application.routes.draw do
       get :sync
       get :meta
       get :syncing
+      post :add_to_list
+      delete :remove_from_list
     end
   end
   
@@ -113,5 +116,5 @@ Rails.application.routes.draw do
   get '/auth/failure', to: 'sessions#failure'
   get '/logout', to: 'sessions#destroy'
 
-  root "projects#index"
+  root "home#index"
 end

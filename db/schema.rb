@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_30_095337) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_31_115449) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -225,6 +225,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_30_095337) do
     t.index ["uuid"], name: "index_transactions_on_uuid", unique: true
   end
 
+  create_table "user_projects", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "project_id", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["project_id"], name: "index_user_projects_on_project_id"
+    t.index ["user_id", "project_id"], name: "index_user_projects_on_user_id_and_project_id", unique: true
+    t.index ["user_id"], name: "index_user_projects_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "provider"
     t.string "uid"
@@ -236,4 +247,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_30_095337) do
 
   add_foreign_key "collection_projects", "collections"
   add_foreign_key "collection_projects", "projects"
+  add_foreign_key "user_projects", "projects"
+  add_foreign_key "user_projects", "users"
 end

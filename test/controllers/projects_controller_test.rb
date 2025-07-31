@@ -100,13 +100,18 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     login_as user
     
     assert_difference('Project.count') do
-      post projects_url, params: { project: { url: 'https://github.com/test/repo' } }
+      assert_difference('UserProject.count', 1) do
+        post projects_url, params: { project: { url: 'https://github.com/test/repo' } }
+      end
     end
     
     project = Project.last
     assert_equal 'https://github.com/test/repo', project.url
     assert_redirected_to project_url(project)
-    assert_equal 'Project was successfully created and is now syncing.', flash[:notice]
+    assert_equal 'Project was successfully created and added to your list.', flash[:notice]
+    
+    # Verify the project was added to user's list
+    assert user.user_projects.exists?(project: project)
   end
 
   test "should redirect to existing project if already exists" do
@@ -115,11 +120,16 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     existing_project = create(:project, url: 'https://github.com/test/repo')
     
     assert_no_difference('Project.count') do
-      post projects_url, params: { project: { url: 'https://github.com/test/repo' } }
+      assert_difference('UserProject.count', 1) do
+        post projects_url, params: { project: { url: 'https://github.com/test/repo' } }
+      end
     end
     
     assert_redirected_to project_url(existing_project)
-    assert_equal 'Project already exists in the system.', flash[:notice]
+    assert_equal 'Project added to your list.', flash[:notice]
+    
+    # Verify the project was added to user's list
+    assert user.user_projects.exists?(project: existing_project)
   end
 
   test "should handle case insensitive URLs" do

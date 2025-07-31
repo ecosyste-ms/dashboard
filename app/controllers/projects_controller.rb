@@ -1,6 +1,6 @@
 class ProjectsController < ApplicationController
   before_action :set_period_vars, only: [:engagement, :productivity, :finance, :responsiveness]
-  before_action :authenticate_user!, only: [:new, :create]
+  before_action :authenticate_user!, only: [:index, :new, :create, :add_to_list, :remove_from_list]
   before_action :set_collection, if: :nested_route?
   before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :packages, :commits, :releases, :issues, :advisories, :security]
 
@@ -25,32 +25,7 @@ class ProjectsController < ApplicationController
   end
 
   def index
-    @scope = Project.with_repository.active
-
-    if params[:keyword].present?
-      @scope = @scope.keyword(params[:keyword])
-    end
-
-    if params[:owner].present?
-      @scope = @scope.owner(params[:owner])
-    end
-
-    if params[:language].present?
-      @scope = @scope.language(params[:language])
-    end
-
-    if params[:sort].present? || params[:order].present?
-      sort = params[:sort].presence || 'created_at'
-      if params[:order] == 'asc'
-        @scope = @scope.order(Arel.sql(sort).asc.nulls_last)
-      else
-        @scope = @scope.order(Arel.sql(sort).desc.nulls_last)
-      end
-    else
-      @scope = @scope.order('created_at DESC')
-    end
-
-    @pagy, @projects = pagy(@scope)
+    @user_projects = current_user.user_projects.active.includes(:project)
   end
 
   def new
@@ -61,16 +36,20 @@ class ProjectsController < ApplicationController
     @project = Project.find_by(url: project_params[:url].downcase)
     
     if @project.present?
-      # Project already exists, redirect to it
-      redirect_to @project, notice: 'Project already exists in the system.'
+      # Project already exists, add it to user's list
+      UserProject.add_project_to_user(current_user, @project)
+      redirect_to @project, notice: 'Project added to your list.'
     else
       # Create new project
       @project = Project.new(url: project_params[:url].downcase)
       
       if @project.save
+        # Add project to user's list
+        UserProject.add_project_to_user(current_user, @project)
+        
         @project.broadcast_sync_update  # Initial broadcast for newly created project
         @project.sync_async
-        redirect_to @project, notice: 'Project was successfully created and is now syncing.'
+        redirect_to @project, notice: 'Project was successfully created and added to your list.'
       else
         render :new
       end
@@ -287,8 +266,26 @@ class ProjectsController < ApplicationController
     @project = Project.find(params[:id])
   end
 
+  def add_to_list
+    @project = Project.find(params[:id])
+    UserProject.add_project_to_user(current_user, @project)
+    redirect_back(fallback_location: @project, notice: 'Project added to your list.')
+  end
+
   def syncing
     @project = Project.find(params[:id])
+  end
+
+
+  def remove_from_list
+    @project = Project.find(params[:id])
+    user_project = UserProject.find_by(user: current_user, project: @project)
+    if user_project
+      user_project.soft_delete!
+      redirect_to projects_path, notice: 'Project removed from your list.'
+    else
+      redirect_to projects_path, alert: 'Project not found in your list.'
+    end
   end
 
   private

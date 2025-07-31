@@ -21,18 +21,47 @@
         <% end %>
         <div class="d-md-flex justify-content-between align-items-center mb-2">
           <p class="h3 mb-0 text-muted"><%= @project.to_s %></p>
-          <a id="copyLink"
-            href="javascript:void(0)"
-            role="button"
-            class="btn btn-primary btn-primary--dark btn-sm rounded-pill"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Copy URL">
-            <%= bootstrap_icon 'copy',
-                  width:12, height:12, aria_hidden:'true',
-                  focusable:'false', role:'img', class:'me-1' %>
-            Share
-          </a>
+          <div class="d-flex gap-2">
+            <% if logged_in? %>
+              <% if current_user.has_project?(@project) %>
+                <%= link_to remove_from_list_project_path(@project), method: :delete,
+                    class: "btn btn-warning btn-sm rounded-pill",
+                    data: { 
+                      bs_toggle: "tooltip", 
+                      bs_placement: "top",
+                      confirm: "Remove this project from your list?"
+                    },
+                    title: "Remove from your projects" do %>
+                  <%= bootstrap_icon 'heart-fill',
+                        width:12, height:12, aria_hidden:'true',
+                        focusable:'false', role:'img', class:'me-1' %>
+                  In Your List
+                <% end %>
+              <% else %>
+                <%= link_to add_to_list_project_path(@project), method: :post,
+                    class: "btn btn-outline-light btn-sm rounded-pill",
+                    data: { bs_toggle: "tooltip", bs_placement: "top" },
+                    title: "Add to your projects" do %>
+                  <%= bootstrap_icon 'heart',
+                        width:12, height:12, aria_hidden:'true',
+                        focusable:'false', role:'img', class:'me-1' %>
+                  Add to List
+                <% end %>
+              <% end %>
+            <% end %>
+            <a id="copyLink"
+              href="javascript:void(0)"
+              role="button"
+              class="btn btn-primary btn-primary--dark btn-sm rounded-pill"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Copy URL">
+              <%= bootstrap_icon 'copy',
+                    width:12, height:12, aria_hidden:'true',
+                    focusable:'false', role:'img', class:'me-1' %>
+              Share
+            </a>
+          </div>
         </div>
       
         <h1 class="display-1 extra-bold"><%= @project.name || @project.to_s.split('/').last %></h1>
