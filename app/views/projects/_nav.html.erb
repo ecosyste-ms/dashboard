@@ -21,16 +21,12 @@
     <li class="nav-item">
       <a class="nav-link <%= 'active' if action_name == 'dependencies' %>" href="<%= project_path_with_collection(@project, 'dependencies') %>?<%= request.query_parameters.to_query %>">Dependencies
         <% total_deps = @project.direct_dependencies_count + @project.development_dependencies_count + @project.transitive_dependencies_count %>
-        <% if total_deps > 0 %>
-          <span class="badge bg-secondary ms-1"><%= total_deps %></span>
-        <% end %>
+        <span class="badge bg-secondary ms-1"><%= total_deps %></span>
       </a>
     </li>
     <li class="nav-item">
       <a class="nav-link <%= 'active' if action_name == 'packages' %>" href="<%= project_path_with_collection(@project, 'packages') %>?<%= request.query_parameters.to_query %>">Packages
-        <% if @project.packages_count && @project.packages_count > 0 %>
-          <span class="badge bg-secondary ms-1"><%= @project.packages_count %></span>
-        <% end %>
+        <span class="badge bg-secondary ms-1"><%= @project.packages_count || 0 %></span>
       </a>
     </li>
     <li class="nav-item">
