@@ -32,7 +32,8 @@ class UserProjectTest < ActiveSupport::TestCase
 
   test "should have default values" do
     user_project = UserProject.create!(user: @user, project: @project)
-    assert_equal "active", user_project.status
+    assert_nil user_project.deleted_at
+    assert user_project.active?
   end
 
   test "add_project_to_user should create new user project" do
@@ -53,16 +54,50 @@ class UserProjectTest < ActiveSupport::TestCase
     assert user_project.active?
   end
 
-  test "soft_delete! should set status to removed" do
+  test "add_project_to_user should restore soft deleted project" do
     user_project = UserProject.create!(user: @user, project: @project)
     user_project.soft_delete!
-    assert user_project.removed?
+    assert user_project.deleted?
+    
+    # Adding same project should restore it
+    restored_project = UserProject.add_project_to_user(@user, @project)
+    assert_equal user_project, restored_project
+    assert restored_project.active?
   end
 
-  test "restore! should set status to active" do
-    user_project = UserProject.create!(user: @user, project: @project, status: :removed)
+  test "soft_delete! should set deleted_at" do
+    user_project = UserProject.create!(user: @user, project: @project)
+    user_project.soft_delete!
+    assert user_project.deleted?
+    assert_not_nil user_project.deleted_at
+  end
+
+  test "restore! should clear deleted_at" do
+    user_project = UserProject.create!(user: @user, project: @project)
+    user_project.soft_delete!
     user_project.restore!
     assert user_project.active?
+    assert_nil user_project.deleted_at
+  end
+
+  test "active scope should return only non-deleted records" do
+    active_project = UserProject.create!(user: @user, project: @project)
+    other_project = FactoryBot.create(:project, :with_repository)
+    deleted_project = UserProject.create!(user: @user, project: other_project)
+    deleted_project.soft_delete!
+    
+    assert_includes UserProject.active, active_project
+    assert_not_includes UserProject.active, deleted_project
+  end
+
+  test "deleted scope should return only deleted records" do
+    active_project = UserProject.create!(user: @user, project: @project)
+    other_project = FactoryBot.create(:project, :with_repository)
+    deleted_project = UserProject.create!(user: @user, project: other_project)
+    deleted_project.soft_delete!
+    
+    assert_includes UserProject.deleted, deleted_project
+    assert_not_includes UserProject.deleted, active_project
   end
 
 end

@@ -228,9 +228,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_31_115449) do
   create_table "user_projects", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "project_id", null: false
-    t.integer "status", default: 0, null: false
+    t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["deleted_at"], name: "index_user_projects_on_deleted_at"
     t.index ["project_id"], name: "index_user_projects_on_project_id"
     t.index ["user_id", "project_id"], name: "index_user_projects_on_user_id_and_project_id", unique: true
     t.index ["user_id"], name: "index_user_projects_on_user_id"

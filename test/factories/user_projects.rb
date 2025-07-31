@@ -2,10 +2,10 @@ FactoryBot.define do
   factory :user_project do
     user
     project
-    status { :active }
+    deleted_at { nil }
 
-    trait :removed do
-      status { :removed }
+    trait :deleted do
+      deleted_at { Time.current }
     end
   end
 end
