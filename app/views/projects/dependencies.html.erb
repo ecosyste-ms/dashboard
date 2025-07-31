@@ -82,7 +82,14 @@
                               <span class="badge bg-secondary">Transitive</span>
                             <% end %>
                           </td>
-                          <td style="word-break: break-word; max-width: 150px;"><%= dep['requirements'] || 'N/A' %></td>
+                          <td style="word-break: break-word; max-width: 150px;">
+                            <% requirements = dep['requirements'] || 'N/A' %>
+                            <% if requirements.length > 15 %>
+                              <span title="<%= requirements %>"><%= truncate(requirements, length: 15) %></span>
+                            <% else %>
+                              <%= requirements %>
+                            <% end %>
+                          </td>
                           <td><%= dep['kind'] || 'N/A' %></td>
                           <td><%= dep['ecosystem'] || 'N/A' %></td>
                         </tr>
