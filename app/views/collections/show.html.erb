@@ -75,6 +75,15 @@
           <%= small_widget 'Payments', @payments_this_period, @payments_last_period, symbol: '$', currency: true %>
           <%= stat_card_widget 'Reimbursements', 10000, 9000, symbol: '$', currency: true, stat_size: "small",  title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
         </div>
+
+        <% if @collection.packages.count > 0 %>
+          <div class="three-equal-widgets">
+            <%= stat_card_widget 'Dependent packages', @collection.dependent_packages_count, nil, title_class: "card-title small", stat_size: "large" %>
+            <%= stat_card_widget 'Dependent repos', @collection.dependent_repos_count, nil, title_class: "card-title small", stat_size: "large" %>
+            <%= stat_card_widget 'Downloads', @collection.downloads, nil, title_class: "card-title small", stat_size: "large" %>
+          </div>
+        <% end %>
+
         <div class="full-width-widget">
           <%= small_widget 'Releases', @tags_this_period, @tags_last_period, symbol: '' %>
         </div>
