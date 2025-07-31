@@ -230,6 +230,8 @@ class Collective < ApplicationRecord
     return unless project_owner.present?
     
     conn = Faraday.new(url: "https://repos.ecosyste.ms") do |faraday|
+      faraday.headers['User-Agent'] = 'dashboard.ecosyste.ms'
+      faraday.headers['X-Source'] = 'dashboard.ecosyste.ms'
       faraday.response :follow_redirects
       faraday.adapter Faraday.default_adapter
     end
@@ -403,6 +405,8 @@ class Collective < ApplicationRecord
     GRAPHQL
 
     conn = Faraday.new(url: graphql_url) do |faraday|
+      faraday.headers['User-Agent'] = 'dashboard.ecosyste.ms'
+      faraday.headers['X-Source'] = 'dashboard.ecosyste.ms'
       faraday.response :follow_redirects
       faraday.adapter Faraday.default_adapter
     end
@@ -492,6 +496,8 @@ class Collective < ApplicationRecord
     GRAPHQL
 
     conn = Faraday.new(url: graphql_url) do |faraday|
+      faraday.headers['User-Agent'] = 'dashboard.ecosyste.ms'
+      faraday.headers['X-Source'] = 'dashboard.ecosyste.ms'
       faraday.response :follow_redirects
       faraday.adapter Faraday.default_adapter
     end

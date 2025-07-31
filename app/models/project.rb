@@ -248,6 +248,8 @@ class Project < ApplicationRecord
   def check_url
     url.chomp!('/')
     conn = Faraday.new(url: url) do |faraday|
+      faraday.headers['User-Agent'] = 'dashboard.ecosyste.ms'
+      faraday.headers['X-Source'] = 'dashboard.ecosyste.ms'
       faraday.response :follow_redirects
       faraday.adapter Faraday.default_adapter
     end
@@ -647,6 +649,8 @@ class Project < ApplicationRecord
     page = 1
     loop do
       conn = Faraday.new(url: tags_api_url(page: page, per_page: per_page)) do |faraday|
+        faraday.headers['User-Agent'] = 'dashboard.ecosyste.ms'
+        faraday.headers['X-Source'] = 'dashboard.ecosyste.ms'
         faraday.response :follow_redirects
         faraday.adapter Faraday.default_adapter
       end
@@ -710,6 +714,8 @@ class Project < ApplicationRecord
     page = 1
     loop do
       conn = Faraday.new(url: advisories_api_url(page: page, per_page: per_page)) do |faraday|
+        faraday.headers['User-Agent'] = 'dashboard.ecosyste.ms'
+        faraday.headers['X-Source'] = 'dashboard.ecosyste.ms'
         faraday.response :follow_redirects
         faraday.adapter Faraday.default_adapter
       end
@@ -893,6 +899,8 @@ class Project < ApplicationRecord
       fetch_readme_fallback
     else
       conn = Faraday.new(url: archive_url(readme_file_name)) do |faraday|
+        faraday.headers['User-Agent'] = 'dashboard.ecosyste.ms'
+        faraday.headers['X-Source'] = 'dashboard.ecosyste.ms'
         faraday.response :follow_redirects
         faraday.adapter Faraday.default_adapter
       end
@@ -911,6 +919,8 @@ class Project < ApplicationRecord
   def fetch_readme_fallback
     file_name = readme_file_name.presence || 'README.md'
     conn = Faraday.new(url: raw_url(file_name)) do |faraday|
+      faraday.headers['User-Agent'] = 'dashboard.ecosyste.ms'
+      faraday.headers['X-Source'] = 'dashboard.ecosyste.ms'
       faraday.response :follow_redirects
       faraday.adapter Faraday.default_adapter
     end
@@ -1090,6 +1100,8 @@ class Project < ApplicationRecord
   def fetch_dependencies
     return unless repository.present?
     conn = Faraday.new(url: repository['manifests_url']) do |faraday|
+      faraday.headers['User-Agent'] = 'dashboard.ecosyste.ms'
+      faraday.headers['X-Source'] = 'dashboard.ecosyste.ms'
       faraday.response :follow_redirects
       faraday.adapter Faraday.default_adapter
     end
@@ -1155,6 +1167,8 @@ class Project < ApplicationRecord
     url = "https://sponsors.ecosyste.ms/api/v1/accounts/#{slug}"
 
     conn = Faraday.new(url: url) do |faraday|
+      faraday.headers['User-Agent'] = 'dashboard.ecosyste.ms'
+      faraday.headers['X-Source'] = 'dashboard.ecosyste.ms'
       faraday.response :follow_redirects
       faraday.adapter Faraday.default_adapter
     end
@@ -1286,6 +1300,8 @@ class Project < ApplicationRecord
 
   def fetch_json_with_retry(url, retries: 3)
     conn = Faraday.new(url: url) do |faraday|
+      faraday.headers['User-Agent'] = 'dashboard.ecosyste.ms'
+      faraday.headers['X-Source'] = 'dashboard.ecosyste.ms'
       faraday.response :follow_redirects
       faraday.adapter Faraday.default_adapter
     end
@@ -1308,6 +1324,8 @@ class Project < ApplicationRecord
     loop do
       page_url = "#{url}#{url.include?('?') ? '&' : '?'}per_page=#{per_page}&page=#{page}"
       conn = Faraday.new(url: page_url) do |faraday|
+        faraday.headers['User-Agent'] = 'dashboard.ecosyste.ms'
+        faraday.headers['X-Source'] = 'dashboard.ecosyste.ms'
         faraday.response :follow_redirects
         faraday.adapter Faraday.default_adapter
       end

@@ -105,11 +105,14 @@ class Sbom < ApplicationRecord
         
         # For all other PURL types (including pkg:githubactions/), use API lookup
         conn = Faraday.new do |f|
+          f.headers['User-Agent'] = 'dashboard.ecosyste.ms'
+          f.headers['X-Source'] = 'dashboard.ecosyste.ms'
           f.options.timeout = 10  # 10 seconds timeout
           f.options.open_timeout = 5  # 5 seconds to establish connection
           f.request :retry, max: 2, interval: 1, backoff_factor: 2, 
                     retry_statuses: [429, 500, 502, 503, 504],
                     methods: [:get]
+          f.adapter Faraday.default_adapter
         end
         
         resp = conn.get("https://packages.ecosyste.ms/api/v1/packages/lookup?purl=#{purl}")

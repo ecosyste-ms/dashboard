@@ -165,11 +165,14 @@ class Collection < ApplicationRecord
     repos_url = "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=#{CGI.escape(github_repo_url)}"
     
     conn = Faraday.new do |f|
+      f.headers['User-Agent'] = 'dashboard.ecosyste.ms'
+      f.headers['X-Source'] = 'dashboard.ecosyste.ms'
       f.options.timeout = 30  # 30 seconds timeout
       f.options.open_timeout = 10  # 10 seconds to establish connection
       f.request :retry, max: 3, interval: 2, backoff_factor: 2, 
                 retry_statuses: [429, 500, 502, 503, 504],
                 methods: [:get]
+      f.adapter Faraday.default_adapter
     end
     
     begin
@@ -291,11 +294,14 @@ class Collection < ApplicationRecord
     page = 1
     loop do
       conn = Faraday.new do |f|
+        f.headers['User-Agent'] = 'dashboard.ecosyste.ms'
+        f.headers['X-Source'] = 'dashboard.ecosyste.ms'
         f.options.timeout = 30  # 30 seconds timeout
         f.options.open_timeout = 10  # 10 seconds to establish connection
         f.request :retry, max: 3, interval: 2, backoff_factor: 2, 
                   retry_statuses: [429, 500, 502, 503, 504],
                   methods: [:get]
+        f.adapter Faraday.default_adapter
       end
       
       begin
