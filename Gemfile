@@ -5,7 +5,7 @@ ruby '3.4.5'
 
 gem "rails", "~> 8.0.0"
 gem "sprockets-rails"
-gem "pg", "~> 1.6"
+gem "pg"
 gem "puma"
 gem "jbuilder"
 gem "turbo-rails"
