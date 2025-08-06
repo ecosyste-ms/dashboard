@@ -126,6 +126,7 @@ class Project < ApplicationRecord
         
         sync_advisories
         sync_issues
+        sync_dependabot_issues  # Sync Dependabot security issues for GitHub repos
         broadcast_sync_update  # After issues sync
         
         sync_commits
@@ -568,6 +569,63 @@ class Project < ApplicationRecord
     
   rescue => e
     Rails.logger.error "Error fetching issues for #{repository_url}: #{e.message}"
+  end
+
+  def sync_dependabot_issues
+    return unless repository.present?
+    return unless github_repository?
+    
+    repository_path = "#{repository['owner']['login']}/#{repository['name']}"
+    dependabot_url = "https://dependabot.ecosyste.ms/api/v1/hosts/GitHub/repositories/#{URI.encode_www_form_component(repository_path)}/issues"
+    
+    response = Faraday.new(url: dependabot_url) do |faraday|
+      faraday.headers['User-Agent'] = 'dashboard.ecosyste.ms'
+      faraday.headers['X-Source'] = 'dashboard.ecosyste.ms'
+      faraday.response :follow_redirects
+      faraday.adapter Faraday.default_adapter
+    end.get
+    
+    return unless response.success?
+    
+    dependabot_issues = JSON.parse(response.body)
+    return if dependabot_issues.empty?
+    
+    issue_records = dependabot_issues.map do |issue|
+      issue_attributes = issue.dup
+      issue_attributes['project_id'] = id
+      issue_attributes['created_at'] = Time.current
+      issue_attributes['updated_at'] = Time.current
+      issue_attributes
+    end
+    
+    # Remove duplicates from the current batch to avoid conflicts
+    unique_issue_records = issue_records.uniq { |record| [record['project_id'], record['uuid']] }
+    
+    # Get existing issue UUIDs for this project to avoid duplicates
+    existing_uuids = issues.where(uuid: unique_issue_records.map { |r| r['uuid'] }).pluck(:uuid).to_set
+    
+    # Split into new and existing records  
+    new_records = unique_issue_records.reject { |record| existing_uuids.include?(record['uuid']) }
+    update_records = unique_issue_records.select { |record| existing_uuids.include?(record['uuid']) }
+    
+    # Bulk insert new records
+    Issue.insert_all(new_records) if new_records.any?
+    
+    # Update existing records if needed
+    if update_records.any?
+      update_records.each do |record|
+        issues.where(uuid: record['uuid']).update_all(
+          record.except('project_id', 'created_at', 'uuid')
+        )
+      end
+    end
+    
+  rescue => e
+    Rails.logger.error "Error fetching Dependabot issues for #{repository_url}: #{e.message}"
+  end
+
+  def github_repository?
+    repository.present? && repository['host']['name'] == 'GitHub'
   end
 
   def commits_api_url

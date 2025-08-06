@@ -1,5 +1,5 @@
 class ProjectsController < ApplicationController
-  before_action :set_period_vars, only: [:engagement, :productivity, :finance, :responsiveness]
+  before_action :set_period_vars, only: [:engagement, :productivity, :finance, :responsiveness, :security]
   before_action :authenticate_user!, only: [:index, :new, :create, :add_to_list, :remove_from_list, :create_collection_from_dependencies]
   before_action :set_collection, if: :nested_route?
   before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :packages, :commits, :releases, :issues, :advisories, :security]
@@ -172,7 +172,34 @@ class ProjectsController < ApplicationController
 
   def security
     @project = Project.find(params[:id])
-    @pagy, @advisories = pagy(@project.advisories.order('published_at DESC'))
+
+    # Date filtering using period ranges from set_period_vars
+    advisories_scope = @project.advisories
+    dependabot_scope = @project.issues.dependabot.security_prs
+
+    # Apply period filtering - use this_period_range for filtering data to current period
+    advisories_scope = advisories_scope.where(published_at: @this_period_range)
+    dependabot_scope = dependabot_scope.where(created_at: @this_period_range)
+
+    @pagy, @advisories = pagy(advisories_scope.order('published_at DESC'))
+
+    # Dependabot security data
+    @dependabot_security_issues = @project.issues.dependabot.security_prs
+    @dependabot_security_count = @dependabot_security_issues.count
+    @dependabot_open_security = @dependabot_security_issues.open.count
+    @dependabot_closed_security = @dependabot_security_issues.closed.count
+    @dependabot_filtered_count = dependabot_scope.count
+
+    # Time series data for chart
+    if @range == 'year'
+      @dependabot_security_per_period = dependabot_scope.group_by_year(:created_at, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+      @advisories_per_period = advisories_scope.group_by_year(:published_at, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+    else
+      @dependabot_security_per_period = dependabot_scope.group_by_month(:created_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
+      @advisories_per_period = advisories_scope.group_by_month(:published_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
+    end
+
+    @recent_dependabot_security = dependabot_scope.order('created_at DESC').limit(5)
   end
 
   def adoption

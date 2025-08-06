@@ -539,4 +539,164 @@ class ProjectTest < ActiveSupport::TestCase
     assert_includes purls1, "pkg:npm/react"
     assert_includes purls2, "pkg:npm/react"
   end
+
+  test "github_repository? returns true for GitHub repositories" do
+    project = create(:project)
+    project.update!(repository: { 'host' => { 'name' => 'GitHub' }, 'owner' => { 'login' => 'test' }, 'name' => 'repo' })
+    assert project.github_repository?
+  end
+
+  test "github_repository? returns false for non-GitHub repositories" do
+    project = create(:project)
+    project.update!(repository: { 'host' => { 'name' => 'GitLab' }, 'owner' => { 'login' => 'test' }, 'name' => 'repo' })
+    assert_not project.github_repository?
+  end
+
+  test "github_repository? returns false when no repository" do
+    project = create(:project, repository: nil)
+    assert_not project.github_repository?
+  end
+
+  test "sync_dependabot_issues fetches and stores Dependabot issues" do
+    WebMock.enable!
+    
+    project = create(:project)
+    project.update!(repository: { 
+      'host' => { 'name' => 'GitHub' }, 
+      'owner' => { 'login' => 'andrew' }, 
+      'name' => 'purl' 
+    })
+    
+    # Mock Dependabot API response
+    dependabot_issues = [
+      {
+        'uuid' => 'dep-issue-1',
+        'number' => 123,
+        'state' => 'open',
+        'title' => 'Bump lodash from 4.17.20 to 4.17.21',
+        'body' => 'Bumps [lodash](https://github.com/lodash/lodash) from 4.17.20 to 4.17.21.',
+        'user' => 'dependabot[bot]',
+        'pull_request' => true,
+        'created_at' => '2023-01-01T00:00:00Z',
+        'updated_at' => '2023-01-01T00:00:00Z',
+        'dependency_metadata' => {
+          'packages' => [
+            {
+              'name' => 'lodash',
+              'old_version' => '4.17.20',
+              'new_version' => '4.17.21'
+            }
+          ]
+        }
+      }
+    ]
+    
+    stub_request(:get, "https://dependabot.ecosyste.ms/api/v1/hosts/GitHub/repositories/andrew%2Fpurl/issues")
+      .to_return(status: 200, body: dependabot_issues.to_json)
+    
+    project.sync_dependabot_issues
+    project.reload
+    
+    assert_equal 1, project.issues.count
+    issue = project.issues.first
+    assert_equal 'dep-issue-1', issue.uuid
+    assert_equal 123, issue.number
+    assert_equal 'Bump lodash from 4.17.20 to 4.17.21', issue.title
+    assert_equal true, issue.pull_request
+    assert_equal 'dependabot[bot]', issue.user
+    assert issue.dependency_metadata.present?
+    assert_equal 'lodash', issue.dependency_metadata['packages'].first['name']
+  ensure
+    WebMock.reset!
+  end
+
+  test "sync_dependabot_issues skips non-GitHub repositories" do
+    WebMock.enable!
+    
+    project = create(:project)
+    project.update!(repository: { 
+      'host' => { 'name' => 'GitLab' }, 
+      'owner' => { 'login' => 'andrew' }, 
+      'name' => 'purl' 
+    })
+    
+    # Should not make any HTTP requests
+    project.sync_dependabot_issues
+    
+    assert_equal 0, project.issues.count
+  ensure
+    WebMock.reset!
+  end
+
+  test "sync_dependabot_issues handles API failures gracefully" do
+    WebMock.enable!
+    
+    project = create(:project)
+    project.update!(repository: { 
+      'host' => { 'name' => 'GitHub' }, 
+      'owner' => { 'login' => 'andrew' }, 
+      'name' => 'purl' 
+    })
+    
+    # Mock API failure
+    stub_request(:get, "https://dependabot.ecosyste.ms/api/v1/hosts/GitHub/repositories/andrew%2Fpurl/issues")
+      .to_return(status: 500)
+    
+    assert_nothing_raised do
+      project.sync_dependabot_issues
+    end
+    
+    assert_equal 0, project.issues.count
+  ensure
+    WebMock.reset!
+  end
+
+  test "sync_dependabot_issues deduplicates issues by UUID" do
+    WebMock.enable!
+    
+    project = create(:project)
+    project.update!(repository: { 
+      'host' => { 'name' => 'GitHub' }, 
+      'owner' => { 'login' => 'andrew' }, 
+      'name' => 'purl' 
+    })
+    
+    # Create existing issue with same UUID
+    existing_issue = create(:issue, 
+      project: project, 
+      uuid: 'dep-issue-1', 
+      number: 123,
+      title: 'Old Title'
+    )
+    
+    # Mock Dependabot API response with updated issue
+    dependabot_issues = [
+      {
+        'uuid' => 'dep-issue-1',
+        'number' => 123,
+        'state' => 'closed',
+        'title' => 'Updated Title',
+        'body' => 'Updated body',
+        'user' => 'dependabot[bot]',
+        'pull_request' => true,
+        'created_at' => '2023-01-01T00:00:00Z',
+        'updated_at' => '2023-01-02T00:00:00Z'
+      }
+    ]
+    
+    stub_request(:get, "https://dependabot.ecosyste.ms/api/v1/hosts/GitHub/repositories/andrew%2Fpurl/issues")
+      .to_return(status: 200, body: dependabot_issues.to_json)
+    
+    project.sync_dependabot_issues
+    project.reload
+    
+    # Should still have only one issue, but with updated data
+    assert_equal 1, project.issues.count
+    updated_issue = project.issues.first
+    assert_equal 'dep-issue-1', updated_issue.uuid
+    assert_equal 'Updated Title', updated_issue.title
+    assert_equal 'closed', updated_issue.state
+  ensure
+    WebMock.reset!
+  end
 end

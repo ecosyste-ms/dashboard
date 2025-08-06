@@ -1,5 +1,5 @@
 class CollectionsController < ApplicationController
-  before_action :set_period_vars, only: [:engagement, :productivity, :finance, :responsiveness]
+  before_action :set_period_vars, only: [:engagement, :productivity, :finance, :responsiveness, :security]
 
   before_action :authenticate_user!
 
@@ -245,7 +245,43 @@ class CollectionsController < ApplicationController
   end
 
   def security
-    @pagy, @advisories = pagy(@collection.advisories.order('published_at DESC'))
+    # Date filtering using period ranges from set_period_vars
+    advisories_scope = @collection.advisories
+    project_ids = @collection.projects.pluck(:id)
+    dependabot_scope = Issue.where(project_id: project_ids).dependabot.security_prs
+
+    # Apply period filtering - use this_period_range for filtering data to current period
+    advisories_scope = advisories_scope.where(published_at: @this_period_range)
+    dependabot_scope = dependabot_scope.where(created_at: @this_period_range)
+
+    @pagy, @advisories = pagy(advisories_scope.order('published_at DESC'))
+
+    # Dependabot security data from all projects in collection
+    @dependabot_security_issues = Issue.where(project_id: project_ids).dependabot.security_prs
+    @dependabot_security_count = @dependabot_security_issues.count
+    @dependabot_open_security = @dependabot_security_issues.open.count
+    @dependabot_closed_security = @dependabot_security_issues.closed.count
+    @dependabot_filtered_count = dependabot_scope.count
+
+    # Time series data for chart
+    if @range == 'year'
+      @dependabot_security_per_period = dependabot_scope.group_by_year(:created_at, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+      @advisories_per_period = advisories_scope.group_by_year(:published_at, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+    else
+      @dependabot_security_per_period = dependabot_scope.group_by_month(:created_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
+      @advisories_per_period = advisories_scope.group_by_month(:published_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
+    end
+
+    @recent_dependabot_security = dependabot_scope.includes(:project).order('created_at DESC').limit(5)
+    
+    # Top projects with security issues
+    @projects_with_security = @collection.projects
+      .joins(:issues)
+      .where(issues: { id: dependabot_scope.select(:id) })
+      .group('projects.id, projects.url')
+      .select('projects.*, COUNT(issues.id) as security_count')
+      .order('security_count DESC')
+      .limit(5)
   end
 
   def projects
