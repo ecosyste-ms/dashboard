@@ -235,6 +235,128 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to project_url(existing_project)
   end
 
+  test "should lookup project by homepage URL from repository" do
+    homepage_url = "https://example.com/project"
+    existing_project = create(:project, :with_repository, url: "https://github.com/test/repo")
+    existing_project.update(repository: existing_project.repository.merge({ 'homepage' => homepage_url }))
+    
+    assert_no_difference('Project.count') do
+      post lookup_projects_url, params: { url: homepage_url }
+    end
+    
+    assert_redirected_to project_url(existing_project)
+  end
+
+  test "should lookup project by package homepage URL" do
+    homepage_url = "https://example.com/package"
+    existing_project = create(:project, :with_repository, url: "https://github.com/test/repo")
+    package = create(:package, project: existing_project)
+    package.update(metadata: (package.metadata || {}).merge({ 'homepage' => homepage_url }))
+    
+    assert_no_difference('Project.count') do
+      post lookup_projects_url, params: { url: homepage_url }
+    end
+    
+    assert_redirected_to project_url(existing_project)
+  end
+
+  test "should lookup project by NPM package URL using purl conversion" do
+    existing_project = create(:project, :with_repository, url: "https://github.com/test/repo")
+    package = create(:package, project: existing_project, ecosystem: 'npm', name: 'semver-compare')
+    package.update(purl: 'pkg:npm/semver-compare')
+    
+    # Mock the Purl conversion - registry URL with version returns versioned purl
+    mock_purl = mock()
+    mock_purl_without_version = mock()
+    mock_purl.expects(:with).with(version: nil).returns(mock_purl_without_version)
+    mock_purl_without_version.expects(:to_s).returns('pkg:npm/semver-compare')
+    Purl.expects(:from_registry_url).with("https://www.npmjs.com/package/semver-compare").returns(mock_purl)
+    
+    assert_no_difference('Project.count') do
+      post lookup_projects_url, params: { url: "https://www.npmjs.com/package/semver-compare" }
+    end
+    
+    assert_redirected_to project_url(existing_project)
+  end
+
+  test "should lookup project by versioned NPM package URL" do
+    existing_project = create(:project, :with_repository, url: "https://github.com/test/repo")
+    package = create(:package, project: existing_project, ecosystem: 'npm', name: 'lodash')
+    package.update(purl: 'pkg:npm/lodash')
+    
+    # Mock the Purl conversion for versioned URL
+    mock_purl = mock()
+    mock_purl_without_version = mock()
+    mock_purl.expects(:with).with(version: nil).returns(mock_purl_without_version)
+    mock_purl_without_version.expects(:to_s).returns('pkg:npm/lodash')
+    Purl.expects(:from_registry_url).with("https://www.npmjs.com/package/lodash/v/4.17.21").returns(mock_purl)
+    
+    assert_no_difference('Project.count') do
+      post lookup_projects_url, params: { url: "https://www.npmjs.com/package/lodash/v/4.17.21" }
+    end
+    
+    assert_redirected_to project_url(existing_project)
+  end
+
+  test "should resolve repository URL from package URL when project not found" do
+    registry_url = "https://www.npmjs.com/package/nonexistent-package"
+    repository_url = "https://github.com/user/nonexistent-package"
+    
+    # Mock PURL conversion
+    mock_purl = mock()
+    mock_purl_without_version = mock()
+    mock_purl.expects(:with).with(version: nil).returns(mock_purl_without_version).twice  # Called twice: once for package lookup, once for API lookup
+    mock_purl_without_version.expects(:to_s).returns('pkg:npm/nonexistent-package').twice
+    Purl.expects(:from_registry_url).with(registry_url).returns(mock_purl)
+    
+    # Mock API response
+    mock_response = mock()
+    mock_response.expects(:success?).returns(true)
+    mock_response.expects(:body).returns([{ 'repository_url' => repository_url }].to_json)
+    Faraday.expects(:get).with("https://packages.ecosyste.ms/api/v1/packages/lookup", { purl: 'pkg:npm/nonexistent-package' }).returns(mock_response)
+    
+    assert_no_difference('Project.count') do
+      post lookup_projects_url, params: { url: registry_url }
+    end
+    
+    assert_redirected_to new_project_path(url: repository_url)
+  end
+
+  test "should fallback to original URL when API lookup fails" do
+    registry_url = "https://www.npmjs.com/package/nonexistent-package"
+    
+    # Mock PURL conversion
+    mock_purl = mock()
+    mock_purl_without_version = mock()
+    mock_purl.expects(:with).with(version: nil).returns(mock_purl_without_version).twice  # Called twice: once for package lookup, once for API lookup
+    mock_purl_without_version.expects(:to_s).returns('pkg:npm/nonexistent-package').twice
+    Purl.expects(:from_registry_url).with(registry_url).returns(mock_purl)
+    
+    # Mock API failure
+    mock_response = mock()
+    mock_response.expects(:success?).returns(false)
+    Faraday.expects(:get).with("https://packages.ecosyste.ms/api/v1/packages/lookup", { purl: 'pkg:npm/nonexistent-package' }).returns(mock_response)
+    
+    assert_no_difference('Project.count') do
+      post lookup_projects_url, params: { url: registry_url }
+    end
+    
+    assert_redirected_to new_project_path(url: registry_url)
+  end
+
+  test "should fallback gracefully when purl conversion fails" do
+    non_existent_url = "https://invalid.registry.com/package/nonexistent"
+    
+    # Mock the Purl conversion to raise an error
+    Purl.expects(:from_registry_url).with(non_existent_url).raises(StandardError.new("Invalid URL"))
+    
+    assert_no_difference('Project.count') do
+      post lookup_projects_url, params: { url: non_existent_url }
+    end
+    
+    assert_redirected_to new_project_path(url: non_existent_url)
+  end
+
   test "should flow from lookup to new project form to creation when authenticated" do
     user = create(:user)
     url = "https://github.com/flow/test"

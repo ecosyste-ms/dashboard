@@ -57,10 +57,49 @@ class ProjectsController < ApplicationController
   end
 
   def lookup
-    @project = Project.find_by(url: params[:url].downcase)
+    url = params[:url].downcase
+    
+    # First try exact URL match
+    @project = Project.find_by(url: url)
+    
+    # If not found, try homepage_url match
     if @project.nil?
-      # Project doesn't exist, redirect to new project form with the URL pre-filled
-      redirect_to new_project_path(url: params[:url])
+      @project = Project.joins(:packages).where("packages.metadata ->> 'homepage' = ?", params[:url]).first ||
+                 Project.where("repository ->> 'homepage' = ?", params[:url]).first
+    end
+    
+    # If still not found, try package registry URL to purl conversion
+    purl_obj = nil
+    if @project.nil?
+      begin
+        purl_obj = Purl.from_registry_url(params[:url])
+        if purl_obj
+          # Remove version from purl since packages table stores purl without version
+          purl_without_version = purl_obj.with(version: nil).to_s
+          @project = Package.find_by(purl: purl_without_version)&.project
+        end
+      rescue => e
+        # Ignore purl conversion errors and continue
+        Rails.logger.debug "Could not convert URL to purl: #{e.message}"
+      end
+    end
+    
+    if @project.nil?
+      # If we successfully converted to purl but didn't find project, try to resolve repository URL
+      if purl_obj
+        repository_url = resolve_repository_url_from_purl(purl_obj)
+        
+        if repository_url
+          # Redirect to new project form with the repository URL instead
+          redirect_to new_project_path(url: repository_url)
+        else
+          # Project doesn't exist and couldn't resolve repository URL, redirect with original URL
+          redirect_to new_project_path(url: params[:url])
+        end
+      else
+        # Not a package URL, redirect with original URL
+        redirect_to new_project_path(url: params[:url])
+      end
     else
       # Project exists, redirect to it
       redirect_to @project
@@ -367,5 +406,28 @@ class ProjectsController < ApplicationController
 
   def project_params
     params.require(:project).permit(:url)
+  end
+
+  def resolve_repository_url_from_purl(purl_obj)
+    begin
+      # Remove version for API lookup
+      purl_without_version = purl_obj.with(version: nil).to_s
+      
+      # Call packages.ecosyste.ms API
+      response = Faraday.get("https://packages.ecosyste.ms/api/v1/packages/lookup", { purl: purl_without_version })
+      
+      if response.success?
+        data = JSON.parse(response.body)
+        if data.is_a?(Array) && data.any?
+          # Find the first result that has a repository_url field
+          result = data.find { |item| item['repository_url'].present? }
+          return result['repository_url'] if result
+        end
+      end
+    rescue => e
+      Rails.logger.debug "Failed to resolve repository URL from purl: #{e.message}"
+    end
+    
+    nil
   end
 end
