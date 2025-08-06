@@ -41,7 +41,6 @@ gem 'chartkick'
 gem "after_commit_action"
 gem 'octicons_helper'
 gem 'redis'
-gem 'packageurl-ruby', require: 'package_url'
 gem 'purl'
 gem 'dalli'
 gem 'csv'

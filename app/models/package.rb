@@ -13,7 +13,7 @@ class Package < ApplicationRecord
   scope :order_by_rankings, -> { order(Arel.sql("(metadata -> 'rankings' ->> 'average')::numeric asc nulls last")) }
 
   def self.purl_without_version(purl)
-    PackageURL.new(**PackageURL.parse(purl.to_s).to_h.except(:version, :scheme)).to_s
+    Purl.parse(purl.to_s).with(version: nil).to_s
   end
 
   def registry_name

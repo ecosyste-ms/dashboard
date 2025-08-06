@@ -27,7 +27,7 @@ class Sbom < ApplicationRecord
   end
 
   def packageurls
-    artifacts.map { |a| PackageURL.parse a["purl"] }
+    artifacts.map { |a| Purl.parse a["purl"] }
   end
 
   def find_packages

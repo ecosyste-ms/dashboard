@@ -38,7 +38,7 @@ class Project < ApplicationRecord
   scope :between, ->(start_date, end_date) { where('projects.created_at > ?', start_date).where('projects.created_at < ?', end_date) }
 
   def self.purl_without_version(purl)
-    PackageURL.new(**PackageURL.parse(purl.to_s).to_h.except(:version, :scheme)).to_s
+    Purl.parse(purl.to_s).with(version: nil).to_s
   end
 
   def self.sync_least_recently_synced
@@ -884,7 +884,7 @@ class Project < ApplicationRecord
 
   def purls
     return if packages.blank?
-    @purls ||= packages.map{|p| PackageURL.parse(p.purl) }
+    @purls ||= packages.map{|p| Purl.parse(p.purl) }
   end
 
   def self.find_by_purl(purl)
