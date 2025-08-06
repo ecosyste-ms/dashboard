@@ -298,7 +298,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to project_url(existing_project)
   end
 
-  test "should resolve repository URL from package URL when project not found" do
+  test "should create project when repository URL resolved from package URL" do
     registry_url = "https://www.npmjs.com/package/nonexistent-package"
     repository_url = "https://github.com/user/nonexistent-package"
     
@@ -315,11 +315,16 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     mock_response.expects(:body).returns([{ 'repository_url' => repository_url }].to_json)
     Faraday.expects(:get).with("https://packages.ecosyste.ms/api/v1/packages/lookup", { purl: 'pkg:npm/nonexistent-package' }).returns(mock_response)
     
-    assert_no_difference('Project.count') do
+    # Mock sync_async to avoid background job in test
+    Project.any_instance.expects(:sync_async)
+    
+    assert_difference('Project.count', 1) do
       post lookup_projects_url, params: { url: registry_url }
     end
     
-    assert_redirected_to new_project_path(url: repository_url)
+    created_project = Project.last
+    assert_equal repository_url.downcase, created_project.url
+    assert_redirected_to project_path(created_project)
   end
 
   test "should fallback to original URL when API lookup fails" do
@@ -369,7 +374,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to project_url(existing_project)
   end
 
-  test "should resolve repository URL from purl parameter when project not found" do
+  test "should create project and start syncing when repository URL resolved from purl" do
     purl_string = "pkg:npm/nonexistent-package@1.0.0"
     repository_url = "https://github.com/user/nonexistent-package"
     
@@ -386,14 +391,19 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     mock_response.expects(:body).returns([{ 'repository_url' => repository_url }].to_json)
     Faraday.expects(:get).with("https://packages.ecosyste.ms/api/v1/packages/lookup", { purl: 'pkg:npm/nonexistent-package' }).returns(mock_response)
     
-    assert_no_difference('Project.count') do
+    # Mock sync_async to avoid background job in test
+    Project.any_instance.expects(:sync_async)
+    
+    assert_difference('Project.count', 1) do
       post lookup_projects_url, params: { purl: purl_string }
     end
     
-    assert_redirected_to new_project_path(url: repository_url)
+    created_project = Project.last
+    assert_equal repository_url.downcase, created_project.url
+    assert_redirected_to project_path(created_project)
   end
 
-  test "should fallback to original purl when API lookup fails for purl parameter" do
+  test "should show error when API lookup fails for purl parameter" do
     purl_string = "pkg:npm/nonexistent-package@1.0.0"
     
     # Mock the purl parsing
@@ -401,6 +411,8 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     mock_purl_without_version = mock()
     mock_purl.expects(:with).with(version: nil).returns(mock_purl_without_version).twice
     mock_purl_without_version.expects(:to_s).returns('pkg:npm/nonexistent-package').twice
+    mock_purl.expects(:name).returns('nonexistent-package')
+    mock_purl.expects(:type).returns('npm')
     Purl.expects(:parse).with(purl_string).returns(mock_purl)
     
     # Mock API failure
@@ -412,7 +424,8 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
       post lookup_projects_url, params: { purl: purl_string }
     end
     
-    assert_redirected_to new_project_path(url: purl_string)
+    assert_redirected_to root_path
+    assert_match(/Package not found.*nonexistent-package.*npm/, flash[:error])
   end
 
   test "should fallback gracefully when purl parameter parsing fails" do
@@ -435,6 +448,31 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     
     assert_redirected_to root_path
     assert_equal "Please provide either a URL or PURL parameter", flash[:alert]
+  end
+
+  test "should lookup project by purl parameter using GET request" do
+    existing_project = create(:project, :with_repository, url: "https://github.com/test/repo")
+    package = create(:package, project: existing_project, ecosystem: 'npm', name: 'test-package')
+    package.update(purl: 'pkg:npm/test-package')
+    
+    assert_no_difference('Project.count') do
+      get lookup_projects_url, params: { purl: 'pkg:npm/test-package@1.0.0' }
+    end
+    
+    assert_redirected_to project_url(existing_project)
+  end
+
+  test "should work with dependency links using GET requests" do
+    existing_project = create(:project, :with_repository, url: "https://github.com/test/repo")
+    package = create(:package, project: existing_project, ecosystem: 'npm', name: 'lodash')
+    package.update(purl: 'pkg:npm/lodash')
+    
+    # Simulate clicking a dependency link (GET request with purl parameter)
+    assert_no_difference('Project.count') do
+      get lookup_projects_url, params: { purl: 'pkg:npm/lodash' }
+    end
+    
+    assert_redirected_to project_url(existing_project)
   end
 
   test "should flow from lookup to new project form to creation when authenticated" do
@@ -625,6 +663,46 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     
     # Verify filter parameter is preserved
     assert_equal 'transitive', @request.params[:filter]
+  end
+
+  test "should show dependency links with purl parameter" do
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
+    
+    # Mock dependencies data
+    mock_dependencies = [
+      {
+        'package_name' => 'lodash',
+        'ecosystem' => 'npm',
+        'requirements' => '^4.17.21',
+        'kind' => 'runtime',
+        'direct' => true
+      },
+      {
+        'package_name' => 'express',
+        'ecosystem' => 'npm', 
+        'requirements' => '^4.18.2',
+        'kind' => 'runtime',
+        'direct' => true
+      }
+    ]
+    
+    # Mock the project methods
+    project.stubs(:direct_dependencies).returns(mock_dependencies)
+    project.stubs(:development_dependencies).returns([])
+    project.stubs(:transitive_dependencies).returns([])
+    Project.stubs(:find).with(project.id.to_s).returns(project)
+    
+    get dependencies_project_url(project)
+    assert_response :success
+    assert_template :dependencies
+    
+    # Check that dependency links are present with correct purl parameters
+    assert_select 'a[href*="/projects/lookup?purl=pkg%3Anpm%2Flodash"]', text: 'lodash'
+    assert_select 'a[href*="/projects/lookup?purl=pkg%3Anpm%2Fexpress"]', text: 'express'
+    
+    # Verify the links have proper attributes
+    assert_select 'a[title*="Look up lodash project"]'
+    assert_select 'a[title*="Look up express project"]'
   end
 
   test "should show finance page" do

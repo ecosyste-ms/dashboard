@@ -71,7 +71,19 @@
                                         'transitive'
                                       end %>
                         <tr>
-                          <td><%= dep['package_name'] || dep['name'] || 'N/A' %></td>
+                          <td>
+                            <% package_name = dep['package_name'] || dep['name'] %>
+                            <% ecosystem = dep['ecosystem'] %>
+                            <% if package_name.present? && ecosystem.present? %>
+                              <% purl_type = convert_purl_type(ecosystem.downcase) %>
+                              <% purl = "pkg:#{purl_type}/#{package_name}" %>
+                              <%= link_to package_name, lookup_projects_path(purl: purl), 
+                                         class: "text-decoration-none",
+                                         title: "Look up #{package_name} project" %>
+                            <% else %>
+                              <%= package_name || 'N/A' %>
+                            <% end %>
+                          </td>
                           <td>
                             <% case dep_type %>
                             <% when 'direct' %>

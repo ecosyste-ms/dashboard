@@ -146,6 +146,27 @@ module ApplicationHelper
     end
   end
 
+  def convert_purl_type(purl_type)
+    case purl_type
+    when "actions"
+      "githubactions"
+    when "elpa"
+      "melpa"
+    when "go"
+      "golang"
+    when "homebrew"
+      "brew"
+    when "packagist"
+      "composer"
+    when "rubygems"
+      "gem"
+    when "swiftpm"
+      "swift"
+    else
+      purl_type
+    end
+  end
+
   def project_path_with_collection(project, action = nil, collection = nil)
     collection ||= @collection
     if collection

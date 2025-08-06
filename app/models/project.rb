@@ -18,6 +18,7 @@ class Project < ApplicationRecord
   belongs_to :collective, optional: true
 
   validates :url, presence: true, uniqueness: { case_sensitive: false }
+  validates :url, format: { without: /\Apkg:/, message: "cannot be a PURL (Package URL)" }
 
   scope :active, -> { where("(repository ->> 'archived') = ?", 'false') }
   scope :archived, -> { where("(repository ->> 'archived') = ?", 'true') }

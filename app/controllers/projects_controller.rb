@@ -120,11 +120,20 @@ class ProjectsController < ApplicationController
         repository_url = resolve_repository_url_from_purl(purl_obj)
         
         if repository_url
-          # Redirect to new project form with the repository URL instead
-          redirect_to new_project_path(url: repository_url)
+          # Create project directly and start syncing
+          project = Project.find_or_create_by(url: repository_url.downcase)
+          project.sync_async if project.persisted?
+          redirect_to project
         else
-          # Project doesn't exist and couldn't resolve repository URL, redirect with original param
-          redirect_to new_project_path(url: original_param)
+          # Project doesn't exist and couldn't resolve repository URL
+          # For PURL parameters, show an error instead of invalid URL
+          if original_param.start_with?('pkg:')
+            flash[:error] = "Package not found: Could not locate or resolve the repository for '#{purl_obj.name}' (#{purl_obj.type}). The package may not exist in our database or external registries."
+            redirect_to root_path
+          else
+            # For regular URLs, redirect with original param
+            redirect_to new_project_path(url: original_param)
+          end
         end
       else
         # Not a package URL/purl, redirect with original param

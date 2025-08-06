@@ -222,4 +222,15 @@ class ProjectTest < ActiveSupport::TestCase
     # Should not have duplicates
     assert_equal licenses.uniq, licenses
   end
+
+  test "should not allow PURL as URL" do
+    project = Project.new(url: "pkg:npm/lodash@4.17.21")
+    assert_not project.valid?
+    assert_includes project.errors[:url], "cannot be a PURL (Package URL)"
+  end
+
+  test "should allow regular URLs" do
+    project = Project.new(url: "https://github.com/lodash/lodash")
+    assert project.valid?(:url)  # Only validate URL, not other required fields
+  end
 end
