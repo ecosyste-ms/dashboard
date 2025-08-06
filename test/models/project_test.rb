@@ -233,4 +233,155 @@ class ProjectTest < ActiveSupport::TestCase
     project = Project.new(url: "https://github.com/lodash/lodash")
     assert project.valid?(:url)  # Only validate URL, not other required fields
   end
+
+  test "create_collection_from_dependencies with no dependencies returns nil" do
+    user = create(:user)
+    project = create(:project, dependencies: nil)
+    
+    result = project.create_collection_from_dependencies(user)
+    assert_nil result
+  end
+
+  test "create_collection_from_dependencies with empty dependencies returns nil" do
+    user = create(:user)
+    project = create(:project, dependencies: [])
+    
+    result = project.create_collection_from_dependencies(user)
+    assert_nil result
+  end
+
+  test "create_collection_from_dependencies creates collection with direct dependencies" do
+    user = create(:user)
+    project = create(:project, url: "https://github.com/test/project")
+    
+    # Mock dependencies data
+    dependencies_data = [
+      {
+        "manifest_kind" => "package.json",
+        "manifest_filepath" => "package.json",
+        "dependencies" => [
+          {
+            "purl" => "pkg:npm/lodash@4.17.21",
+            "name" => "lodash",
+            "direct" => true,
+            "kind" => "runtime"
+          },
+          {
+            "purl" => "pkg:npm/react@18.0.0",
+            "name" => "react", 
+            "direct" => true,
+            "kind" => "runtime"
+          },
+          {
+            "purl" => "pkg:npm/jest@29.0.0",
+            "name" => "jest",
+            "direct" => true,
+            "kind" => "development"
+          }
+        ]
+      }
+    ]
+    
+    project.update!(dependencies: dependencies_data)
+    
+    collection = project.create_collection_from_dependencies(user)
+    
+    assert_not_nil collection
+    assert collection.persisted?
+    assert_equal "github.com/test/project Dependencies", collection.name
+    assert_equal "Dependencies of github.com/test/project", collection.description
+    assert_equal user, collection.user
+    assert_equal 'public', collection.visibility
+    
+    # Verify the dependency file contains the expected PURLs
+    dependency_file = JSON.parse(collection.dependency_file)
+    assert_equal "SPDXRef-DOCUMENT", dependency_file["SPDXID"]
+    assert_equal "SPDX-2.3", dependency_file["spdxVersion"]
+    
+    # Should include all dependencies by default (including development)
+    packages = dependency_file["packages"]
+    assert_equal 3, packages.length
+    
+    purls = packages.map { |p| p["externalRefs"].first["referenceLocator"] }
+    assert_includes purls, "pkg:npm/lodash@4.17.21"
+    assert_includes purls, "pkg:npm/react@18.0.0"
+    assert_includes purls, "pkg:npm/jest@29.0.0"  # development dependency included by default
+  end
+
+  test "create_collection_from_dependencies with include_development false excludes development dependencies" do
+    user = create(:user)
+    project = create(:project, url: "https://github.com/test/project")
+    
+    # Mock dependencies data
+    dependencies_data = [
+      {
+        "manifest_kind" => "package.json",
+        "manifest_filepath" => "package.json",
+        "dependencies" => [
+          {
+            "purl" => "pkg:npm/lodash@4.17.21",
+            "name" => "lodash",
+            "direct" => true,
+            "kind" => "runtime"
+          },
+          {
+            "purl" => "pkg:npm/react@18.0.0",
+            "name" => "react", 
+            "direct" => true,
+            "kind" => "runtime"
+          },
+          {
+            "purl" => "pkg:npm/jest@29.0.0",
+            "name" => "jest",
+            "direct" => true,
+            "kind" => "development"
+          }
+        ]
+      }
+    ]
+    
+    project.update!(dependencies: dependencies_data)
+    
+    collection = project.create_collection_from_dependencies(user, include_development: false)
+    
+    assert_not_nil collection
+    
+    # Verify only runtime dependencies are included when include_development is false
+    dependency_file = JSON.parse(collection.dependency_file)
+    packages = dependency_file["packages"]
+    assert_equal 2, packages.length
+    
+    purls = packages.map { |p| p["externalRefs"].first["referenceLocator"] }
+    assert_includes purls, "pkg:npm/lodash@4.17.21"
+    assert_includes purls, "pkg:npm/react@18.0.0"
+    assert_not_includes purls, "pkg:npm/jest@29.0.0"  # development dependency excluded
+  end
+
+  test "create_collection_from_dependencies with custom name uses provided name" do
+    user = create(:user)
+    project = create(:project, url: "https://github.com/test/project")
+    
+    dependencies_data = [
+      {
+        "manifest_kind" => "package.json",
+        "manifest_filepath" => "package.json",
+        "dependencies" => [
+          {
+            "purl" => "pkg:npm/lodash@4.17.21",
+            "name" => "lodash",
+            "direct" => true,
+            "kind" => "runtime"
+          }
+        ]
+      }
+    ]
+    
+    project.update!(dependencies: dependencies_data)
+    
+    custom_name = "My Custom Dependencies Collection"
+    collection = project.create_collection_from_dependencies(user, name: custom_name)
+    
+    assert_not_nil collection
+    assert_equal custom_name, collection.name
+  end
 end

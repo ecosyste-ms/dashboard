@@ -1196,6 +1196,61 @@ class Project < ApplicationRecord
     puts "Error fetching github sponsors for #{repository_url}"
   end
 
+  def create_collection_from_dependencies(user, name: nil, include_development: true)
+    return nil if dependencies.blank? || all_dependencies.empty?
+    
+    collection_name = name || "#{display_name} Dependencies"
+    
+    collection = Collection.new(
+      name: collection_name,
+      description: "Dependencies of #{display_name}",
+      user: user,
+      visibility: 'public'
+    )
+    
+    # Create dependency file JSON from project's dependencies
+    purls = if include_development
+      all_dependencies.map { |dep| dep['purl'] }.compact
+    else
+      # Only include direct runtime dependencies (exclude development)
+      direct_dependencies.reject { |dep| ['development', 'dev', 'test', 'build'].include?(dep['kind']) }
+                         .map { |dep| dep['purl'] }.compact
+    end
+    
+    # Create SBOM format for the dependency file
+    sbom = {
+      "SPDXID" => "SPDXRef-DOCUMENT",
+      "spdxVersion" => "SPDX-2.3",
+      "creationInfo" => {
+        "created" => Time.current.iso8601,
+        "creators" => ["Tool: dashboard.ecosyste.ms"]
+      },
+      "name" => collection_name,
+      "packages" => purls.map.with_index do |purl, index|
+        {
+          "SPDXID" => "SPDXRef-Package-#{index + 1}",
+          "name" => purl,
+          "externalRefs" => [
+            {
+              "referenceCategory" => "PACKAGE-MANAGER",
+              "referenceType" => "purl",
+              "referenceLocator" => purl
+            }
+          ]
+        }
+      end
+    }
+    
+    collection.dependency_file = sbom.to_json
+    
+    if collection.save
+      collection.import_projects_async
+      collection
+    else
+      nil
+    end
+  end
+
   def current_github_sponsors_count
     return 0 unless github_sponsors.present?
     github_sponsors['active_sponsors_count'] || 0
