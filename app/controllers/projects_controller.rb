@@ -1,6 +1,6 @@
 class ProjectsController < ApplicationController
   before_action :set_period_vars, only: [:engagement, :productivity, :finance, :responsiveness]
-  before_action :authenticate_user!, only: [:index, :new, :create, :add_to_list, :remove_from_list]
+  before_action :authenticate_user!, only: [:index, :new, :create, :add_to_list, :remove_from_list, :create_collection_from_dependencies]
   before_action :set_collection, if: :nested_route?
   before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :packages, :commits, :releases, :issues, :advisories, :security]
 
@@ -363,6 +363,18 @@ class ProjectsController < ApplicationController
       redirect_to projects_path, notice: 'Project removed from your list.'
     else
       redirect_to projects_path, alert: 'Project not found in your list.'
+    end
+  end
+
+  def create_collection_from_dependencies
+    @project = Project.find(params[:id])
+    
+    collection = @project.create_collection_from_dependencies(current_user)
+    
+    if collection
+      redirect_to collection, notice: 'Collection created successfully from project dependencies!'
+    else
+      redirect_to dependencies_project_path(@project), alert: 'Unable to create collection. This project may not have any dependencies.'
     end
   end
 

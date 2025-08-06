@@ -12,6 +12,7 @@ class Collection < ApplicationRecord
   has_many :advisories, through: :projects
 
   belongs_to :user
+  belongs_to :source_project, class_name: 'Project', optional: true
 
   scope :visible, -> { where(visibility: 'public') }
   scope :sync_eligible, -> { all }

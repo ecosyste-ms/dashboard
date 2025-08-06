@@ -889,4 +889,78 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 3, project.packages.count
     assert_equal 2, project.tags.count
   end
+
+  test "should create collection from dependencies when logged in" do
+    user = create(:user)
+    login_as(user)
+    
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
+    
+    # Mock dependencies data
+    dependencies_data = [
+      {
+        "manifest_kind" => "package.json",
+        "manifest_filepath" => "package.json",
+        "dependencies" => [
+          {
+            "package_name" => "lodash",
+            "ecosystem" => "npm",
+            "direct" => true,
+            "kind" => "runtime"
+          }
+        ]
+      }
+    ]
+    
+    project.update!(dependencies: dependencies_data)
+    
+    assert_difference 'Collection.count', 1 do
+      post create_collection_from_dependencies_project_path(project)
+    end
+    
+    assert_redirected_to Collection.last
+    assert_match /Collection created successfully/, flash[:notice]
+  end
+
+  test "should not create collection when not logged in" do
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
+    
+    dependencies_data = [
+      {
+        "manifest_kind" => "package.json",
+        "manifest_filepath" => "package.json",
+        "dependencies" => [
+          {
+            "package_name" => "lodash",
+            "ecosystem" => "npm",
+            "direct" => true,
+            "kind" => "runtime"
+          }
+        ]
+      }
+    ]
+    
+    project.update!(dependencies: dependencies_data)
+    
+    assert_no_difference 'Collection.count' do
+      post create_collection_from_dependencies_project_path(project)
+    end
+    
+    assert_redirected_to login_path
+  end
+
+  test "should handle project with no dependencies" do
+    user = create(:user)
+    login_as(user)
+    
+    project = create(:project, :with_repository, last_synced_at: 30.minutes.ago, dependencies: nil)
+    
+    assert_no_difference 'Collection.count' do
+      post create_collection_from_dependencies_project_path(project)
+    end
+    
+    assert_redirected_to dependencies_project_path(project)
+    assert_match /Unable to create collection/, flash[:alert]
+  end
+
 end

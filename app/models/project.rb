@@ -5,6 +5,7 @@ class Project < ApplicationRecord
   has_many :collection_projects, dependent: :destroy
   has_many :active_collection_projects, -> { active }, class_name: 'CollectionProject'
   has_many :collections, through: :active_collection_projects
+  has_many :sourced_collections, class_name: 'Collection', foreign_key: 'source_project_id', dependent: :nullify
 
   has_many :user_projects, dependent: :destroy
   has_many :users, through: :user_projects
@@ -131,6 +132,7 @@ class Project < ApplicationRecord
         broadcast_sync_update  # After commits sync
         
         fetch_dependencies 
+        update_sourced_dependency_collections  # Update any collections that use this project as source
         broadcast_sync_update  # After dependencies fetch
         
         fetch_collective
@@ -1196,6 +1198,88 @@ class Project < ApplicationRecord
     puts "Error fetching github sponsors for #{repository_url}"
   end
 
+  def dependency_collection_for_user(user)
+    sourced_collections.where(user: user).first
+  end
+
+  def create_or_update_collection_from_dependencies(user, name: nil, include_development: true)
+    existing_collection = dependency_collection_for_user(user)
+    
+    if existing_collection
+      update_dependency_collection(existing_collection, include_development: include_development)
+    else
+      create_collection_from_dependencies(user, name: name, include_development: include_development)
+    end
+  end
+
+  def update_sourced_dependency_collections
+    # Update all collections that use this project as their source
+    sourced_collections.find_each do |collection|
+      begin
+        Rails.logger.info "Auto-updating dependency collection #{collection.id} (#{collection.name}) from project #{id}"
+        update_dependency_collection(collection)
+      rescue => e
+        Rails.logger.error "Error auto-updating dependency collection #{collection.id}: #{e.message}"
+        # Don't let collection update errors break project sync
+      end
+    end
+  end
+
+  def update_dependency_collection(collection, include_development: true)
+    return nil if dependencies.blank? || all_dependencies.empty?
+    
+    # Update the dependency file with current dependencies
+    deps_to_process = if include_development
+      all_dependencies
+    else
+      # Only include direct runtime dependencies (exclude development)
+      direct_dependencies.reject { |dep| ['development', 'dev', 'test', 'build'].include?(dep['kind']) }
+    end
+    
+    # Convert dependencies to PURLs
+    purls = deps_to_process.map do |dep|
+      next nil unless dep['package_name'] && dep['ecosystem']
+      
+      # Use the Package class method to convert ecosystem types to PURL types
+      ecosystem_type = Package.convert_ecosystem_to_purl_type(dep['ecosystem'])
+      
+      "pkg:#{ecosystem_type}/#{dep['package_name']}"
+    end.compact
+    
+    # Create updated SBOM format for the dependency file
+    sbom = {
+      "SPDXID" => "SPDXRef-DOCUMENT",
+      "spdxVersion" => "SPDX-2.3",
+      "creationInfo" => {
+        "created" => Time.current.iso8601,
+        "creators" => ["Tool: dashboard.ecosyste.ms"]
+      },
+      "name" => collection.name,
+      "packages" => purls.map.with_index do |purl, index|
+        {
+          "SPDXID" => "SPDXRef-Package-#{index + 1}",
+          "name" => purl,
+          "externalRefs" => [
+            {
+              "referenceCategory" => "PACKAGE-MANAGER",
+              "referenceType" => "purl",
+              "referenceLocator" => purl
+            }
+          ]
+        }
+      end
+    }
+    
+    collection.dependency_file = sbom.to_json
+    
+    if collection.save
+      collection.import_projects_async
+      collection
+    else
+      nil
+    end
+  end
+
   def create_collection_from_dependencies(user, name: nil, include_development: true)
     return nil if dependencies.blank? || all_dependencies.empty?
     
@@ -1205,17 +1289,27 @@ class Project < ApplicationRecord
       name: collection_name,
       description: "Dependencies of #{display_name}",
       user: user,
-      visibility: 'public'
+      visibility: 'public',
+      source_project: self
     )
     
     # Create dependency file JSON from project's dependencies
-    purls = if include_development
-      all_dependencies.map { |dep| dep['purl'] }.compact
+    deps_to_process = if include_development
+      all_dependencies
     else
       # Only include direct runtime dependencies (exclude development)
       direct_dependencies.reject { |dep| ['development', 'dev', 'test', 'build'].include?(dep['kind']) }
-                         .map { |dep| dep['purl'] }.compact
     end
+    
+    # Convert dependencies to PURLs
+    purls = deps_to_process.map do |dep|
+      next nil unless dep['package_name'] && dep['ecosystem']
+      
+      # Use the Package class method to convert ecosystem types to PURL types
+      ecosystem_type = Package.convert_ecosystem_to_purl_type(dep['ecosystem'])
+      
+      "pkg:#{ecosystem_type}/#{dep['package_name']}"
+    end.compact
     
     # Create SBOM format for the dependency file
     sbom = {

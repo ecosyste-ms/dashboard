@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_31_121918) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_06_154038) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -74,6 +74,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_31_121918) do
     t.integer "direct_dependencies_count", default: 0, null: false
     t.integer "development_dependencies_count", default: 0, null: false
     t.integer "transitive_dependencies_count", default: 0, null: false
+    t.bigint "source_project_id"
+    t.index ["source_project_id"], name: "index_collections_on_source_project_id"
     t.index ["user_id"], name: "index_collections_on_user_id"
   end
 
@@ -253,6 +255,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_31_121918) do
 
   add_foreign_key "collection_projects", "collections"
   add_foreign_key "collection_projects", "projects"
+  add_foreign_key "collections", "projects", column: "source_project_id"
   add_foreign_key "user_projects", "projects"
   add_foreign_key "user_projects", "users"
 end

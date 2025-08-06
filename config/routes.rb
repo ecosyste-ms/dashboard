@@ -101,6 +101,7 @@ Rails.application.routes.draw do
       get :syncing
       post :add_to_list
       delete :remove_from_list
+      post :create_collection_from_dependencies
     end
   end
   

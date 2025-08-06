@@ -16,6 +16,27 @@ class Package < ApplicationRecord
     Purl.parse(purl.to_s).with(version: nil).to_s
   end
 
+  def self.convert_ecosystem_to_purl_type(ecosystem)
+    case ecosystem.downcase
+    when "actions"
+      "githubactions"
+    when "elpa"
+      "melpa"
+    when "go"
+      "golang"
+    when "homebrew"
+      "brew"
+    when "packagist"
+      "composer"
+    when "rubygems"
+      "gem"
+    when "swiftpm"
+      "swift"
+    else
+      ecosystem.downcase
+    end
+  end
+
   def registry_name
     metadata&.dig("registry", "name")
   end

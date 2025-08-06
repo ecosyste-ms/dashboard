@@ -261,20 +261,20 @@ class ProjectTest < ActiveSupport::TestCase
         "manifest_filepath" => "package.json",
         "dependencies" => [
           {
-            "purl" => "pkg:npm/lodash@4.17.21",
-            "name" => "lodash",
+            "package_name" => "lodash",
+            "ecosystem" => "npm",
             "direct" => true,
             "kind" => "runtime"
           },
           {
-            "purl" => "pkg:npm/react@18.0.0",
-            "name" => "react", 
+            "package_name" => "react",
+            "ecosystem" => "npm",
             "direct" => true,
             "kind" => "runtime"
           },
           {
-            "purl" => "pkg:npm/jest@29.0.0",
-            "name" => "jest",
+            "package_name" => "jest",
+            "ecosystem" => "npm",
             "direct" => true,
             "kind" => "development"
           }
@@ -292,6 +292,7 @@ class ProjectTest < ActiveSupport::TestCase
     assert_equal "Dependencies of github.com/test/project", collection.description
     assert_equal user, collection.user
     assert_equal 'public', collection.visibility
+    assert_equal project, collection.source_project
     
     # Verify the dependency file contains the expected PURLs
     dependency_file = JSON.parse(collection.dependency_file)
@@ -303,9 +304,9 @@ class ProjectTest < ActiveSupport::TestCase
     assert_equal 3, packages.length
     
     purls = packages.map { |p| p["externalRefs"].first["referenceLocator"] }
-    assert_includes purls, "pkg:npm/lodash@4.17.21"
-    assert_includes purls, "pkg:npm/react@18.0.0"
-    assert_includes purls, "pkg:npm/jest@29.0.0"  # development dependency included by default
+    assert_includes purls, "pkg:npm/lodash"
+    assert_includes purls, "pkg:npm/react"
+    assert_includes purls, "pkg:npm/jest"  # development dependency included by default
   end
 
   test "create_collection_from_dependencies with include_development false excludes development dependencies" do
@@ -319,20 +320,20 @@ class ProjectTest < ActiveSupport::TestCase
         "manifest_filepath" => "package.json",
         "dependencies" => [
           {
-            "purl" => "pkg:npm/lodash@4.17.21",
-            "name" => "lodash",
+            "package_name" => "lodash",
+            "ecosystem" => "npm",
             "direct" => true,
             "kind" => "runtime"
           },
           {
-            "purl" => "pkg:npm/react@18.0.0",
-            "name" => "react", 
+            "package_name" => "react",
+            "ecosystem" => "npm",
             "direct" => true,
             "kind" => "runtime"
           },
           {
-            "purl" => "pkg:npm/jest@29.0.0",
-            "name" => "jest",
+            "package_name" => "jest",
+            "ecosystem" => "npm",
             "direct" => true,
             "kind" => "development"
           }
@@ -352,9 +353,9 @@ class ProjectTest < ActiveSupport::TestCase
     assert_equal 2, packages.length
     
     purls = packages.map { |p| p["externalRefs"].first["referenceLocator"] }
-    assert_includes purls, "pkg:npm/lodash@4.17.21"
-    assert_includes purls, "pkg:npm/react@18.0.0"
-    assert_not_includes purls, "pkg:npm/jest@29.0.0"  # development dependency excluded
+    assert_includes purls, "pkg:npm/lodash"
+    assert_includes purls, "pkg:npm/react"
+    assert_not_includes purls, "pkg:npm/jest"  # development dependency excluded
   end
 
   test "create_collection_from_dependencies with custom name uses provided name" do
@@ -367,8 +368,8 @@ class ProjectTest < ActiveSupport::TestCase
         "manifest_filepath" => "package.json",
         "dependencies" => [
           {
-            "purl" => "pkg:npm/lodash@4.17.21",
-            "name" => "lodash",
+            "package_name" => "lodash",
+            "ecosystem" => "npm",
             "direct" => true,
             "kind" => "runtime"
           }
@@ -383,5 +384,159 @@ class ProjectTest < ActiveSupport::TestCase
     
     assert_not_nil collection
     assert_equal custom_name, collection.name
+  end
+
+  test "dependency_collection_for_user returns existing collection" do
+    user = create(:user)
+    project = create(:project, url: "https://github.com/test/project")
+    
+    # Create a collection for the user from this project
+    collection = create(:collection, user: user, source_project: project)
+    
+    result = project.dependency_collection_for_user(user)
+    assert_equal collection, result
+  end
+
+  test "dependency_collection_for_user returns nil if no collection exists" do
+    user = create(:user)
+    project = create(:project, url: "https://github.com/test/project")
+    
+    result = project.dependency_collection_for_user(user)
+    assert_nil result
+  end
+
+  test "update_dependency_collection updates existing collection" do
+    user = create(:user)
+    project = create(:project, url: "https://github.com/test/project")
+    
+    # Create initial dependencies
+    initial_dependencies = [
+      {
+        "manifest_kind" => "package.json",
+        "manifest_filepath" => "package.json",
+        "dependencies" => [
+          {
+            "package_name" => "lodash",
+            "ecosystem" => "npm",
+            "direct" => true,
+            "kind" => "runtime"
+          }
+        ]
+      }
+    ]
+    
+    project.update!(dependencies: initial_dependencies)
+    
+    # Create initial collection
+    collection = project.create_collection_from_dependencies(user)
+    initial_packages = JSON.parse(collection.dependency_file)["packages"]
+    assert_equal 1, initial_packages.length
+    
+    # Update project dependencies
+    updated_dependencies = [
+      {
+        "manifest_kind" => "package.json",
+        "manifest_filepath" => "package.json",
+        "dependencies" => [
+          {
+            "package_name" => "lodash",
+            "ecosystem" => "npm",
+            "direct" => true,
+            "kind" => "runtime"
+          },
+          {
+            "package_name" => "react",
+            "ecosystem" => "npm",
+            "direct" => true,
+            "kind" => "runtime"
+          }
+        ]
+      }
+    ]
+    
+    project.update!(dependencies: updated_dependencies)
+    
+    # Update the collection
+    updated_collection = project.update_dependency_collection(collection)
+    
+    assert_not_nil updated_collection
+    updated_packages = JSON.parse(updated_collection.dependency_file)["packages"]
+    assert_equal 2, updated_packages.length
+    
+    purls = updated_packages.map { |p| p["externalRefs"].first["referenceLocator"] }
+    assert_includes purls, "pkg:npm/lodash"
+    assert_includes purls, "pkg:npm/react"
+  end
+
+  test "update_sourced_dependency_collections updates all collections" do
+    user = create(:user)
+    project = create(:project, url: "https://github.com/test/project")
+    
+    # Create initial dependencies
+    initial_dependencies = [
+      {
+        "manifest_kind" => "package.json",
+        "manifest_filepath" => "package.json",
+        "dependencies" => [
+          {
+            "package_name" => "lodash",
+            "ecosystem" => "npm",
+            "direct" => true,
+            "kind" => "runtime"
+          }
+        ]
+      }
+    ]
+    
+    project.update!(dependencies: initial_dependencies)
+    
+    # Create multiple collections from this project
+    collection1 = project.create_collection_from_dependencies(user, name: "Collection 1")
+    collection2 = project.create_collection_from_dependencies(create(:user), name: "Collection 2")
+    
+    # Verify initial state
+    assert_equal 1, JSON.parse(collection1.dependency_file)["packages"].length
+    assert_equal 1, JSON.parse(collection2.dependency_file)["packages"].length
+    
+    # Update project dependencies
+    updated_dependencies = [
+      {
+        "manifest_kind" => "package.json",
+        "manifest_filepath" => "package.json",
+        "dependencies" => [
+          {
+            "package_name" => "lodash",
+            "ecosystem" => "npm",
+            "direct" => true,
+            "kind" => "runtime"
+          },
+          {
+            "package_name" => "react",
+            "ecosystem" => "npm",
+            "direct" => true,
+            "kind" => "runtime"
+          }
+        ]
+      }
+    ]
+    
+    project.update!(dependencies: updated_dependencies)
+    
+    # Trigger auto-update
+    project.update_sourced_dependency_collections
+    
+    # Verify both collections were updated
+    collection1.reload
+    collection2.reload
+    
+    assert_equal 2, JSON.parse(collection1.dependency_file)["packages"].length
+    assert_equal 2, JSON.parse(collection2.dependency_file)["packages"].length
+    
+    # Verify both contain the new dependency
+    purls1 = JSON.parse(collection1.dependency_file)["packages"].map { |p| p["externalRefs"].first["referenceLocator"] }
+    purls2 = JSON.parse(collection2.dependency_file)["packages"].map { |p| p["externalRefs"].first["referenceLocator"] }
+    
+    assert_includes purls1, "pkg:npm/react"
+    assert_includes purls2, "pkg:npm/react"
   end
 end
