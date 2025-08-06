@@ -864,8 +864,104 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 0, assigns(:total_donors_last_period)
     assert_equal 0, assigns(:total_payees_this_period)
     assert_equal 0, assigns(:total_payees_last_period)
+    
+    # Verify GitHub Sponsors totals are also zero
+    assert_equal 0, assigns(:total_current_sponsors)
+    assert_equal 0, assigns(:total_past_sponsors)
+    assert_equal 0, assigns(:total_github_sponsors)
+    assert_nil assigns(:min_github_sponsorship)
   end
 
+  test "should show finance page with github sponsors aggregation" do
+    login_as(@user)
+    @collection.update(import_status: "completed", sync_status: "ready")
+    
+    # Create projects with GitHub Sponsors data
+    project1 = create(:project, url: "https://github.com/test/project1", 
+                      github_sponsors: {
+                        'active_sponsors_count' => 15,
+                        'sponsors_count' => 20,
+                        'minimum_sponsorship_amount' => 5,
+                        'sponsors_url' => 'https://github.com/sponsors/sponsor1'
+                      })
+                      
+    project2 = create(:project, url: "https://github.com/test/project2",
+                      github_sponsors: {
+                        'active_sponsors_count' => 10,
+                        'sponsors_count' => 13,
+                        'minimum_sponsorship_amount' => 1,
+                        'sponsors_url' => 'https://github.com/sponsors/sponsor2'
+                      })
+    
+    @collection.collection_projects.create!(project: project1)
+    @collection.collection_projects.create!(project: project2)
+    
+    get finance_collection_path(@collection)
+    assert_response :success
+    assert_template :finance
+    
+    # Verify GitHub Sponsors aggregation
+    assert_equal 25, assigns(:total_current_sponsors) # 15 + 10
+    assert_equal 8, assigns(:total_past_sponsors) # 5 + 3
+    assert_equal 33, assigns(:total_github_sponsors) # 20 + 13
+    assert_equal 1, assigns(:min_github_sponsorship) # min of 5 and 1
+    
+    # Verify funding source counts
+    assert_equal 2, assigns(:projects_with_funding_count) # Both projects have GitHub sponsors
+    assert_equal 0, assigns(:unique_collectives_count) # No collectives
+    assert_equal 2, assigns(:unique_github_sponsors_count) # 2 GitHub sponsors
+  end
+
+
+  test "should show finance page with both collective and github sponsors aggregation" do
+    login_as(@user)
+    @collection.update(import_status: "completed", sync_status: "ready")
+    
+    # Create collective and projects with both funding types
+    collective = create(:collective)
+    
+    project_with_collective = create(:project, url: "https://github.com/test/collective-project", collective_id: collective.id)
+    project_with_sponsors = create(:project, url: "https://github.com/test/sponsors-project",
+                                  github_sponsors: {
+                                    'active_sponsors_count' => 20,
+                                    'sponsors_count' => 25,
+                                    'minimum_sponsorship_amount' => 10,
+                                    'sponsors_url' => 'https://github.com/sponsors/test'
+                                  })
+    project_with_both = create(:project, url: "https://github.com/test/both-project", 
+                              collective_id: collective.id,
+                              github_sponsors: {
+                                'active_sponsors_count' => 5,
+                                'sponsors_count' => 8,
+                                'minimum_sponsorship_amount' => 1,
+                                'sponsors_url' => 'https://github.com/sponsors/both'
+                              })
+    
+    @collection.collection_projects.create!(project: project_with_collective)
+    @collection.collection_projects.create!(project: project_with_sponsors)
+    @collection.collection_projects.create!(project: project_with_both)
+    
+    # Create some transactions for the collective
+    create_list(:transaction, 3, collective: collective, transaction_type: 'CREDIT', created_at: 1.day.ago)
+    
+    get finance_collection_path(@collection)
+    assert_response :success
+    assert_template :finance
+    
+    # Verify funding source counts
+    assert_equal 3, assigns(:projects_with_funding_count) # All 3 projects have funding
+    assert_equal 1, assigns(:unique_collectives_count) # Only 1 collective (shared by 2 projects)
+    assert_equal 2, assigns(:unique_github_sponsors_count) # 2 different GitHub sponsors
+    
+    # Verify GitHub Sponsors aggregation
+    assert_equal 25, assigns(:total_current_sponsors) # 20 + 5
+    assert_equal 8, assigns(:total_past_sponsors) # (25-20) + (8-5) = 5 + 3
+    assert_equal 33, assigns(:total_github_sponsors) # 25 + 8
+    assert_equal 1, assigns(:min_github_sponsorship) # min of 10 and 1
+    
+    # Verify collective aggregation still works
+    assert assigns(:total_contributions_this_period) >= 0
+  end
 
   test "should handle duplicate collectives across projects in finance calculation" do
     login_as(@user)

@@ -203,6 +203,18 @@ class CollectionsController < ApplicationController
       @total_payees_this_period = @total_payees_last_period = 0
       @total_balance_this_period = @total_balance_last_period = 0
     end
+
+    # Aggregate data for all unique GitHub Sponsors
+    github_sponsors_projects = @collection.projects.select { |p| p.github_sponsors.present? }
+    if github_sponsors_projects.any?
+      @total_current_sponsors = github_sponsors_projects.sum(&:current_github_sponsors_count)
+      @total_past_sponsors = github_sponsors_projects.sum(&:past_github_sponsors_count)
+      @total_github_sponsors = github_sponsors_projects.sum(&:total_github_sponsors_count)
+      @min_github_sponsorship = github_sponsors_projects.map(&:github_minimum_sponsorship_amount).compact.min
+    else
+      @total_current_sponsors = @total_past_sponsors = @total_github_sponsors = 0
+      @min_github_sponsorship = nil
+    end
   end
 
   def responsiveness

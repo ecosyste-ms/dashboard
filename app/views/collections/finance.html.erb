@@ -39,6 +39,35 @@
         <hr class="my-5">
       <% end %>
 
+      <% if @unique_github_sponsors_count > 0 %>
+        <div class="d-md-flex justify-content-between align-items-center mb-2 mt-5">
+          <h2>Summary - All GitHub Sponsors</h2>
+        </div>
+
+        <div class="dashboard-grid mb-5">
+          <div class="three-equal-widgets">
+            <%= small_widget 'Total Current Sponsors', @total_current_sponsors, nil %>
+            <%= small_widget 'Total Past Sponsors', @total_past_sponsors, nil %>
+            <%= small_widget 'Total All-Time Sponsors', @total_github_sponsors, nil %>
+          </div>
+
+          <div class="two-thirds-widgets">
+            <%= small_widget 'Minimum Sponsorship', @min_github_sponsorship, nil, symbol: '$', currency: true %>
+            <%= no_data_widget 'Missing Data', card_class: "well--grey two-thirds-widgets__large" do %>
+              We can&apos;t show financial data for <strong>GitHub Sponsors</strong> due to limits in their API.
+            <% end %>
+          </div>
+
+          <div class="three-equal-widgets">
+            <%= no_data_widget "Contributions" %>
+            <%= no_data_widget "Payments" %>
+            <%= no_data_widget "Balance" %>
+          </div>
+        </div>
+
+        <hr class="my-5">
+      <% end %>
+
       <div class="dashboard-grid mb-5">
         <div class="three-equal-widgets">
           <div class="card well p-3 border-0">
@@ -93,7 +122,7 @@
         
         <div class="d-md-flex justify-content-between align-items-center mb-2 mt-5">
           <h2>
-            <button class="btn btn-link p-0 text-start text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#<%= collective_id %>" aria-expanded="false" aria-controls="<%= collective_id %>">
+            <button class="btn btn-link p-0 text-start text-decoration-none text-body h2 mb-0" type="button" data-bs-toggle="collapse" data-bs-target="#<%= collective_id %>" aria-expanded="false" aria-controls="<%= collective_id %>">
               <i class="fas fa-chevron-right me-2" id="chevron-<%= collective_id %>"></i>
               Open Collective: <%= first_project.collective.to_s %>
               <% if projects.length > 1 %>
@@ -104,42 +133,44 @@
           <a href="<%= collective_url %>" class="spesh-link">View on Open Collective</a>
         </div>
 
-        <div class="mb-3">
-          <div class="d-flex flex-wrap gap-2">
-            <% projects.each do |project| %>
-              <%= link_to project.name, project_path(project), class: "badge text-bg-light text-decoration-none" %>
-            <% end %>
+        <div class="collapse" id="<%= collective_id %>">
+          <div class="mb-3">
+            <div class="d-flex flex-wrap gap-2">
+              <% projects.each do |project| %>
+                <%= link_to project.name, project_path(project), class: "badge text-bg-light text-decoration-none" %>
+              <% end %>
+            </div>
           </div>
-        </div>
 
-        <div class="dashboard-grid mb-5">
-          <div class="three-equal-widgets">
-            <%
-              # Aggregate data across all projects using this collective
-              contributions_this_period = projects.sum { |p| p.collective&.transactions&.donations&.between(@this_period_range.begin, @this_period_range.end)&.count || 0 }
-              contributions_last_period = projects.sum { |p| p.collective&.transactions&.donations&.between(@last_period_range.begin, @last_period_range.end)&.count || 0 }
-              payments_this_period = projects.sum { |p| p.collective&.transactions&.expenses&.between(@this_period_range.begin, @this_period_range.end)&.count || 0 }
-              payments_last_period = projects.sum { |p| p.collective&.transactions&.expenses&.between(@last_period_range.begin, @last_period_range.end)&.count || 0 }
-            %>
-            <%= small_widget 'Contributions', contributions_this_period, contributions_last_period, symbol: '$', currency: true %>
-            <%= small_widget 'Payments', payments_this_period, payments_last_period, symbol: '$', currency: true %>
-            <%= small_widget 'Balance', 0, 0, symbol: '$', currency: true %>
-          </div>
-          <div class="two-thirds-widgets">
-            <%
-              donors_this_period = projects.sum { |p| p.collective&.transactions&.donations&.between(@this_period_range.begin, @this_period_range.end)&.group(:from_account)&.count&.length || 0 }
-              donors_last_period = projects.sum { |p| p.collective&.transactions&.donations&.between(@last_period_range.begin, @last_period_range.end)&.group(:from_account)&.count&.length || 0 }
-            %>
-            <%= stat_card_widget 'Donors', donors_this_period, donors_last_period, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
-            <%= stat_card_widget 'Recurring donors', 75, 65, symbol: '%', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
-          </div>
-          <div class="two-thirds-widgets">
-            <%
-              payees_this_period = projects.sum { |p| p.collective&.transactions&.expenses&.between(@this_period_range.begin, @this_period_range.end)&.group(:to_account)&.count&.length || 0 }
-              payees_last_period = projects.sum { |p| p.collective&.transactions&.expenses&.between(@last_period_range.begin, @last_period_range.end)&.group(:to_account)&.count&.length || 0 }
-            %>
-            <%= stat_card_widget 'Unique payees', payees_this_period, payees_last_period, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
-            <%= stat_card_widget 'Reimbursements', 10000, 9000, symbol: '$', currency: true, stat_size: "small",  title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
+          <div class="dashboard-grid mb-5">
+            <div class="three-equal-widgets">
+              <%
+                # Aggregate data across all projects using this collective
+                contributions_this_period = projects.sum { |p| p.collective&.transactions&.donations&.between(@this_period_range.begin, @this_period_range.end)&.count || 0 }
+                contributions_last_period = projects.sum { |p| p.collective&.transactions&.donations&.between(@last_period_range.begin, @last_period_range.end)&.count || 0 }
+                payments_this_period = projects.sum { |p| p.collective&.transactions&.expenses&.between(@this_period_range.begin, @this_period_range.end)&.count || 0 }
+                payments_last_period = projects.sum { |p| p.collective&.transactions&.expenses&.between(@last_period_range.begin, @last_period_range.end)&.count || 0 }
+              %>
+              <%= small_widget 'Contributions', contributions_this_period, contributions_last_period, symbol: '$', currency: true %>
+              <%= small_widget 'Payments', payments_this_period, payments_last_period, symbol: '$', currency: true %>
+              <%= small_widget 'Balance', 0, 0, symbol: '$', currency: true %>
+            </div>
+            <div class="two-thirds-widgets">
+              <%
+                donors_this_period = projects.sum { |p| p.collective&.transactions&.donations&.between(@this_period_range.begin, @this_period_range.end)&.group(:from_account)&.count&.length || 0 }
+                donors_last_period = projects.sum { |p| p.collective&.transactions&.donations&.between(@last_period_range.begin, @last_period_range.end)&.group(:from_account)&.count&.length || 0 }
+              %>
+              <%= stat_card_widget 'Donors', donors_this_period, donors_last_period, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
+              <%= stat_card_widget 'Recurring donors', 75, 65, symbol: '%', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
+            </div>
+            <div class="two-thirds-widgets">
+              <%
+                payees_this_period = projects.sum { |p| p.collective&.transactions&.expenses&.between(@this_period_range.begin, @this_period_range.end)&.group(:to_account)&.count&.length || 0 }
+                payees_last_period = projects.sum { |p| p.collective&.transactions&.expenses&.between(@last_period_range.begin, @last_period_range.end)&.group(:to_account)&.count&.length || 0 }
+              %>
+              <%= stat_card_widget 'Unique payees', payees_this_period, payees_last_period, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
+              <%= stat_card_widget 'Reimbursements', 10000, 9000, symbol: '$', currency: true, stat_size: "small",  title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
+            </div>
           </div>
         </div>
       <% end %>
@@ -153,48 +184,55 @@
           <hr class="my-4">
         <% end %>
         <% first_project = projects.first %>
+        <% github_sponsor_id = "github-sponsor-#{index}" %>
+        
         <div class="d-md-flex justify-content-between align-items-center mb-2 mt-5">
           <h2>
-            GitHub Sponsors: <%= github_sponsors_url.split('/').last %>
-            <% if projects.length > 1 %>
-              <small class="text-muted">(<%= projects.length %> projects)</small>
-            <% end %>
+            <button class="btn btn-link p-0 text-start text-decoration-none text-body h2 mb-0" type="button" data-bs-toggle="collapse" data-bs-target="#<%= github_sponsor_id %>" aria-expanded="false" aria-controls="<%= github_sponsor_id %>">
+              <i class="fas fa-chevron-right me-2" id="chevron-<%= github_sponsor_id %>"></i>
+              GitHub Sponsors: <%= github_sponsors_url.split('/').last %>
+              <% if projects.length > 1 %>
+                <small class="text-muted">(<%= projects.length %> projects)</small>
+              <% end %>
+            </button>
           </h2>
           <a href="<%= github_sponsors_url %>" class="spesh-link">View on GitHub Sponsors</a>
         </div>
 
-        <div class="mb-3">
-          <div class="d-flex flex-wrap gap-2">
-            <% projects.each do |project| %>
-              <%= link_to project.name, project_path(project), class: "badge text-bg-light text-decoration-none" %>
-            <% end %>
-          </div>
-        </div>
-
-        <div class="dashboard-grid mb-5">
-          <div class="three-equal-widgets">
-            <%
-              # Use data from first project since GitHub Sponsors is per-account
-              current_sponsors = first_project.current_github_sponsors_count
-              past_sponsors = first_project.past_github_sponsors_count
-              total_sponsors = first_project.total_github_sponsors_count
-            %>
-            <%= small_widget 'Current sponsors', current_sponsors, nil %>
-            <%= small_widget 'Past sponsors', past_sponsors, nil %>
-            <%= small_widget 'Total sponsors', total_sponsors, nil %>
+        <div class="collapse" id="<%= github_sponsor_id %>">
+          <div class="mb-3">
+            <div class="d-flex flex-wrap gap-2">
+              <% projects.each do |project| %>
+                <%= link_to project.name, project_path(project), class: "badge text-bg-light text-decoration-none" %>
+              <% end %>
+            </div>
           </div>
 
-          <div class="two-thirds-widgets">
-            <%= small_widget 'Minimum sponsorship', first_project.github_minimum_sponsorship_amount, nil, symbol: '$', currency: true %>
-            <%= no_data_widget 'Missing Data', card_class: "well--grey two-thirds-widgets__large" do %>
-              We can&apos;t show financial data for <strong>GitHub Sponsors</strong> due to limits in their API.
-            <% end %>
-          </div>
+          <div class="dashboard-grid mb-5">
+            <div class="three-equal-widgets">
+              <%
+                # Use data from first project since GitHub Sponsors is per-account
+                current_sponsors = first_project.current_github_sponsors_count
+                past_sponsors = first_project.past_github_sponsors_count
+                total_sponsors = first_project.total_github_sponsors_count
+              %>
+              <%= small_widget 'Current sponsors', current_sponsors, nil %>
+              <%= small_widget 'Past sponsors', past_sponsors, nil %>
+              <%= small_widget 'Total sponsors', total_sponsors, nil %>
+            </div>
 
-          <div class="three-equal-widgets">
-            <%= no_data_widget "Contributions" %>
-            <%= no_data_widget "Payments" %>
-            <%= no_data_widget "Balance" %>
+            <div class="two-thirds-widgets">
+              <%= small_widget 'Minimum sponsorship', first_project.github_minimum_sponsorship_amount, nil, symbol: '$', currency: true %>
+              <%= no_data_widget 'Missing Data', card_class: "well--grey two-thirds-widgets__large" do %>
+                We can&apos;t show financial data for <strong>GitHub Sponsors</strong> due to limits in their API.
+              <% end %>
+            </div>
+
+            <div class="three-equal-widgets">
+              <%= no_data_widget "Contributions" %>
+              <%= no_data_widget "Payments" %>
+              <%= no_data_widget "Balance" %>
+            </div>
           </div>
         </div>
       <% end %>
@@ -205,29 +243,36 @@
 
       <% unless all_other_funding_links.empty? %>
         <div class="d-md-flex justify-content-between align-items-center mt-5 mb-2">
-          <h2>Other Funding Links</h2>
+          <h2>
+            <button class="btn btn-link p-0 text-start text-decoration-none text-body h2 mb-0" type="button" data-bs-toggle="collapse" data-bs-target="#other-funding" aria-expanded="false" aria-controls="other-funding">
+              <i class="fas fa-chevron-right me-2" id="chevron-other-funding"></i>
+              Other Funding Links
+            </button>
+          </h2>
         </div>
         
-        <div class="mb-3">
-          <div class="d-flex flex-wrap gap-2">
-            <% @collection.projects.select { |p| p.other_funding_links.present? }.each do |project| %>
-              <%= link_to project.name, project_path(project), class: "badge text-bg-light text-decoration-none" %>
-            <% end %>
-          </div>
-        </div>
-        
-        <div class="card one-third-widget-group__small well p-3 border-0 mb-5">
-          <div class="card-body">
-            <ul class="list-unstyled">
-              <% all_other_funding_links.each do |link| %>
-                <li class="mb-3">
-                  <%= link_to link, target: "_blank", rel: "noopener noreferrer", class: "link-with-icon text-decoration-none text-body" do %>
-                    <%= bootstrap_icon link_icon(link), width: 18, height: 18, class: "link-with-icon__icon", aria_hidden: "true" %>
-                    <span class="link-with-icon__text"><%= display_link link %></span>
-                  <% end %>
-                </li>
+        <div class="collapse" id="other-funding">
+          <div class="mb-3">
+            <div class="d-flex flex-wrap gap-2">
+              <% @collection.projects.select { |p| p.other_funding_links.present? }.each do |project| %>
+                <%= link_to project.name, project_path(project), class: "badge text-bg-light text-decoration-none" %>
               <% end %>
-            </ul>
+            </div>
+          </div>
+          
+          <div class="card one-third-widget-group__small well p-3 border-0 mb-5">
+            <div class="card-body">
+              <ul class="list-unstyled">
+                <% all_other_funding_links.each do |link| %>
+                  <li class="mb-3">
+                    <%= link_to link, target: "_blank", rel: "noopener noreferrer", class: "link-with-icon text-decoration-none text-body" do %>
+                      <%= bootstrap_icon link_icon(link), width: 18, height: 18, class: "link-with-icon__icon", aria_hidden: "true" %>
+                      <span class="link-with-icon__text"><%= display_link link %></span>
+                    <% end %>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
           </div>
         </div>
       <% end %>
@@ -241,3 +286,26 @@
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Handle chevron rotation for all collapsible sections
+  document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function(button) {
+    const target = button.getAttribute('data-bs-target');
+    const chevron = button.querySelector('i');
+    const collapseElement = document.querySelector(target);
+    
+    if (collapseElement && chevron) {
+      collapseElement.addEventListener('show.bs.collapse', function() {
+        chevron.classList.remove('fa-chevron-right');
+        chevron.classList.add('fa-chevron-down');
+      });
+      
+      collapseElement.addEventListener('hide.bs.collapse', function() {
+        chevron.classList.remove('fa-chevron-down');
+        chevron.classList.add('fa-chevron-right');
+      });
+    }
+  });
+});
+</script>
