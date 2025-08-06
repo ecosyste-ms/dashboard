@@ -57,6 +57,17 @@ class ProjectsController < ApplicationController
   end
 
   def lookup
+    # Handle both url and purl parameters
+    if params[:purl].present?
+      lookup_by_purl
+    elsif params[:url].present?
+      lookup_by_url
+    else
+      redirect_to root_path, alert: "Please provide either a URL or PURL parameter"
+    end
+  end
+
+  def lookup_by_url
     url = params[:url].downcase
     
     # First try exact URL match
@@ -84,8 +95,27 @@ class ProjectsController < ApplicationController
       end
     end
     
+    handle_project_result(purl_obj, params[:url])
+  end
+
+  def lookup_by_purl
+    begin
+      purl_obj = Purl.parse(params[:purl])
+      
+      # Try to find project by purl (without version)
+      purl_without_version = purl_obj.with(version: nil).to_s
+      @project = Package.find_by(purl: purl_without_version)&.project
+      
+      handle_project_result(purl_obj, params[:purl])
+    rescue => e
+      Rails.logger.debug "Could not parse purl: #{e.message}"
+      redirect_to new_project_path(url: params[:purl])
+    end
+  end
+
+  def handle_project_result(purl_obj, original_param)
     if @project.nil?
-      # If we successfully converted to purl but didn't find project, try to resolve repository URL
+      # If we have a valid purl but didn't find project, try to resolve repository URL
       if purl_obj
         repository_url = resolve_repository_url_from_purl(purl_obj)
         
@@ -93,12 +123,12 @@ class ProjectsController < ApplicationController
           # Redirect to new project form with the repository URL instead
           redirect_to new_project_path(url: repository_url)
         else
-          # Project doesn't exist and couldn't resolve repository URL, redirect with original URL
-          redirect_to new_project_path(url: params[:url])
+          # Project doesn't exist and couldn't resolve repository URL, redirect with original param
+          redirect_to new_project_path(url: original_param)
         end
       else
-        # Not a package URL, redirect with original URL
-        redirect_to new_project_path(url: params[:url])
+        # Not a package URL/purl, redirect with original param
+        redirect_to new_project_path(url: original_param)
       end
     else
       # Project exists, redirect to it

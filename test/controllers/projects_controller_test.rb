@@ -357,6 +357,86 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to new_project_path(url: non_existent_url)
   end
 
+  test "should lookup project by purl parameter" do
+    existing_project = create(:project, :with_repository, url: "https://github.com/test/repo")
+    package = create(:package, project: existing_project, ecosystem: 'npm', name: 'test-package')
+    package.update(purl: 'pkg:npm/test-package')
+    
+    assert_no_difference('Project.count') do
+      post lookup_projects_url, params: { purl: 'pkg:npm/test-package@1.0.0' }
+    end
+    
+    assert_redirected_to project_url(existing_project)
+  end
+
+  test "should resolve repository URL from purl parameter when project not found" do
+    purl_string = "pkg:npm/nonexistent-package@1.0.0"
+    repository_url = "https://github.com/user/nonexistent-package"
+    
+    # Mock the purl parsing and API response
+    mock_purl = mock()
+    mock_purl_without_version = mock()
+    mock_purl.expects(:with).with(version: nil).returns(mock_purl_without_version).twice
+    mock_purl_without_version.expects(:to_s).returns('pkg:npm/nonexistent-package').twice
+    Purl.expects(:parse).with(purl_string).returns(mock_purl)
+    
+    # Mock API response
+    mock_response = mock()
+    mock_response.expects(:success?).returns(true)
+    mock_response.expects(:body).returns([{ 'repository_url' => repository_url }].to_json)
+    Faraday.expects(:get).with("https://packages.ecosyste.ms/api/v1/packages/lookup", { purl: 'pkg:npm/nonexistent-package' }).returns(mock_response)
+    
+    assert_no_difference('Project.count') do
+      post lookup_projects_url, params: { purl: purl_string }
+    end
+    
+    assert_redirected_to new_project_path(url: repository_url)
+  end
+
+  test "should fallback to original purl when API lookup fails for purl parameter" do
+    purl_string = "pkg:npm/nonexistent-package@1.0.0"
+    
+    # Mock the purl parsing
+    mock_purl = mock()
+    mock_purl_without_version = mock()
+    mock_purl.expects(:with).with(version: nil).returns(mock_purl_without_version).twice
+    mock_purl_without_version.expects(:to_s).returns('pkg:npm/nonexistent-package').twice
+    Purl.expects(:parse).with(purl_string).returns(mock_purl)
+    
+    # Mock API failure
+    mock_response = mock()
+    mock_response.expects(:success?).returns(false)
+    Faraday.expects(:get).with("https://packages.ecosyste.ms/api/v1/packages/lookup", { purl: 'pkg:npm/nonexistent-package' }).returns(mock_response)
+    
+    assert_no_difference('Project.count') do
+      post lookup_projects_url, params: { purl: purl_string }
+    end
+    
+    assert_redirected_to new_project_path(url: purl_string)
+  end
+
+  test "should fallback gracefully when purl parameter parsing fails" do
+    invalid_purl = "invalid-purl-string"
+    
+    # Mock the Purl parsing to raise an error
+    Purl.expects(:parse).with(invalid_purl).raises(StandardError.new("Invalid PURL"))
+    
+    assert_no_difference('Project.count') do
+      post lookup_projects_url, params: { purl: invalid_purl }
+    end
+    
+    assert_redirected_to new_project_path(url: invalid_purl)
+  end
+
+  test "should require either url or purl parameter" do
+    assert_no_difference('Project.count') do
+      post lookup_projects_url, params: {}
+    end
+    
+    assert_redirected_to root_path
+    assert_equal "Please provide either a URL or PURL parameter", flash[:alert]
+  end
+
   test "should flow from lookup to new project form to creation when authenticated" do
     user = create(:user)
     url = "https://github.com/flow/test"
