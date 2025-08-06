@@ -592,4 +592,56 @@ class CollectionTest < ActiveSupport::TestCase
     assert result.active?
     assert_equal cp, result # Should be the same record, just restored
   end
+
+  test "unique_collective_ids returns unique collective IDs from projects" do
+    collection = create(:collection)
+    
+    # Create collective records
+    collective1 = create(:collective)
+    collective2 = create(:collective)
+    
+    # Create projects with collective_ids
+    project1 = create(:project, url: "https://github.com/test/project1", collective_id: collective1.id)
+    project2 = create(:project, url: "https://github.com/test/project2", collective_id: collective2.id)
+    project3 = create(:project, url: "https://github.com/test/project3", collective_id: collective1.id) # duplicate collective
+    project4 = create(:project, url: "https://github.com/test/project4", collective_id: nil) # no collective
+    
+    # Add projects to collection
+    collection.collection_projects.create!(project: project1)
+    collection.collection_projects.create!(project: project2)
+    collection.collection_projects.create!(project: project3)
+    collection.collection_projects.create!(project: project4)
+    
+    # Test unique_collective_ids method
+    collective_ids = collection.unique_collective_ids
+    
+    # Should return unique collective IDs, excluding nil
+    assert_equal 2, collective_ids.length
+    assert_includes collective_ids, collective1.id
+    assert_includes collective_ids, collective2.id
+    assert_not_includes collective_ids, nil
+  end
+
+  test "unique_collective_ids returns empty array when no projects have collectives" do
+    collection = create(:collection)
+    
+    # Create projects without collective_ids
+    project1 = create(:project, url: "https://github.com/test/project1", collective_id: nil)
+    project2 = create(:project, url: "https://github.com/test/project2", collective_id: nil)
+    
+    collection.collection_projects.create!(project: project1)
+    collection.collection_projects.create!(project: project2)
+    
+    collective_ids = collection.unique_collective_ids
+    
+    assert_equal [], collective_ids
+  end
+
+  test "unique_collective_ids returns empty array when collection has no projects" do
+    collection = create(:collection)
+    
+    collective_ids = collection.unique_collective_ids
+    
+    assert_equal [], collective_ids
+  end
 end

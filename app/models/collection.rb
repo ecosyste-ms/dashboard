@@ -412,6 +412,10 @@ class Collection < ApplicationRecord
     nil # TODO: Fix this 🐉
   end
 
+  def unique_collective_ids
+    projects.where.not(collective_id: nil).distinct.pluck(:collective_id)
+  end
+
   def watchers
     projects.map(&:watchers).compact.sum
   end

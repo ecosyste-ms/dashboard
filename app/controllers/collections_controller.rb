@@ -176,6 +176,33 @@ class CollectionsController < ApplicationController
     @projects_with_funding_count = projects_with_funding.count
     @unique_collectives_count = @collection.projects.select(&:collective).map(&:collective_url).compact.uniq.count
     @unique_github_sponsors_count = @collection.projects.select { |p| p.github_sponsors.present? }.count
+
+    # Aggregate data for all unique collectives
+    collective_ids = @collection.unique_collective_ids
+    if collective_ids.any?
+      transactions = Transaction.where(collective_id: collective_ids)
+
+      @total_contributions_this_period = transactions.donations.between(@this_period_range.begin, @this_period_range.end).count
+      @total_contributions_last_period = transactions.donations.between(@last_period_range.begin, @last_period_range.end).count
+
+      @total_payments_this_period = transactions.expenses.between(@this_period_range.begin, @this_period_range.end).count
+      @total_payments_last_period = transactions.expenses.between(@last_period_range.begin, @last_period_range.end).count
+
+      @total_donors_this_period = transactions.donations.between(@this_period_range.begin, @this_period_range.end).group(:from_account).count.length
+      @total_donors_last_period = transactions.donations.between(@last_period_range.begin, @last_period_range.end).group(:from_account).count.length
+
+      @total_payees_this_period = transactions.expenses.between(@this_period_range.begin, @this_period_range.end).group(:to_account).count.length
+      @total_payees_last_period = transactions.expenses.between(@last_period_range.begin, @last_period_range.end).group(:to_account).count.length
+
+      @total_balance_this_period = 0 # TODO: Fix this
+      @total_balance_last_period = 0 # TODO: Fix this
+    else
+      @total_contributions_this_period = @total_contributions_last_period = 0
+      @total_payments_this_period = @total_payments_last_period = 0
+      @total_donors_this_period = @total_donors_last_period = 0
+      @total_payees_this_period = @total_payees_last_period = 0
+      @total_balance_this_period = @total_balance_last_period = 0
+    end
   end
 
   def responsiveness
