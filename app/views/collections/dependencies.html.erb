@@ -54,12 +54,12 @@
                   <table class="table table-hover table--purple">
                     <thead>
                       <tr>
-                        <th style="width: 30%;">Package Name</th>
-                        <th style="width: 10%;">Type</th>
+                        <th style="width: 25%;">Package Name</th>
+                        <th style="width: 10%;">Direct/Trans</th>
                         <th style="width: 10%;">Usage Count</th>
                         <th style="width: 20%;">Requirements</th>
                         <th style="width: 15%;">Kind</th>
-                        <th style="width: 15%;">Ecosystem</th>
+                        <th style="width: 20%;">Ecosystem</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -75,24 +75,30 @@
                          end.sort_by { |dep| -(@dependency_usage_counts[dep['package_name'] || dep['name']] || 0) } %>
                       <% dependencies.each do |dep| %>
                         <% package_name = dep['package_name'] || dep['name'] || 'N/A'
-                           dep_type = if @direct_dep_names.include?(package_name)
-                                        'direct'
-                                      elsif @development_dep_names.include?(package_name)
-                                        'development'
-                                      else
-                                        'transitive'
-                                      end
+                           dep_directness = if @direct_dep_names.include?(package_name)
+                                              'direct'
+                                            else
+                                              'transitive'
+                                            end
                            # Get pre-calculated usage count
                            usage_count = @dependency_usage_counts[package_name] || 0
                         %>
                         <tr>
-                          <td><%= package_name %></td>
                           <td>
-                            <% case dep_type %>
-                            <% when 'direct' %>
+                            <% ecosystem = dep['ecosystem'] %>
+                            <% if package_name.present? && package_name != 'N/A' && ecosystem.present? %>
+                              <% purl_type = convert_purl_type(ecosystem.downcase) %>
+                              <% purl = "pkg:#{purl_type}/#{package_name}" %>
+                              <%= link_to package_name, lookup_projects_path(purl: purl), 
+                                         class: "text-decoration-none",
+                                         title: "Look up #{package_name} project" %>
+                            <% else %>
+                              <%= package_name %>
+                            <% end %>
+                          </td>
+                          <td>
+                            <% if dep_directness == 'direct' %>
                               <span class="badge bg-primary">Direct</span>
-                            <% when 'development' %>
-                              <span class="badge bg-warning">Dev</span>
                             <% else %>
                               <span class="badge bg-secondary">Transitive</span>
                             <% end %>

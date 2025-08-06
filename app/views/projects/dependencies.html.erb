@@ -54,25 +54,20 @@
                   <table class="table table-hover table--purple">
                     <thead>
                       <tr>
-                        <th style="width: 35%;">Package Name</th>
-                        <th style="width: 10%;">Type</th>
-                        <th style="width: 20%;">Requirements</th>
-                        <th style="width: 17.5%;">Kind</th>
-                        <th style="width: 17.5%;">Ecosystem</th>
+                        <th style="width: 30%;">Package Name</th>
+                        <th style="width: 12%;">Direct/Trans</th>
+                        <th style="width: 18%;">Requirements</th>
+                        <th style="width: 12%;">Kind</th>
+                        <th style="width: 15%;">Ecosystem</th>
                       </tr>
                     </thead>
                     <tbody>
                       <% @unique_dependencies.each do |dep| %>
-                        <% dep_type = if @project.direct_dependencies.any? { |d| (d['package_name'] || d['name']) == (dep['package_name'] || dep['name']) }
-                                        'direct'
-                                      elsif @project.development_dependencies.any? { |d| (d['package_name'] || d['name']) == (dep['package_name'] || dep['name']) }
-                                        'development'
-                                      else
-                                        'transitive'
-                                      end %>
+                        <% package_name = dep['package_name'] || dep['name'] %>
+                        <% is_direct = @project.direct_dependencies.any? { |d| (d['package_name'] || d['name']) == package_name } %>
+                        <% dep_directness = is_direct ? 'direct' : 'transitive' %>
                         <tr>
                           <td>
-                            <% package_name = dep['package_name'] || dep['name'] %>
                             <% ecosystem = dep['ecosystem'] %>
                             <% if package_name.present? && ecosystem.present? %>
                               <% purl_type = convert_purl_type(ecosystem.downcase) %>
@@ -85,11 +80,8 @@
                             <% end %>
                           </td>
                           <td>
-                            <% case dep_type %>
-                            <% when 'direct' %>
+                            <% if dep_directness == 'direct' %>
                               <span class="badge bg-primary">Direct</span>
-                            <% when 'development' %>
-                              <span class="badge bg-warning">Dev</span>
                             <% else %>
                               <span class="badge bg-secondary">Transitive</span>
                             <% end %>
