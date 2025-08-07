@@ -5,6 +5,6 @@ SecureHeaders::Configuration.default do |config|
     style_src: %w('self' 'unsafe-inline' https://fonts.googleapis.com),
     font_src: %w('self' https://fonts.gstatic.com),
     img_src: %w('self' data: https:),
-    connect_src: %w('self')
+    connect_src: %w('self' *.ecosyste.ms)
   }
 end
