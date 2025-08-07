@@ -963,4 +963,180 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_match /Unable to create collection/, flash[:alert]
   end
 
+  test "should require login when no existing collection and not logged in" do
+    WebMock.enable!
+    
+    project = create(:project, :with_repository)
+    project.update!(repository: project.repository.merge({
+      'owner_url' => 'https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/rails'
+    }))
+    
+    owner_response = {
+      'login' => 'rails',
+      'name' => 'Ruby on Rails',
+      'html_url' => 'https://github.com/rails',
+      'kind' => 'organization'
+    }
+    
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/rails")
+      .with(headers: {
+        'User-Agent' => 'dashboard.ecosyste.ms',
+        'X-Source' => 'dashboard.ecosyste.ms'
+      })
+      .to_return(status: 200, body: owner_response.to_json)
+    
+    get owner_collection_project_path(project)
+    
+    assert_redirected_to login_path
+    assert_equal 'Please sign in to create collections.', flash[:alert]
+  ensure
+    WebMock.reset!
+  end
+
+  test "should allow viewing existing public collection without login" do
+    WebMock.enable!
+    
+    # Create existing public collection (no user needed for this test)
+    user = create(:user)
+    existing_collection = create(:collection, 
+      github_organization_url: 'https://github.com/rails',
+      user: user,
+      visibility: 'public'
+    )
+    
+    project = create(:project, :with_repository)
+    project.update!(repository: project.repository.merge({
+      'owner_url' => 'https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/rails'
+    }))
+    
+    owner_response = {
+      'login' => 'rails',
+      'name' => 'Ruby on Rails',
+      'html_url' => 'https://github.com/rails',
+      'kind' => 'organization'
+    }
+    
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/rails")
+      .with(headers: {
+        'User-Agent' => 'dashboard.ecosyste.ms',
+        'X-Source' => 'dashboard.ecosyste.ms'
+      })
+      .to_return(status: 200, body: owner_response.to_json)
+    
+    # Not logged in, but should still be able to view existing public collection
+    get owner_collection_project_path(project)
+    
+    assert_redirected_to collection_path(existing_collection)
+    assert_match /Viewing .* collection!/, flash[:notice]
+  ensure
+    WebMock.reset!
+  end
+
+  test "should create owner collection successfully" do
+    WebMock.enable!
+    
+    user = create(:user)
+    login_as(user)
+    
+    project = create(:project, :with_repository)
+    project.update!(repository: project.repository.merge({
+      'owner_url' => 'https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/rails'
+    }))
+    
+    owner_response = {
+      'login' => 'rails',
+      'name' => 'Ruby on Rails',
+      'html_url' => 'https://github.com/rails',
+      'kind' => 'organization'
+    }
+    
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/rails")
+      .with(headers: {
+        'User-Agent' => 'dashboard.ecosyste.ms',
+        'X-Source' => 'dashboard.ecosyste.ms'
+      })
+      .to_return(status: 200, body: owner_response.to_json)
+    
+    assert_difference 'Collection.count', 1 do
+      get owner_collection_project_path(project)
+    end
+    
+    collection = Collection.last
+    assert_redirected_to collection_path(collection)
+    assert_match /Viewing rails collection!/, flash[:notice]
+    assert_equal 'rails', collection.name
+    assert_equal 'https://github.com/rails', collection.github_organization_url
+    assert_equal user, collection.user
+  ensure
+    WebMock.reset!
+  end
+
+  test "should redirect to existing owner collection" do
+    WebMock.enable!
+    
+    user = create(:user)
+    login_as(user)
+    
+    # Create existing collection
+    existing_collection = create(:collection, 
+      github_organization_url: 'https://github.com/rails',
+      user: user
+    )
+    
+    project = create(:project, :with_repository)
+    project.update!(repository: project.repository.merge({
+      'owner_url' => 'https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/rails'
+    }))
+    
+    owner_response = {
+      'login' => 'rails',
+      'name' => 'Ruby on Rails',
+      'html_url' => 'https://github.com/rails',
+      'kind' => 'organization'
+    }
+    
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/rails")
+      .with(headers: {
+        'User-Agent' => 'dashboard.ecosyste.ms',
+        'X-Source' => 'dashboard.ecosyste.ms'
+      })
+      .to_return(status: 200, body: owner_response.to_json)
+    
+    assert_no_difference 'Collection.count' do
+      get owner_collection_project_path(project)
+    end
+    
+    assert_redirected_to collection_path(existing_collection)
+    assert_match /Viewing .* collection!/, flash[:notice]
+  ensure
+    WebMock.reset!
+  end
+
+  test "should handle project without owner information" do
+    user = create(:user)
+    login_as(user)
+    
+    project = create(:project, :with_repository)
+    # Remove owner_url from repository data
+    project.update!(repository: project.repository.except('owner_url'))
+    
+    assert_no_difference 'Collection.count' do
+      get owner_collection_project_path(project)
+    end
+    
+    assert_redirected_to project_path(project)
+    assert_match /Unable to create owner collection/, flash[:alert]
+  end
+
+  test "should require login when project has no owner_url" do
+    project = create(:project, :with_repository)
+    # Remove owner_url from repository data
+    project.update!(repository: project.repository.except('owner_url'))
+    
+    get owner_collection_project_path(project)
+    
+    assert_redirected_to login_path
+    assert_equal 'Please sign in to create collections.', flash[:alert]
+  end
+
 end

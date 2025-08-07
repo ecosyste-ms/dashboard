@@ -102,6 +102,7 @@ Rails.application.routes.draw do
       post :add_to_list
       delete :remove_from_list
       post :create_collection_from_dependencies
+      get :owner_collection
     end
   end
   

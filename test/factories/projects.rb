@@ -40,7 +40,7 @@ FactoryBot.define do
 
     # Real-world project factories based on actual ecosystems data
     trait :rails_project do
-      url { "https://github.com/rails/rails" }
+      sequence(:url) { |n| "https://github.com/rails/rails-#{n}" }
       repository do
         {
           "full_name" => "rails/rails",
@@ -76,7 +76,7 @@ FactoryBot.define do
     end
 
     trait :fastlane_project do
-      url { "https://github.com/fastlane/fastlane" }
+      sequence(:url) { |n| "https://github.com/fastlane/fastlane-#{n}" }
       repository do
         {
           "full_name" => "fastlane/fastlane",
@@ -112,7 +112,7 @@ FactoryBot.define do
     end
 
     trait :typescript_project do
-      url { "https://github.com/microsoft/TypeScript" }
+      sequence(:url) { |n| "https://github.com/microsoft/TypeScript-#{n}" }
       repository do
         {
           "full_name" => "microsoft/TypeScript",

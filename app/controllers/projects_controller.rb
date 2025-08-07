@@ -405,6 +405,35 @@ class ProjectsController < ApplicationController
     end
   end
 
+  def owner_collection
+    @project = Project.find(params[:id])
+    
+    # Check if we can find an existing public collection without needing to authenticate
+    existing_collection = find_existing_owner_collection
+    Rails.logger.debug "Existing collection found: #{existing_collection.present?}"
+    
+    if existing_collection
+      redirect_to existing_collection, notice: "Viewing #{existing_collection.name} collection!"
+      return
+    end
+    
+    # If no existing collection found, require login to create one
+    unless logged_in?
+      redirect_to login_path, alert: 'Please sign in to create collections.'
+      return
+    end
+    
+    collection = @project.find_or_create_owner_collection(current_user)
+    
+    if collection
+      # Start syncing the collection if it was just created
+      collection.sync_projects if collection.projects.empty?
+      redirect_to collection, notice: "Viewing #{collection.name} collection!"
+    else
+      redirect_to @project, alert: 'Unable to create owner collection. This project may not have repository owner information.'
+    end
+  end
+
   private
 
   def nested_route?
@@ -484,6 +513,10 @@ class ProjectsController < ApplicationController
 
   def project_params
     params.require(:project).permit(:url)
+  end
+
+  def find_existing_owner_collection
+    @project.find_existing_owner_collection
   end
 
   def resolve_repository_url_from_purl(purl_obj)

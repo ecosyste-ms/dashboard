@@ -531,39 +531,40 @@ class Project < ApplicationRecord
     per_page = Rails.application.config.x.per_page_limits&.dig(:issues) || 100
     issues_data = fetch_paginated_data(issues_list_url, per_page: per_page, max_pages: max_pages)
     
-    # Use bulk insert for performance
-    return if issues_data.empty?
-    
-    issue_records = issues_data.map do |issue|
-      issue_attributes = issue.dup
-      issue_attributes['project_id'] = id
-      issue_attributes['created_at'] = Time.current
-      issue_attributes['updated_at'] = Time.current
-      issue_attributes
-    end
-    
-    # Remove duplicates from the current batch to avoid conflicts
-    unique_issue_records = issue_records.uniq { |record| [record['project_id'], record['number']] }
-    
-    # Get existing issue numbers for this project to avoid duplicates
-    existing_numbers = issues.where(number: unique_issue_records.map { |r| r['number'] }).pluck(:number).to_set
-    
-    # Split into new and existing records  
-    new_records = unique_issue_records.reject { |record| existing_numbers.include?(record['number']) }
-    update_records = unique_issue_records.select { |record| existing_numbers.include?(record['number']) }
-    
-    # Bulk insert new records (this will trigger counter_culture callbacks)
-    Issue.insert_all(new_records) if new_records.any?
-    
-    # Update existing records if needed
-    if update_records.any?
-      update_records.each do |record|
-        issues.where(number: record['number']).update_all(
-          record.except('project_id', 'created_at', 'number')
-        )
+    # Process issues if we have any
+    unless issues_data.empty?
+      issue_records = issues_data.map do |issue|
+        issue_attributes = issue.dup
+        issue_attributes['project_id'] = id
+        issue_attributes['created_at'] = Time.current
+        issue_attributes['updated_at'] = Time.current
+        issue_attributes
+      end
+      
+      # Remove duplicates from the current batch to avoid conflicts
+      unique_issue_records = issue_records.uniq { |record| [record['project_id'], record['number']] }
+      
+      # Get existing issue numbers for this project to avoid duplicates
+      existing_numbers = issues.where(number: unique_issue_records.map { |r| r['number'] }).pluck(:number).to_set
+      
+      # Split into new and existing records  
+      new_records = unique_issue_records.reject { |record| existing_numbers.include?(record['number']) }
+      update_records = unique_issue_records.select { |record| existing_numbers.include?(record['number']) }
+      
+      # Bulk insert new records (this will trigger counter_culture callbacks)
+      Issue.insert_all(new_records) if new_records.any?
+      
+      # Update existing records if needed
+      if update_records.any?
+        update_records.each do |record|
+          issues.where(number: record['number']).update_all(
+            record.except('project_id', 'created_at', 'number')
+          )
+        end
       end
     end
     
+    # Always set the timestamp when we successfully get a response
     self.issues_last_synced_at = Time.now
     self.save
     
@@ -1425,6 +1426,48 @@ class Project < ApplicationRecord
   def github_sponsors_url
     return unless github_sponsors.present?
     github_sponsors['sponsors_url']
+  end
+
+  def find_or_create_owner_collection(user)
+    return nil unless repository.present? && repository['owner_url'].present?
+    
+    # Fetch owner metadata from the API
+    response = ecosystems_api_request(repository['owner_url'])
+    return nil unless response&.success?
+    
+    owner_data = JSON.parse(response.body)
+    return nil unless owner_data['html_url'].present?
+    
+    collection_name = owner_data['login'] || owner_data['name']
+    
+    Collection.find_or_create_by(
+      github_organization_url: owner_data['html_url'],
+      user: user
+    ) do |collection|
+      collection.name = collection_name
+      collection.description = "Collection of repositories for #{collection_name}"
+      collection.visibility = 'public'
+    end
+  rescue => e
+    Rails.logger.error "Error creating owner collection: #{e.message}"
+    nil
+  end
+
+  def find_existing_owner_collection
+    return nil unless repository.present? && repository['owner_url'].present?
+    
+    # Fetch owner metadata from the API
+    response = ecosystems_api_request(repository['owner_url'])
+    return nil unless response&.success?
+    
+    owner_data = JSON.parse(response.body)
+    return nil unless owner_data['html_url'].present?
+    
+    # Look for existing public collection
+    Collection.visible.find_by(github_organization_url: owner_data['html_url'])
+  rescue => e
+    Rails.logger.error "Error finding existing owner collection: #{e.message}"
+    nil
   end
 
   def other_funding_links

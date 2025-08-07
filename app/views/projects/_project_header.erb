@@ -3,7 +3,12 @@
     <div class="row">
       <% if @project.avatar_url.present? %>
       <div class="col-md-2 col-lg-1 mb-3 pt-1 d-flex align-items-start">
-        <img src="<%= @project.avatar_url %>" alt="<%= @project.to_s %> logo" class="img-fluid project-logo" onerror="this.style.display='none'" />
+        <%= link_to owner_collection_project_path(@project), 
+            class: "d-block", 
+            title: "View all repositories by #{@project.owner_name || @project.owner}",
+            data: { bs_toggle: "tooltip", bs_placement: "top" } do %>
+          <img src="<%= @project.avatar_url %>" alt="<%= @project.to_s %> logo" class="img-fluid project-logo" onerror="this.style.display='none'" style="cursor: pointer;" />
+        <% end %>
       </div>
       <% end %>
       <div class="col-md-10 col-lg-11">

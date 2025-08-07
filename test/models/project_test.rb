@@ -15,7 +15,7 @@ class ProjectTest < ActiveSupport::TestCase
 
   test "sync repository data updates repository field" do
     VCR.use_cassette("project_sync/fetch_repository_rails_project") do
-      project = create(:project, :rails_project, :never_synced)
+      project = create(:project, :rails_project, :never_synced, url: "https://github.com/rails/rails")
       
       project.fetch_repository
       project.reload
@@ -28,7 +28,7 @@ class ProjectTest < ActiveSupport::TestCase
 
   test "sync packages data updates packages and timestamp" do
     VCR.use_cassette("project_sync/fetch_packages_rails_project") do
-      project = create(:project, :rails_project, :never_synced)
+      project = create(:project, :rails_project, :never_synced, url: "https://github.com/rails/rails")
       
       project.fetch_packages
       project.reload
@@ -40,7 +40,7 @@ class ProjectTest < ActiveSupport::TestCase
 
   test "sync_issues method updates timestamp" do
     VCR.use_cassette("project_sync/sync_issues_rails_project") do
-      project = create(:project, :rails_project, :never_synced)
+      project = create(:project, :rails_project, :never_synced, url: "https://github.com/rails/rails")
       
       project.sync_issues
       project.reload
@@ -117,7 +117,7 @@ class ProjectTest < ActiveSupport::TestCase
 
   test "sync_commits method updates timestamp" do
     WebMock.enable!
-    project = create(:project, :rails_project, :never_synced)
+    project = create(:project, :rails_project, :never_synced, url: "https://github.com/rails/rails-commits-test")
     
     # Mock the commits API response with correct structure
     stub_request(:get, project.commits_api_url)
@@ -166,7 +166,7 @@ class ProjectTest < ActiveSupport::TestCase
 
   test "sync respects individual timestamps" do
     WebMock.enable!
-    project = create(:project, :rails_project, :never_synced)
+    project = create(:project, :rails_project, :never_synced, url: "https://github.com/rails/rails-sync-test")
     
     # Mock the commits API response with correct structure
     stub_request(:get, project.commits_api_url)
@@ -189,7 +189,7 @@ class ProjectTest < ActiveSupport::TestCase
 
   test "full sync updates all timestamps" do
     VCR.use_cassette("project_sync/full_sync") do
-      project = create(:project, :rails_project, :never_synced)
+      project = create(:project, :rails_project, :never_synced, url: "https://github.com/rails/rails")
       
       project.sync
       project.reload
@@ -696,6 +696,128 @@ class ProjectTest < ActiveSupport::TestCase
     assert_equal 'dep-issue-1', updated_issue.uuid
     assert_equal 'Updated Title', updated_issue.title
     assert_equal 'closed', updated_issue.state
+  ensure
+    WebMock.reset!
+  end
+
+  test "find_or_create_owner_collection creates collection for project owner" do
+    WebMock.enable!
+    
+    user = create(:user)
+    project = create(:project)
+    project.update!(repository: {
+      'owner_url' => 'https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/rails',
+      'full_name' => 'rails/rails'
+    })
+    
+    owner_response = {
+      'login' => 'rails',
+      'name' => 'Ruby on Rails',
+      'html_url' => 'https://github.com/rails',
+      'kind' => 'organization'
+    }
+    
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/rails")
+      .to_return(status: 200, body: owner_response.to_json)
+    
+    collection = project.find_or_create_owner_collection(user)
+    
+    assert_not_nil collection
+    assert collection.persisted?
+    assert_equal 'rails', collection.name
+    assert_equal 'Collection of repositories for rails', collection.description
+    assert_equal 'https://github.com/rails', collection.github_organization_url
+    assert_equal user, collection.user
+    assert_equal 'public', collection.visibility
+  ensure
+    WebMock.reset!
+  end
+
+  test "find_or_create_owner_collection returns existing collection" do
+    WebMock.enable!
+    
+    user = create(:user)
+    existing_collection = create(:collection, 
+      github_organization_url: 'https://github.com/rails',
+      user: user
+    )
+    
+    project = create(:project)
+    project.update!(repository: {
+      'owner_url' => 'https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/rails',
+      'full_name' => 'rails/rails'
+    })
+    
+    owner_response = {
+      'login' => 'rails',
+      'name' => 'Ruby on Rails',
+      'html_url' => 'https://github.com/rails',
+      'kind' => 'organization'
+    }
+    
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/rails")
+      .to_return(status: 200, body: owner_response.to_json)
+    
+    collection = project.find_or_create_owner_collection(user)
+    
+    assert_equal existing_collection, collection
+  ensure
+    WebMock.reset!
+  end
+
+  test "find_or_create_owner_collection returns nil when repository missing owner_url" do
+    user = create(:user)
+    project = create(:project, repository: { 'full_name' => 'test/repo' })
+    
+    collection = project.find_or_create_owner_collection(user)
+    
+    assert_nil collection
+  end
+
+  test "find_or_create_owner_collection handles API errors gracefully" do
+    WebMock.enable!
+    
+    user = create(:user)
+    project = create(:project)
+    project.update!(repository: {
+      'owner_url' => 'https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/nonexistent',
+      'full_name' => 'nonexistent/repo'
+    })
+    
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/nonexistent")
+      .to_return(status: 404)
+    
+    collection = project.find_or_create_owner_collection(user)
+    
+    assert_nil collection
+  ensure
+    WebMock.reset!
+  end
+
+  test "find_or_create_owner_collection uses login when name is not available" do
+    WebMock.enable!
+    
+    user = create(:user)
+    project = create(:project)
+    project.update!(repository: {
+      'owner_url' => 'https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/andrew',
+      'full_name' => 'andrew/purl'
+    })
+    
+    owner_response = {
+      'login' => 'andrew',
+      'html_url' => 'https://github.com/andrew',
+      'kind' => 'user'
+    }
+    
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/owners/andrew")
+      .to_return(status: 200, body: owner_response.to_json)
+    
+    collection = project.find_or_create_owner_collection(user)
+    
+    assert_not_nil collection
+    assert_equal 'andrew', collection.name
+    assert_equal 'Collection of repositories for andrew', collection.description
   ensure
     WebMock.reset!
   end
