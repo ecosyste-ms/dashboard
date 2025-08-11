@@ -576,8 +576,12 @@ class Project < ApplicationRecord
     
     # Process issues if we have any
     unless issues_data.empty?
+      # Get valid Issue attributes to filter out unknown attributes
+      valid_attributes = Issue.attribute_names.to_set
+      
       issue_records = issues_data.map do |issue|
-        issue_attributes = issue.dup
+        # Filter to only include valid attributes
+        issue_attributes = issue.select { |key, _| valid_attributes.include?(key.to_s) }
         issue_attributes['project_id'] = id
         issue_attributes['created_at'] = Time.current
         issue_attributes['updated_at'] = Time.current
@@ -616,11 +620,8 @@ class Project < ApplicationRecord
   end
 
   def sync_dependabot_issues
-    return unless repository.present?
-    return unless github_repository?
-    
-    repository_path = "#{repository['owner']['login']}/#{repository['name']}"
-    dependabot_url = "https://dependabot.ecosyste.ms/api/v1/hosts/GitHub/repositories/#{URI.encode_www_form_component(repository_path)}/issues"
+    dependabot_url = dependabot_api_url
+    return unless dependabot_url
     
     response = Faraday.new(url: dependabot_url) do |faraday|
       faraday.headers['User-Agent'] = 'dashboard.ecosyste.ms'
@@ -634,8 +635,12 @@ class Project < ApplicationRecord
     dependabot_issues = JSON.parse(response.body)
     return if dependabot_issues.empty?
     
+    # Get valid Issue attributes to filter out unknown attributes
+    valid_attributes = Issue.attribute_names.to_set
+    
     issue_records = dependabot_issues.map do |issue|
-      issue_attributes = issue.dup
+      # Filter to only include valid attributes
+      issue_attributes = issue.select { |key, _| valid_attributes.include?(key.to_s) }
       issue_attributes['project_id'] = id
       issue_attributes['created_at'] = Time.current
       issue_attributes['updated_at'] = Time.current
@@ -851,6 +856,20 @@ class Project < ApplicationRecord
 
   def advisories_api_url(page: 1, per_page: 100)
     "https://advisories.ecosyste.ms/api/v1/advisories?page=#{page}&per_page=#{per_page}&repository_url=#{repository_url}"
+  end
+
+  def dependabot_api_url
+    return unless repository.present? && github_repository?
+    return unless repository['full_name'].present?
+    
+    # Use the full_name from repository metadata (e.g., "sparklemotion/nokogiri")
+    full_name = repository['full_name']
+    owner, repo_name = full_name.split('/', 2)
+    return unless owner.present? && repo_name.present?
+    
+    encoded_owner = URI.encode_www_form_component(owner)
+    encoded_repo = URI.encode_www_form_component(repo_name)
+    "https://dependabot.ecosyste.ms/api/v1/hosts/GitHub/repositories/#{encoded_owner}%2F#{encoded_repo}/issues"
   end
 
   def last_activity_at

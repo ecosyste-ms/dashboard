@@ -3,6 +3,7 @@ class Issue < ApplicationRecord
   counter_culture :project, column_name: 'issues_count', execute_after_commit: true
 
   MAINTAINER_ASSOCIATIONS = ["MEMBER", "OWNER", "COLLABORATOR"]
+  DEPENDABOT_USERNAMES = ['dependabot[bot]', 'dependabot-preview[bot]'].freeze
 
   scope :label, ->(labels) { where("labels && ARRAY[?]::varchar[]", labels) }
   scope :past_year, -> { where('issues.created_at > ?', 1.year.ago) }
@@ -45,8 +46,13 @@ class Issue < ApplicationRecord
   scope :ecosystem, ->(ecosystem_name) { where("dependency_metadata::jsonb -> 'packages' @> ?::jsonb", [{ ecosystem: ecosystem_name }].to_json) }
   scope :package_name, ->(name) { where("dependency_metadata::jsonb -> 'packages' @> ?::jsonb", [{ name: name }].to_json) }
   scope :has_body, -> { where.not(body: [nil, '']) }
-  scope :security_prs, -> { has_body.where("body ~* 'CVE-\\d{4}-\\d+|GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}|RUSTSEC-\\d{4}-\\d+'") }
-  scope :dependabot, -> { where('user SIMILAR TO ?', '%dependabot%') }
+  scope :security_prs, -> { 
+    where("title ~* 'CVE-\\d{4}-\\d+|GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}|RUSTSEC-\\d{4}-\\d+|security|vulnerability'")
+    .or(where("dependency_metadata::jsonb ->> 'security' = 'true'"))
+    .or(where("dependency_metadata::jsonb -> 'packages' @> '[{\"security\": true}]'::jsonb"))
+    .or(where("labels && ARRAY[?]::varchar[]", 'security'))
+  }
+  scope :dependabot, -> { where(user: DEPENDABOT_USERNAMES) }
 
   def to_param
     number.to_s
@@ -54,11 +60,11 @@ class Issue < ApplicationRecord
 
   # Dependabot-specific methods
   def bot?
-    user&.include?('[bot]') || user&.include?('dependabot')
+    user&.include?('[bot]') || dependabot?
   end
 
   def dependabot?
-    user&.include?('dependabot')
+    DEPENDABOT_USERNAMES.include?(user)
   end
 
   def security_related?

@@ -897,4 +897,53 @@ class ProjectTest < ActiveSupport::TestCase
     assert_equal false, project.has_repository_metadata_files?
   end
 
+  test "dependabot_api_url generates correct URL for GitHub repository" do
+    project = create(:project)
+    project.update!(repository: { 
+      'host' => { 'name' => 'GitHub' }, 
+      'full_name' => 'test-owner/test-repo'
+    })
+    
+    expected_url = "https://dependabot.ecosyste.ms/api/v1/hosts/GitHub/repositories/test-owner%2Ftest-repo/issues"
+    assert_equal expected_url, project.dependabot_api_url
+  end
+
+  test "dependabot_api_url handles special characters in owner and repo names" do
+    project = create(:project)
+    project.update!(repository: { 
+      'host' => { 'name' => 'GitHub' }, 
+      'full_name' => 'owner-with-dash/repo.with.dots'
+    })
+    
+    expected_url = "https://dependabot.ecosyste.ms/api/v1/hosts/GitHub/repositories/owner-with-dash%2Frepo.with.dots/issues"
+    assert_equal expected_url, project.dependabot_api_url
+  end
+
+  test "dependabot_api_url returns nil for non-GitHub repository" do
+    project = create(:project)
+    project.update!(repository: { 
+      'host' => { 'name' => 'GitLab' }, 
+      'full_name' => 'test-owner/test-repo'
+    })
+    
+    assert_nil project.dependabot_api_url
+  end
+
+  test "dependabot_api_url returns nil when no repository present" do
+    project = create(:project, repository: nil)
+    assert_nil project.dependabot_api_url
+  end
+
+  test "dependabot_api_url returns nil when repository missing full_name" do
+    project = create(:project)
+    project.update!(repository: { 'host' => { 'name' => 'GitHub' } })
+    assert_nil project.dependabot_api_url
+    
+    project.update!(repository: { 'host' => { 'name' => 'GitHub' }, 'full_name' => 'invalid' })
+    assert_nil project.dependabot_api_url
+    
+    project.update!(repository: { 'host' => { 'name' => 'GitHub' }, 'full_name' => '' })
+    assert_nil project.dependabot_api_url
+  end
+
 end
