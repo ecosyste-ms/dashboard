@@ -583,8 +583,6 @@ class Project < ApplicationRecord
         # Filter to only include valid attributes
         issue_attributes = issue.select { |key, _| valid_attributes.include?(key.to_s) }
         issue_attributes['project_id'] = id
-        issue_attributes['created_at'] = Time.current
-        issue_attributes['updated_at'] = Time.current
         issue_attributes
       end
       
@@ -642,8 +640,6 @@ class Project < ApplicationRecord
       # Filter to only include valid attributes
       issue_attributes = issue.select { |key, _| valid_attributes.include?(key.to_s) }
       issue_attributes['project_id'] = id
-      issue_attributes['created_at'] = Time.current
-      issue_attributes['updated_at'] = Time.current
       issue_attributes
     end
     
