@@ -1115,6 +1115,27 @@ body {
   }
 }
 
+.four-equal-widgets {
+  /* 
+   * Four widgets, same size, one column each wide, one row each deep
+   * | 1 | 2 | 3 | 4 |
+   */
+  display: grid;
+  gap: $grid-gutter-width;
+  @include media-breakpoint-up(md) { 
+    grid-template-columns: repeat(2, 1fr);
+    > .card:first-child {
+      grid-column: span 2;
+    }
+  }
+  @include media-breakpoint-up(lg) { 
+    grid-template-columns: repeat(4, 1fr);
+    > .card:first-child {
+      grid-column: span 1;
+    }
+  }
+}
+
 .full-width-widget {
   grid-template-columns: 1;
 }
