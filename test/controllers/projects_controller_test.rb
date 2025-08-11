@@ -63,6 +63,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_template :syncing
     assert_select 'h2', text: /Syncing project data/
     assert_select '.sync-status-content'
+    assert_select 'meta[http-equiv="refresh"][content="30"]'
   end
 
   test "should show project page for previously synced project even if sync_status is pending" do
@@ -85,6 +86,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_template :syncing
     assert_select 'h2', text: /Syncing project data/
+    assert_select 'meta[http-equiv="refresh"][content="30"]'
   end
 
   test "should show new project form when logged in" do
