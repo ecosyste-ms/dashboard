@@ -1,67 +1,59 @@
-<div class="card mb-3">
-  <div class="card-body">
-    <% if package.rankings.present? && package.rankings['average'] < 10.05 %>
-      <span class='badge bg-secondary float-end'>
-        Top <%= [package.rankings['average'].round(1), 0.1].max %>% on <%= package.registry_name %>
+<div class="card mb-4 pb-4 listing d-flex flex-row align-items-center">	
+  <div class="card-body p-0">
+    <% if package.status %>
+      <span class="listing__badge badge bg-secondary">
+        <%= package.status %>
       </span>
     <% end %>
 
-    <h5 class="card-title">
-      <%= package.ecosystem %>:
+    <h3 class="card-title listing__title mt-3">
       <%= link_to package.name, package.registry_url %>
-      <% if package.latest_release_number %>
-        <small class='text-muted'>
-        <%= package.latest_release_number %>
-        </small>
+      <% if package.description_with_fallback.present? %>
+        <span class="listing__meta">
+          <%= truncate package.description_with_fallback, :length => 100 %>
+        </span>
       <% end %>
       <% if package.status %>
         <small class='badge bg-secondary'>
-        <%= package.status %>
+          <%= package.status %>
         </small>
       <% end %>
       <% if package.funding.present? %>
-        <small title='Accepts funding'>
-          💰
-        </small>
+        <%= bootstrap_icon 'piggy-bank-fill',
+          width: 16, height: 16, aria_hidden: 'true', focusable: 'false', role: 'img', class: 'flex-shrink-0 me-2', alt: 'Accepts funding'
+        %>
       <% end %>
-    </h5>
+    </h3>
 
-    <% if package.description_with_fallback.present? %>
-      <%= truncate package.description_with_fallback, :length => 100 %><br/>
-    <% end %>
-
-    <small class='text-muted'>
-      <% if @project.nil? && @collection.present? %>
-        <%= link_to package.project, collection_project_path(@collection, package.project) %> - 
-      <% end %>
-
-      <% if package.versions_count > 0 %>
-        <%= pluralize number_to_human(package.versions_count, precision: 1), 'version' %>
+    
+    <div class="mt-3 listing__details">
+      <div class="d-flex align-items-top">
+      <%= bootstrap_icon 'boxes',
+        width: 16, height: 16, aria_hidden: 'true', focusable: 'false', role: 'img', class: 'flex-shrink-0 me-2'
+      %>
+      <span class="me-3"><%= package.ecosystem %></span>
+      <% if package.latest_release_number %>
+        <%= bootstrap_icon 'boxes',
+          width: 16, height: 16, aria_hidden: 'true', focusable: 'false', role: 'img', class: 'flex-shrink-0 me-2'
+        %>
+        <span class="me-3"><%= package.latest_release_number %></span>
       <% end %>
 
       <% if package.latest_release_published_at %>
-        <%= '-' if package.versions_count > 0 %> <span title="<%= package.latest_release_published_at %>">Latest release: <%= time_ago_in_words package.latest_release_published_at %> ago</span>
+        <%= bootstrap_icon 'clock-history',
+          width: 16, height: 16, aria_hidden: 'true', focusable: 'false', role: 'img', class: 'flex-shrink-0 me-2'
+        %>
+        <span class="me-3"><span title="<%= package.latest_release_published_at %>">Latest release: <%= time_ago_in_words package.latest_release_published_at %> ago</span></span>
       <% end %>
-
-      <% if package.dependent_packages_count && package.dependent_packages_count > 0 %>
-        - <%= pluralize number_to_human(package.dependent_packages_count, precision: 1), 'dependent package' %>
+      <% if package.rankings.present? && package.rankings['average'] < 10.05 %>
+        <%= bootstrap_icon 'asterisk',
+          width: 16, height: 16, aria_hidden: 'true', focusable: 'false', role: 'img', class: 'flex-shrink-0 me-2'
+        %>
+        <span class="me-3">
+          Top <%= [package.rankings['average'].round(1), 0.1].max %>% on <%= package.registry_name %>
+        </span>
       <% end %>
-
-      <% if package.dependent_repos_count && package.dependent_repos_count > 0 %>
-        - <%= pluralize number_to_human(package.dependent_repos_count, precision: 1), 'dependent repositories' %>
-      <% end %>
-
-      <% if package.downloads && package.downloads_period %>
-        - <%= number_to_human(package.downloads).downcase %> downloads <%= download_period(package.downloads_period) %>
-      <% end %>
-
-      <% if package.repo_metadata.present? && package.stars %>
-        - <%= number_to_human package.stars, precision: 1 %> stars on <%= package.repo_metadata.fetch('host',{})['name'] %>
-      <% end %>
-
-      <% if package.maintainers_count && package.maintainers_count > 0 %>
-        - <%= pluralize number_to_human(package.maintainers_count, precision: 1), 'maintainer' %>
-      <% end %>
-    </small>
+      </div>
+    </div>
   </div>
 </div>
