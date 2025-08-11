@@ -428,6 +428,22 @@ class Project < ApplicationRecord
     repository['license'] || repository.dig('metadata', 'files', 'license')
   end
 
+  def security_documentation_files
+    return {} unless repository&.dig('metadata', 'files').present?
+    
+    repository['metadata']['files'].select do |k, v|
+      v.present? && (k.downcase.include?('security') || k.downcase.include?('threat'))
+    end
+  end
+
+  def has_security_documentation?
+    security_documentation_files.any?
+  end
+
+  def has_repository_metadata_files?
+    repository&.dig('metadata', 'files').present?
+  end
+
   def licenses
     (packages_licenses + [repository_license]).compact.uniq
   end

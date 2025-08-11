@@ -215,6 +215,75 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "should show security documentation when security files are present" do
+    # Create project with security files in metadata
+    repository_data = {
+      'full_name' => 'test/project',
+      'metadata' => {
+        'files' => {
+          'security' => 'SECURITY.md',
+          'threat_model' => 'THREAT_MODEL.md',
+          'readme' => 'README.md'
+        }
+      },
+      'html_url' => 'https://github.com/test/project',
+      'default_branch' => 'main'
+    }
+    
+    project = create(:project, repository: repository_data)
+    get security_project_url(project)
+    
+    assert_response :success
+    assert_select 'h5', text: 'Security Documentation'
+    assert_select 'strong', text: 'Security:'
+    assert_select 'strong', text: 'Threat model:'
+    assert_select 'strong', { count: 0, text: 'Readme:' } # Should not show non-security files
+  end
+
+  test "should show security documentation section with message when no security files are present" do
+    # Create project with only non-security files in metadata
+    repository_data = {
+      'full_name' => 'test/project',
+      'metadata' => {
+        'files' => {
+          'readme' => 'README.md',
+          'license' => 'LICENSE'
+        }
+      }
+    }
+    
+    project = create(:project, repository: repository_data)
+    get security_project_url(project)
+    
+    assert_response :success
+    assert_select 'h5', text: 'Security Documentation'
+    assert_select 'p', text: /No security documentation files.*were found in this repository/
+  end
+
+  test "should show security documentation section when no repository metadata is available" do
+    # Create project with repository but no metadata files
+    repository_data = {
+      'full_name' => 'test/project',
+      'html_url' => 'https://github.com/test/project'
+    }
+    
+    project = create(:project, repository: repository_data)
+    get security_project_url(project)
+    
+    assert_response :success
+    assert_select 'h5', text: 'Security Documentation'
+    assert_select 'p', text: /No repository metadata available/
+  end
+
+  test "should not show security documentation section when no repository is present" do
+    # Create project without repository
+    project = create(:project, repository: nil)
+    get security_project_url(project)
+    
+    assert_response :success
+    assert_select 'h5', { count: 0, text: 'Security Documentation' }
+  end
+
   test "should redirect to new project form for non-existent project" do
     url = "https://github.com/newuser/newrepo"
     
