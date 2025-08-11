@@ -278,7 +278,7 @@ class CollectionsController < ApplicationController
     @projects_with_security = @collection.projects
       .joins(:issues)
       .where(issues: { id: dependabot_scope.select(:id) })
-      .group('projects.id, projects.url')
+      .group('projects.id')
       .select('projects.*, COUNT(issues.id) as security_count')
       .order('security_count DESC')
       .limit(5)
