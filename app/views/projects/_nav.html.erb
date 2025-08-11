@@ -20,17 +20,17 @@
     </li>
     <li class="nav-item">
       <a class="nav-link <%= 'active' if action_name == 'dependencies' %>" href="<%= project_path_with_collection(@project, 'dependencies') %>?<%= request.query_parameters.to_query %>">Dependencies
-        <span class="badge bg-secondary ms-1"><%= number_with_delimiter(@project.total_dependencies_count) %></span>
+        <span class="badge bg-secondary ms-1"><%= number_to_human(@project.total_dependencies_count) %></span>
       </a>
     </li>
     <li class="nav-item">
       <a class="nav-link <%= 'active' if action_name == 'packages' %>" href="<%= project_path_with_collection(@project, 'packages') %>?<%= request.query_parameters.to_query %>">Packages
-        <span class="badge bg-secondary ms-1"><%= number_with_delimiter(@project.packages_count || 0) %></span>
+        <span class="badge bg-secondary ms-1"><%= number_to_human(@project.packages_count || 0) %></span>
       </a>
     </li>
     <li class="nav-item">
       <a class="nav-link <%= 'active' if action_name == 'security' %>" href="<%= project_path_with_collection(@project, 'security') %>?<%= request.query_parameters.to_query %>">Security
-        <span class="badge bg-secondary ms-1"><%= number_with_delimiter(@project.advisories_count) %></span>
+        <span class="badge bg-secondary ms-1"><%= number_to_human(@project.advisories_count) %></span>
       </a>
     </li>
   </ul>

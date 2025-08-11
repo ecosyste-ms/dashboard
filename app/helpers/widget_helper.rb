@@ -25,12 +25,12 @@ module WidgetHelper
             
               content_tag(:span, class: stat_class) do
                 safe_join([
-                  "#{currency ? number_to_currency(current_value, unit: symbol || '$') : "#{number_with_delimiter(current_value)}#{symbol}"}".strip + ' ',
+                  "#{currency ? number_to_currency(current_value, unit: symbol || '$') : "#{number_to_human(current_value)}#{symbol}"}".strip + ' ',
                   previous_value.present? ? caret_icon_for(current_value, previous_value) : "".html_safe,
                 ])
               end +
               if previous_value.present?
-                content_tag(:span, "#{currency ? number_to_currency(previous_value, unit: symbol || '$') : "#{number_with_delimiter(previous_value)}#{symbol}"} #{last_period_text}", class: "stat-card-text")
+                content_tag(:span, "#{currency ? number_to_currency(previous_value, unit: symbol || '$') : "#{number_to_human(previous_value)}#{symbol}"} #{last_period_text}", class: "stat-card-text")
               else
                 "".html_safe
               end
