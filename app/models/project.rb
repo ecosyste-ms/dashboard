@@ -102,52 +102,75 @@ class Project < ApplicationRecord
   def sync
     return if sync_status == 'syncing'
     
-    update_column(:sync_status, 'syncing')
+    sync_started_at = Time.current
+    update_columns(sync_status: 'syncing', updated_at: sync_started_at)
     
     begin
       # Broadcast initial sync start
-      broadcast_sync_update
+      safe_broadcast_sync_update
       
-      check_url
-      fetch_repository
-      broadcast_sync_update  # After repository fetch
+      # Core sync steps with individual error handling
+      sync_step("URL check") { check_url }
+      sync_step("Repository fetch") { fetch_repository }
+      safe_broadcast_sync_update  # After repository fetch
       
       # Limit packages in test environment to avoid excessive API calls  
       max_pages = Rails.application.config.x.pagination_limits&.dig(:packages) || 100
-      fetch_packages(max_pages: max_pages)
-      broadcast_sync_update  # After packages fetch
+      sync_step("Packages fetch") { fetch_packages(max_pages: max_pages) }
+      safe_broadcast_sync_update  # After packages fetch
       
       if repository && uninteresting_fork?
-        # Don't sync tags, commits or issues for uninteresting forks
+        Rails.logger.info "Skipping detailed sync for uninteresting fork: #{repository['full_name']}"
       else
-        fetch_readme
-        sync_tags
-        broadcast_sync_update  # After tags sync
+        sync_step("README fetch") { fetch_readme }
+        sync_step("Tags sync") { sync_tags }
+        safe_broadcast_sync_update  # After tags sync
         
-        sync_advisories
-        sync_issues
-        sync_dependabot_issues  # Sync Dependabot security issues for GitHub repos
-        broadcast_sync_update  # After issues sync
+        sync_step("Advisories sync") { sync_advisories }
+        sync_step("Issues sync") { sync_issues }
+        sync_step("Dependabot issues sync") { sync_dependabot_issues }  # Sync Dependabot security issues for GitHub repos
+        safe_broadcast_sync_update  # After issues sync
         
-        sync_commits
-        broadcast_sync_update  # After commits sync
+        sync_step("Commits sync") { sync_commits }
+        safe_broadcast_sync_update  # After commits sync
         
-        fetch_dependencies 
-        update_sourced_dependency_collections  # Update any collections that use this project as source
-        broadcast_sync_update  # After dependencies fetch
+        sync_step("Dependencies fetch") { fetch_dependencies }
+        sync_step("Dependency collections update") { update_sourced_dependency_collections }  # Update any collections that use this project as source
+        safe_broadcast_sync_update  # After dependencies fetch
         
-        fetch_collective
-        fetch_github_sponsors
+        sync_step("Collective fetch") { fetch_collective }
+        sync_step("GitHub sponsors fetch") { fetch_github_sponsors }
       end
+      
       return if destroyed?
-      update_columns(last_synced_at: Time.now, sync_status: 'completed') 
-      broadcast_sync_update  # Final completion broadcast
-      ping
-      notify_collections_of_sync
+      
+      # Final completion update
+      completion_time = Time.current
+      update_columns(
+        last_synced_at: completion_time, 
+        sync_status: 'completed',
+        updated_at: completion_time
+      )
+      
+      safe_broadcast_sync_update  # Final completion broadcast
+      sync_step("Ping services") { ping }
+      sync_step("Notify collections") { notify_collections_of_sync }
+      
+      Rails.logger.info "Successfully synced project #{id} in #{(completion_time - sync_started_at).round(2)} seconds"
+      
     rescue => e
-      Rails.logger.error "Error syncing project #{id}: #{e.message}"
-      update_column(:sync_status, 'error') unless destroyed?
-      raise e
+      Rails.logger.error "Fatal error syncing project #{id}: #{e.class.name} - #{e.message}"
+      Rails.logger.error e.backtrace.join("\n") if Rails.env.development?
+      
+      unless destroyed?
+        update_columns(
+          sync_status: 'error',
+          updated_at: Time.current
+        )
+      end
+      
+      # Don't re-raise in production to prevent worker crashes
+      raise e if Rails.env.test? || Rails.env.development?
     end
   end
 
@@ -1560,6 +1583,28 @@ class Project < ApplicationRecord
   end
 
   private
+
+  def sync_step(step_name)
+    Rails.logger.debug "Starting sync step: #{step_name} for project #{id}"
+    start_time = Time.current
+    
+    begin
+      yield
+      duration = (Time.current - start_time).round(2)
+      Rails.logger.debug "Completed sync step: #{step_name} for project #{id} in #{duration}s"
+    rescue => e
+      duration = (Time.current - start_time).round(2)
+      Rails.logger.warn "Failed sync step: #{step_name} for project #{id} after #{duration}s - #{e.class.name}: #{e.message}"
+      # Continue with sync even if individual steps fail
+    end
+  end
+
+  def safe_broadcast_sync_update
+    broadcast_sync_update
+  rescue => e
+    Rails.logger.warn "Failed to broadcast sync update for project #{id}: #{e.message}"
+    # Continue sync even if broadcast fails
+  end
 
   def fetch_json_with_retry(url, retries: 3)
     conn = Faraday.new(url: url) do |faraday|

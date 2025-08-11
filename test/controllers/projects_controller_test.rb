@@ -80,7 +80,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should show syncing page directly" do
-    project = create(:project, :without_repository)
+    project = create(:project, :without_repository, sync_status: 'pending', last_synced_at: nil)
     get syncing_project_url(project)
     assert_response :success
     assert_template :syncing
@@ -1137,6 +1137,51 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     
     assert_redirected_to login_path
     assert_equal 'Please sign in to create collections.', flash[:alert]
+  end
+
+  test "should fix stuck sync on syncing page and redirect when ready" do
+    # Create a project with stuck sync (syncing status but old updated_at)
+    project = create(:project, :with_repository, sync_status: 'syncing')
+    project.update_column(:updated_at, 1.hour.ago)  # Make it appear stuck
+    project.update_column(:last_synced_at, 1.hour.ago)
+    
+    # Verify it's stuck
+    assert project.sync_stuck?
+    refute project.ready?
+    
+    # Mock the sync_async method to verify it's called
+    Project.any_instance.expects(:sync_async).once
+    
+    get syncing_project_url(project)
+    
+    # Should redirect to project page with notice
+    assert_redirected_to project_url(project)
+    assert_equal 'Project sync completed', flash[:notice]
+    
+    # Verify sync_status was fixed
+    project.reload
+    assert_equal 'completed', project.sync_status
+    assert project.ready?
+  end
+
+  test "should show syncing page for actively syncing project" do
+    # Create a project that's actively syncing (recent updated_at)
+    project = create(:project, :with_repository, sync_status: 'syncing')
+    project.update_column(:updated_at, 5.minutes.ago)
+    
+    # Verify it's not stuck
+    refute project.sync_stuck?
+    refute project.ready?
+    
+    # Should not call sync_async for actively syncing project
+    Project.any_instance.expects(:sync_async).never
+    
+    get syncing_project_url(project)
+    
+    # Should show syncing page
+    assert_response :success
+    assert_template :syncing
+    assert_select 'h2', text: /Syncing project data/
   end
 
 end
