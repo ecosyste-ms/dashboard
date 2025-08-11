@@ -1170,4 +1170,39 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     get productivity_collection_path(@collection), params: { only_bots: 'true' }
     assert_response :success
   end
+
+  test "should show security page without SQL syntax errors" do
+    login_as(@user)
+    @collection.update(import_status: "completed", sync_status: "ready")
+    
+    # Create some dependabot security issues that match both scopes
+    security_issue1 = create(:issue, 
+      project: @project1, 
+      state: "open", 
+      pull_request: true,
+      user: "dependabot[bot]", 
+      title: "Bump nokogiri due to CVE-2023-12345",
+      labels: ["security"]
+    )
+    
+    security_issue2 = create(:issue, 
+      project: @project2, 
+      state: "closed", 
+      pull_request: true,
+      user: "dependabot[bot]", 
+      title: "Security update for lodash vulnerability",
+      labels: ["security"]
+    )
+    
+    # Test the page loads without SQL errors
+    get security_collection_path(@collection)
+    
+    assert_response :success
+    assert_template :security
+    
+    # Verify the page renders the expected sections
+    assert_select "h1", text: "Security"
+    assert_select ".card-title", text: "Projects Affected"
+    assert_select ".card-title", text: "Security Advisories"
+  end
 end
