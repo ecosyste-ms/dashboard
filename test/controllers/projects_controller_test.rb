@@ -56,20 +56,21 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 'Sync failed: Connection timeout', flash[:alert]
   end
 
-  test "should show syncing page for unsynced project" do
+  test "should show syncing page for never-synced project" do
     project = create(:project, :without_repository, last_synced_at: nil, sync_status: 'pending')
     get project_url(project)  
     assert_response :success
     assert_template :syncing
     assert_select 'h2', text: /Syncing project data/
     assert_select '.sync-status-content'
+    assert_select 'meta[http-equiv="refresh"][content="30"]'
   end
 
-  test "should show syncing page for recently created project" do
-    project = create(:project, :without_repository, last_synced_at: 2.hours.ago, sync_status: 'pending')
+  test "should show project page for previously synced project even if sync_status is pending" do
+    project = create(:project, :with_repository, last_synced_at: 2.hours.ago, sync_status: 'pending')
     get project_url(project)
     assert_response :success
-    assert_template :syncing
+    assert_template :show  # Should show main project page, not syncing page
   end
 
   test "should show regular project page for synced project" do
@@ -79,12 +80,13 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_template :show
   end
 
-  test "should show syncing page directly" do
-    project = create(:project, :without_repository)
+  test "should show syncing page directly for never-synced project" do
+    project = create(:project, :without_repository, sync_status: 'pending', last_synced_at: nil)
     get syncing_project_url(project)
     assert_response :success
     assert_template :syncing
     assert_select 'h2', text: /Syncing project data/
+    assert_select 'meta[http-equiv="refresh"][content="30"]'
   end
 
   test "should show new project form when logged in" do
@@ -211,6 +213,75 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     project = create(:project, :with_repository)
     get security_project_url(project)
     assert_response :success
+  end
+
+  test "should show security documentation when security files are present" do
+    # Create project with security files in metadata
+    repository_data = {
+      'full_name' => 'test/project',
+      'metadata' => {
+        'files' => {
+          'security' => 'SECURITY.md',
+          'threat_model' => 'THREAT_MODEL.md',
+          'readme' => 'README.md'
+        }
+      },
+      'html_url' => 'https://github.com/test/project',
+      'default_branch' => 'main'
+    }
+    
+    project = create(:project, repository: repository_data)
+    get security_project_url(project)
+    
+    assert_response :success
+    assert_select 'h5', text: 'Security Documentation'
+    assert_select 'strong', text: 'Security:'
+    assert_select 'strong', text: 'Threat model:'
+    assert_select 'strong', { count: 0, text: 'Readme:' } # Should not show non-security files
+  end
+
+  test "should show security documentation section with message when no security files are present" do
+    # Create project with only non-security files in metadata
+    repository_data = {
+      'full_name' => 'test/project',
+      'metadata' => {
+        'files' => {
+          'readme' => 'README.md',
+          'license' => 'LICENSE'
+        }
+      }
+    }
+    
+    project = create(:project, repository: repository_data)
+    get security_project_url(project)
+    
+    assert_response :success
+    assert_select 'h5', text: 'Security Documentation'
+    assert_select 'p', text: /No security documentation files.*were found in this repository/
+  end
+
+  test "should show security documentation section when no repository metadata is available" do
+    # Create project with repository but no metadata files
+    repository_data = {
+      'full_name' => 'test/project',
+      'html_url' => 'https://github.com/test/project'
+    }
+    
+    project = create(:project, repository: repository_data)
+    get security_project_url(project)
+    
+    assert_response :success
+    assert_select 'h5', text: 'Security Documentation'
+    assert_select 'p', text: /No repository metadata available/
+  end
+
+  test "should not show security documentation section when no repository is present" do
+    # Create project without repository
+    project = create(:project, repository: nil)
+    get security_project_url(project)
+    
+    assert_response :success
+    assert_select 'h5', { count: 0, text: 'Security Documentation' }
   end
 
   test "should redirect to new project form for non-existent project" do
@@ -1137,6 +1208,84 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     
     assert_redirected_to login_path
     assert_equal 'Please sign in to create collections.', flash[:alert]
+  end
+
+  test "should fix stuck sync on syncing page and redirect when ready" do
+    # Create a project with stuck sync that was previously synced
+    project = create(:project, :with_repository, sync_status: 'syncing')
+    project.update_column(:updated_at, 1.hour.ago)  # Make it appear stuck
+    project.update_column(:last_synced_at, 2.days.ago)  # Has been synced before
+    
+    # Verify it's stuck and was previously synced
+    assert project.sync_stuck?
+    refute project.never_synced?
+    
+    # Mock the sync_async method to verify it's called for stuck syncs
+    Project.any_instance.expects(:sync_async).once
+    
+    get syncing_project_url(project)
+    
+    # Should redirect to project page with notice about background sync
+    assert_redirected_to project_url(project)
+    assert_equal 'Project is now accessible. Sync continues in background.', flash[:notice]
+    
+    # Verify sync_status was fixed
+    project.reload
+    assert_equal 'completed', project.sync_status
+  end
+
+  test "should show syncing page for never-synced actively syncing project" do
+    # Create a never-synced project that's actively syncing (recent updated_at)
+    project = create(:project, :with_repository, sync_status: 'syncing', last_synced_at: nil)
+    project.update_column(:updated_at, 5.minutes.ago)
+    
+    # Verify it's not stuck and never synced
+    refute project.sync_stuck?
+    assert project.never_synced?
+    
+    # Should not call sync_async for actively syncing project
+    Project.any_instance.expects(:sync_async).never
+    
+    get syncing_project_url(project)
+    
+    # Should show syncing page
+    assert_response :success
+    assert_template :syncing
+    assert_select 'h2', text: /Syncing project data/
+  end
+
+  test "should redirect previously synced project from syncing page" do
+    # Create a project that was previously synced but is not actively syncing
+    project = create(:project, :with_repository, sync_status: 'completed')
+    project.update_column(:last_synced_at, 12.hours.ago)  # Previously synced
+    
+    # Verify it was previously synced
+    refute project.never_synced?
+    
+    # Should not call sync_async
+    Project.any_instance.expects(:sync_async).never
+    
+    get syncing_project_url(project)
+    
+    # Should redirect to project page
+    assert_redirected_to project_url(project)
+  end
+
+  test "should show project page even when background sync is running for previously synced project" do
+    # Create a project that was previously synced but is now syncing in background
+    project = create(:project, :with_repository, sync_status: 'syncing')
+    project.update_column(:last_synced_at, 1.day.ago)  # Previously synced
+    project.update_column(:updated_at, 2.minutes.ago)  # Currently syncing (not stuck)
+    
+    # Verify it's actively syncing but was previously synced
+    refute project.sync_stuck?
+    refute project.never_synced?
+    
+    get project_url(project)
+    
+    # Should show main project page, not syncing page
+    assert_response :success
+    assert_template :show
   end
 
 end

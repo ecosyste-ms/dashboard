@@ -1,5 +1,8 @@
 <% @meta_title = "#{@project}" %>
 <% @meta_description = "Syncing #{@project}" %>
+<% content_for :head do %>
+  <meta http-equiv="refresh" content="30">
+<% end %>
 
 <div class="container">
   <div class="row">

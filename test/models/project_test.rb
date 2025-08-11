@@ -821,4 +821,129 @@ class ProjectTest < ActiveSupport::TestCase
   ensure
     WebMock.reset!
   end
+
+  test "security_documentation_files returns security and threat files" do
+    repository_data = {
+      'metadata' => {
+        'files' => {
+          'security' => 'SECURITY.md',
+          'threat_model' => 'docs/threat-model.md',
+          'readme' => 'README.md',
+          'license' => 'LICENSE'
+        }
+      }
+    }
+    
+    project = create(:project, repository: repository_data)
+    security_files = project.security_documentation_files
+    
+    assert_equal 2, security_files.size
+    assert_equal 'SECURITY.md', security_files['security']
+    assert_equal 'docs/threat-model.md', security_files['threat_model']
+    assert_nil security_files['readme']
+    assert_nil security_files['license']
+  end
+
+  test "security_documentation_files returns empty hash when no metadata files present" do
+    project = create(:project, repository: { 'full_name' => 'test/project' })
+    security_files = project.security_documentation_files
+    
+    assert_equal({}, security_files)
+  end
+
+  test "has_security_documentation? returns true when security files exist" do
+    repository_data = {
+      'metadata' => {
+        'files' => {
+          'security' => 'SECURITY.md',
+          'readme' => 'README.md'
+        }
+      }
+    }
+    
+    project = create(:project, repository: repository_data)
+    assert_equal true, project.has_security_documentation?
+  end
+
+  test "has_security_documentation? returns false when no security files exist" do
+    repository_data = {
+      'metadata' => {
+        'files' => {
+          'readme' => 'README.md',
+          'license' => 'LICENSE'
+        }
+      }
+    }
+    
+    project = create(:project, repository: repository_data)
+    assert_equal false, project.has_security_documentation?
+  end
+
+  test "has_repository_metadata_files? returns true when metadata files present" do
+    repository_data = {
+      'metadata' => {
+        'files' => {
+          'readme' => 'README.md'
+        }
+      }
+    }
+    
+    project = create(:project, repository: repository_data)
+    assert_equal true, project.has_repository_metadata_files?
+  end
+
+  test "has_repository_metadata_files? returns false when no metadata files present" do
+    project = create(:project, repository: { 'full_name' => 'test/project' })
+    assert_equal false, project.has_repository_metadata_files?
+  end
+
+  test "dependabot_api_url generates correct URL for GitHub repository" do
+    project = create(:project)
+    project.update!(repository: { 
+      'host' => { 'name' => 'GitHub' }, 
+      'full_name' => 'test-owner/test-repo'
+    })
+    
+    expected_url = "https://dependabot.ecosyste.ms/api/v1/hosts/GitHub/repositories/test-owner%2Ftest-repo/issues"
+    assert_equal expected_url, project.dependabot_api_url
+  end
+
+  test "dependabot_api_url handles special characters in owner and repo names" do
+    project = create(:project)
+    project.update!(repository: { 
+      'host' => { 'name' => 'GitHub' }, 
+      'full_name' => 'owner-with-dash/repo.with.dots'
+    })
+    
+    expected_url = "https://dependabot.ecosyste.ms/api/v1/hosts/GitHub/repositories/owner-with-dash%2Frepo.with.dots/issues"
+    assert_equal expected_url, project.dependabot_api_url
+  end
+
+  test "dependabot_api_url returns nil for non-GitHub repository" do
+    project = create(:project)
+    project.update!(repository: { 
+      'host' => { 'name' => 'GitLab' }, 
+      'full_name' => 'test-owner/test-repo'
+    })
+    
+    assert_nil project.dependabot_api_url
+  end
+
+  test "dependabot_api_url returns nil when no repository present" do
+    project = create(:project, repository: nil)
+    assert_nil project.dependabot_api_url
+  end
+
+  test "dependabot_api_url returns nil when repository missing full_name" do
+    project = create(:project)
+    project.update!(repository: { 'host' => { 'name' => 'GitHub' } })
+    assert_nil project.dependabot_api_url
+    
+    project.update!(repository: { 'host' => { 'name' => 'GitHub' }, 'full_name' => 'invalid' })
+    assert_nil project.dependabot_api_url
+    
+    project.update!(repository: { 'host' => { 'name' => 'GitHub' }, 'full_name' => '' })
+    assert_nil project.dependabot_api_url
+  end
+
 end

@@ -164,6 +164,41 @@
         </div>
       <% end %>
 
+      <!-- Security Documentation -->
+      <% if @project.repository.present? %>
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">Security Documentation</h5>
+          </div>
+          <div class="card-body">
+            <% if @project.has_repository_metadata_files? %>
+              <% if @project.has_security_documentation? %>
+                <p class="text-muted mb-3">This repository includes the following security documentation:</p>
+                <ul class="list-unstyled">
+                  <% @project.security_documentation_files.each do |k, v| %>
+                    <li class="mb-2">
+                      <i class="fa fa-file-text text-info me-2"></i>
+                      <strong><%= k.humanize %>:</strong> 
+                      <%= link_to v, @project.blob_url(v), target: '_blank', class: 'text-decoration-none' %>
+                    </li>
+                  <% end %>
+                </ul>
+              <% else %>
+                <p class="text-muted mb-0">
+                  <i class="fa fa-info-circle text-warning me-2"></i>
+                  No security documentation files (such as SECURITY.md or threat model files) were found in this repository.
+                </p>
+              <% end %>
+            <% else %>
+              <p class="text-muted mb-0">
+                <i class="fa fa-info-circle text-warning me-2"></i>
+                No repository metadata available to check for security documentation files.
+              </p>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
       <!-- Security Advisories -->
       <div class="card">
         <div class="card-header">
