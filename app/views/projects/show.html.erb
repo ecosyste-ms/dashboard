@@ -21,7 +21,7 @@
               <h5 class="card-title small">Owner</h5>
               <div class="stat-card mb-2">
                 <div class="stat-card-body">
-                  <span class="stat-card-text"><%= @project.repository['owner'] %></span>
+                  <span class="stat-card-text"><%= link_to @project.repository['owner'], owner_collection_project_path(@project) %></span>
                 </div>
               </div>
             </div>
