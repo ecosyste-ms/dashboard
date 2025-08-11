@@ -193,6 +193,10 @@ class Project < ApplicationRecord
     last_synced_at.present? && last_synced_at > 1.hour.ago
   end
 
+  def never_synced?
+    last_synced_at.nil?
+  end
+
   def sync_stuck?
     sync_status == 'syncing' && updated_at < 30.minutes.ago
   end

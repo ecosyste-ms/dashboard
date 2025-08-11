@@ -380,21 +380,19 @@ class ProjectsController < ApplicationController
   def syncing
     @project = Project.find(params[:id])
     
-    # Check if sync is stuck and fix it
     if @project.sync_stuck?
-      Rails.logger.info "Fixing stuck sync for project #{@project.id} - setting status to completed"
       @project.update_column(:sync_status, 'completed')
-      
-      # Also enqueue a background sync to ensure everything is up to date
-      Rails.logger.info "Enqueueing background sync for project #{@project.id}"
       @project.sync_async
-    end
-    
-    # If project is ready after fixing stuck sync, redirect to project page
-    if @project.ready?
-      redirect_to @project, notice: 'Project sync completed'
+      redirect_to @project, notice: 'Project is now accessible. Sync continues in background.'
       return
     end
+    
+    unless @project.never_synced?
+      redirect_to @project
+      return
+    end
+    
+    @project.sync_async if @project.sync_status != 'syncing'
   end
 
 
@@ -518,13 +516,15 @@ class ProjectsController < ApplicationController
   def redirect_if_syncing
     @project = Project.find(params[:id])
     
-    # Restart stuck syncs
     if @project.sync_stuck?
-      Rails.logger.info "Restarting stuck sync for project #{@project.id}"
+      @project.update_column(:sync_status, 'completed')
       @project.sync_async
     end
     
-    render :syncing unless @project.ready?
+    if @project.never_synced?
+      @project.sync_async if @project.sync_status != 'syncing'
+      render :syncing
+    end
   end
 
   def project_params

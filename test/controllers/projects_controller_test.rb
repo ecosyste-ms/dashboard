@@ -56,7 +56,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 'Sync failed: Connection timeout', flash[:alert]
   end
 
-  test "should show syncing page for unsynced project" do
+  test "should show syncing page for never-synced project" do
     project = create(:project, :without_repository, last_synced_at: nil, sync_status: 'pending')
     get project_url(project)  
     assert_response :success
@@ -65,11 +65,11 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_select '.sync-status-content'
   end
 
-  test "should show syncing page for recently created project" do
-    project = create(:project, :without_repository, last_synced_at: 2.hours.ago, sync_status: 'pending')
+  test "should show project page for previously synced project even if sync_status is pending" do
+    project = create(:project, :with_repository, last_synced_at: 2.hours.ago, sync_status: 'pending')
     get project_url(project)
     assert_response :success
-    assert_template :syncing
+    assert_template :show  # Should show main project page, not syncing page
   end
 
   test "should show regular project page for synced project" do
@@ -79,7 +79,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_template :show
   end
 
-  test "should show syncing page directly" do
+  test "should show syncing page directly for never-synced project" do
     project = create(:project, :without_repository, sync_status: 'pending', last_synced_at: nil)
     get syncing_project_url(project)
     assert_response :success
@@ -1140,38 +1140,37 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should fix stuck sync on syncing page and redirect when ready" do
-    # Create a project with stuck sync (syncing status but old updated_at)
+    # Create a project with stuck sync that was previously synced
     project = create(:project, :with_repository, sync_status: 'syncing')
     project.update_column(:updated_at, 1.hour.ago)  # Make it appear stuck
-    project.update_column(:last_synced_at, 1.hour.ago)
+    project.update_column(:last_synced_at, 2.days.ago)  # Has been synced before
     
-    # Verify it's stuck
+    # Verify it's stuck and was previously synced
     assert project.sync_stuck?
-    refute project.ready?
+    refute project.never_synced?
     
-    # Mock the sync_async method to verify it's called
+    # Mock the sync_async method to verify it's called for stuck syncs
     Project.any_instance.expects(:sync_async).once
     
     get syncing_project_url(project)
     
-    # Should redirect to project page with notice
+    # Should redirect to project page with notice about background sync
     assert_redirected_to project_url(project)
-    assert_equal 'Project sync completed', flash[:notice]
+    assert_equal 'Project is now accessible. Sync continues in background.', flash[:notice]
     
     # Verify sync_status was fixed
     project.reload
     assert_equal 'completed', project.sync_status
-    assert project.ready?
   end
 
-  test "should show syncing page for actively syncing project" do
-    # Create a project that's actively syncing (recent updated_at)
-    project = create(:project, :with_repository, sync_status: 'syncing')
+  test "should show syncing page for never-synced actively syncing project" do
+    # Create a never-synced project that's actively syncing (recent updated_at)
+    project = create(:project, :with_repository, sync_status: 'syncing', last_synced_at: nil)
     project.update_column(:updated_at, 5.minutes.ago)
     
-    # Verify it's not stuck
+    # Verify it's not stuck and never synced
     refute project.sync_stuck?
-    refute project.ready?
+    assert project.never_synced?
     
     # Should not call sync_async for actively syncing project
     Project.any_instance.expects(:sync_async).never
@@ -1182,6 +1181,40 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_template :syncing
     assert_select 'h2', text: /Syncing project data/
+  end
+
+  test "should redirect previously synced project from syncing page" do
+    # Create a project that was previously synced but is not actively syncing
+    project = create(:project, :with_repository, sync_status: 'completed')
+    project.update_column(:last_synced_at, 12.hours.ago)  # Previously synced
+    
+    # Verify it was previously synced
+    refute project.never_synced?
+    
+    # Should not call sync_async
+    Project.any_instance.expects(:sync_async).never
+    
+    get syncing_project_url(project)
+    
+    # Should redirect to project page
+    assert_redirected_to project_url(project)
+  end
+
+  test "should show project page even when background sync is running for previously synced project" do
+    # Create a project that was previously synced but is now syncing in background
+    project = create(:project, :with_repository, sync_status: 'syncing')
+    project.update_column(:last_synced_at, 1.day.ago)  # Previously synced
+    project.update_column(:updated_at, 2.minutes.ago)  # Currently syncing (not stuck)
+    
+    # Verify it's actively syncing but was previously synced
+    refute project.sync_stuck?
+    refute project.never_synced?
+    
+    get project_url(project)
+    
+    # Should show main project page, not syncing page
+    assert_response :success
+    assert_template :show
   end
 
 end
