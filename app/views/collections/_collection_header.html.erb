@@ -1,3 +1,15 @@
+<div class="breadcrumb-section py-3  mt-3">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#">Home</a></li><!-- if this is aproject or collection you made, probably insert your name here? -->
+        <li class="breadcrumb-item"><a href="#">Collections</a></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= @collection.to_s %></li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
 <div class="project-header purple-grad-bg  mb-5 pt-4 pb-4">
   <div class="container">
     <div class="row">
