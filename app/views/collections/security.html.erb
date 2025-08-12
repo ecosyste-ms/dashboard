@@ -15,49 +15,64 @@
       <%= render 'date_nav' %>
 
       <!-- Security Overview Cards -->
-      <div class="row mb-4">
-        <div class="col-md-3">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Security Advisories</h5>
-              <h2 class="text-warning"><%= @pagy.count %></h2>
-              <small class="text-muted">in <%= @range == 'year' ? @year : "#{Date::MONTHNAMES[@month]} #{@year}" %></small>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Dependabot Security PRs</h5>
-              <h2 class="text-info"><%= @dependabot_filtered_count %></h2>
-              <small class="text-muted">
-                <span class="text-success"><%= @dependabot_closed_security %> resolved</span> • 
-                <span class="text-danger"><%= @dependabot_open_security %> open</span>
-              </small>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Projects Affected</h5>
-              <h2 class="text-primary"><%= @projects_with_security_count %></h2>
-              <small class="text-muted">projects with security issues</small>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Response Rate</h5>
-              <h2 class="text-success">
-                <%= @dependabot_security_count > 0 ? number_to_percentage((@dependabot_closed_security.to_f / @dependabot_security_count * 100), precision: 0) : "N/A" %>
-              </h2>
-              <small class="text-muted">Dependabot PRs resolved</small>
-            </div>
+<div class="dashboard-grid">
+  <div class="four-equal-widgets mb-4">
+
+    <div class="card well p-3 border-0">
+      <div class="card-body">
+        <h5 class="card-title small">Security Advisories</h5>
+        <div class="stat-card mb-2">
+          <div class="stat-card-body">
+            <span class="stat-card-title stat-card-number stat-card-number-neutral"><%= @pagy.count %></span>
+            <span class="stat-card-text stat-card-text--small">in <%= @range == 'year' ? @year : "#{Date::MONTHNAMES[@month]} #{@year}" %></span>
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="card well p-3 border-0">
+      <div class="card-body">
+        <h5 class="card-title small">Dependabot Security PRs</h5>
+        <div class="stat-card mb-2">
+          <div class="stat-card-body">
+            <span class="stat-card-title stat-card-number stat-card-number-neutral"><%= @dependabot_filtered_count %></span>
+            <span class="stat-card-text stat-card-text--small">
+              <%= @dependabot_closed_security %> resolved, <%= @dependabot_open_security %> open
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card well p-3 border-0">
+      <div class="card-body">
+        <h5 class="card-title small">Projects Affected</h5>
+        <div class="stat-card mb-2">
+          <div class="stat-card-body">
+            <span class="stat-card-title stat-card-number stat-card-number-neutral"><%= @projects_with_security_count %></span>
+            <span class="stat-card-text stat-card-text--small">projects with security issues</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card well p-3 border-0">
+      <div class="card-body">
+        <h5 class="card-title small">Response Rate</h5>
+        <div class="stat-card mb-2">
+          <div class="stat-card-body">
+            <span class="stat-card-title stat-card-number stat-card-number-neutral">
+              <%= @dependabot_security_count > 0 ? number_to_percentage((@dependabot_closed_security.to_f / @dependabot_security_count * 100), precision: 0) : "N/A" %>
+            </span>
+            <span class="stat-card-text stat-card-text--small">Dependabot PRs resolved</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 
       <!-- Security Activity Chart -->
       <% if @dependabot_security_per_period.values.sum > 0 || @advisories_per_period.values.sum > 0 %>
