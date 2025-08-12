@@ -11,7 +11,11 @@
         <% end %>
       </div>
       <% end %>
-      <div class="col-md-10 col-lg-11">
+      <div class="col-12
+      <% if @project.avatar_url.present? %>
+        col-md-10 col-lg-11
+      <% end %>
+      ">
         <% if @collection %>
           <nav aria-label="breadcrumb">
             <ol class="breadcrumb bg-transparent p-0 mb-2">
