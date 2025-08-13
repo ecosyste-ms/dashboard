@@ -1551,8 +1551,6 @@ class Project < ApplicationRecord
       .reject { |link| reject_invalid_funding_link?(link) }
   end
 
-  private
-
   def generate_slug
     return if url.blank?
     
@@ -1664,8 +1662,6 @@ class Project < ApplicationRecord
       collection.broadcast_sync_progress
     end
   end
-
-  private
 
   def sync_step(step_name)
     Rails.logger.debug "Starting sync step: #{step_name} for project #{id}"
