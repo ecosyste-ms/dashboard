@@ -179,6 +179,11 @@ module ApplicationHelper
     # Get current request parameters (excluding controller/action/id)
     current_params = request.query_parameters.except('controller', 'action', 'id', 'collection_id')
     
+    if action.nil?
+      # If no action is specified, remove the tab parameter entirely (overview is the default)
+      current_params = current_params.except('tab')
+    end
+    
     if action || current_params.any?
       # Parse existing query string and merge with current params
       uri = URI.parse(base_path)
