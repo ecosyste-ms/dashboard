@@ -38,17 +38,54 @@ module ProjectsHelper
       return super(project, *args) if args.any? # Fall back to Rails for collection routes
       "#{project_path(project)}/#{action}"
     end
+
+    # Also define collection project helpers
+    define_method "#{action}_collection_project_path" do |collection, project, *args|
+      return super(collection, project, *args) if args.any?
+      return super(collection, project) if project.slug.blank?
+      
+      if project.slug.include?('..')
+        Rails.logger.warn "Potential path traversal attempt: #{project.slug}"
+        return super(collection, project)
+      end
+      
+      "/collections/#{collection.to_param}/projects/#{project.slug}/#{action}"
+    end
+  end
+
+  # Override main collection project path
+  def collection_project_path(collection, project, *args)
+    return super(collection, project, *args) if args.any?
+    return super(collection, project) if project.slug.blank?
+    
+    if project.slug.include?('..')
+      Rails.logger.warn "Potential path traversal attempt: #{project.slug}"
+      return super(collection, project)
+    end
+    
+    "/collections/#{collection.to_param}/projects/#{project.slug}"
   end
 
   # Handle URL methods dynamically by converting path methods to URLs
   def method_missing(method_name, *args, **kwargs, &block)
-    if method_name.to_s.end_with?('_project_url') && args.length >= 1 && args.first.respond_to?(:slug)
-      # Convert URL method to path method
-      path_method = method_name.to_s.sub('_url', '_path')
+    method_str = method_name.to_s
+    
+    # Handle project URL methods (either standalone or collection-based)
+    if method_str.end_with?('_project_url')
+      path_method = method_str.sub('_url', '_path')
       
       if respond_to?(path_method)
-        project = args.first
-        path = send(path_method, project)
+        if method_str.include?('_collection_project_url') && args.length >= 2
+          # Collection project URL: e.g., issues_collection_project_url(collection, project)
+          collection, project = args[0], args[1]
+          path = send(path_method, collection, project)
+        elsif args.length >= 1 && args.first.respond_to?(:slug)
+          # Standalone project URL: e.g., issues_project_url(project)
+          project = args.first
+          path = send(path_method, project)
+        else
+          return super
+        end
         
         host = kwargs[:host] || Rails.application.routes.default_url_options[:host] || request.host
         port = Rails.application.routes.default_url_options[:port]
@@ -68,6 +105,7 @@ module ProjectsHelper
   end
 
   def respond_to_missing?(method_name, include_private = false)
-    method_name.to_s.end_with?('_project_url') && respond_to?(method_name.to_s.sub('_url', '_path')) || super
+    method_str = method_name.to_s
+    (method_str.end_with?('_project_url') && respond_to?(method_str.sub('_url', '_path'))) || super
   end
 end
