@@ -104,4 +104,28 @@ class ApplicationController < ActionController::Base
       1.year.ago.beginning_of_year
     end
   end
+
+  # Custom URL generation methods that don't encode forward slashes
+  # These methods generate clean URLs for projects with forward slashes in slugs
+  def clean_project_path(project)
+    return project_path(project) if project.slug.blank?
+    
+    if project.slug.include?('..')
+      Rails.logger.warn "Potential path traversal attempt: #{project.slug}"
+      return project_path(project)
+    end
+    
+    "/projects/#{project.slug}"
+  end
+
+  def clean_collection_project_path(collection, project)
+    return collection_project_path(collection, project) if project.slug.blank?
+    
+    if project.slug.include?('..')
+      Rails.logger.warn "Potential path traversal attempt: #{project.slug}"
+      return collection_project_path(collection, project)
+    end
+    
+    "/collections/#{collection.to_param}/projects/#{project.slug}"
+  end
 end

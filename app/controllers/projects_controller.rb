@@ -351,7 +351,7 @@ class ProjectsController < ApplicationController
     rescue => e
       flash[:alert] = "Sync failed: #{e.message}"
     end
-    redirect_to project_path(@project)
+    redirect_to clean_project_path(@project)
   end
 
   def meta
@@ -443,11 +443,12 @@ class ProjectsController < ApplicationController
     # Redirect legacy numeric IDs to slug-based URLs if slug is present
     if params[:id].match?(/^\d+$/) && @project&.slug.present?
       redirect_url = @collection ? 
-        send("#{action_name}_collection_project_path", @collection, @project) : 
-        send("#{action_name == 'show' ? 'project' : "#{action_name}_project"}_path", @project)
+        clean_collection_project_path(@collection, @project) : 
+        clean_project_path(@project)
       redirect_to redirect_url, status: :moved_permanently
     end
   end
+
 
   def set_collection
     @collection = Collection.find_by_uuid(params[:collection_id])

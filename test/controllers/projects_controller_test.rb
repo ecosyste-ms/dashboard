@@ -1067,7 +1067,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
       post create_collection_from_dependencies_project_path(project)
     end
     
-    assert_redirected_to dependencies_project_path(project)
+    assert_redirected_to dependencies_project_url(project)
     assert_match /Unable to create collection/, flash[:alert]
   end
 
