@@ -935,7 +935,7 @@ class Project < ApplicationRecord
       documentation_urls,
       registry_urls,
       funding_links
-  ].flatten.compact.uniq
+  ].flatten.compact.uniq.sort
   end
 
   def essential_links
@@ -944,7 +944,7 @@ class Project < ApplicationRecord
       homepage_url,
       documentation_urls,
       funding_links
-  ].flatten.compact.uniq
+  ].flatten.compact.uniq.sort
   end
 
   def fetch_packages(max_pages: 10)

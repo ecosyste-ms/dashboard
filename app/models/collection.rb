@@ -398,7 +398,7 @@ class Collection < ApplicationRecord
   end
 
   def links
-    projects.map(&:links).flatten.uniq
+    projects.map(&:links).flatten.uniq.sort
   end
 
   def essential_links
