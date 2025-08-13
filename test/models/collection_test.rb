@@ -383,7 +383,9 @@ class CollectionTest < ActiveSupport::TestCase
     never_synced = create(:collection, import_status: 'completed', last_synced_at: nil)
     importing_collection = create(:collection, import_status: 'importing')
 
-    assert_difference 'SyncCollectionWorker.jobs.size', 4 do
+    # Should queue all sync_eligible collections (excluding importing ones)
+    sync_eligible_count = Collection.sync_eligible.count
+    assert_difference 'SyncCollectionWorker.jobs.size', sync_eligible_count do
       Collection.sync_least_recently_synced(10)
     end
 
@@ -393,7 +395,7 @@ class CollectionTest < ActiveSupport::TestCase
     assert_includes synced_collection_ids, never_synced.id
     assert_includes synced_collection_ids, old_collection.id
     assert_includes synced_collection_ids, new_collection.id
-    assert_includes synced_collection_ids, importing_collection.id
+    assert_not_includes synced_collection_ids, importing_collection.id
   end
 
   test "sync_least_recently_synced should respect limit parameter" do
@@ -407,7 +409,7 @@ class CollectionTest < ActiveSupport::TestCase
   end
 
 
-  test "sync_eligible scope should include all collections" do
+  test "sync_eligible scope should exclude importing collections" do
     completed1 = create(:collection, import_status: 'completed')
     completed2 = create(:collection, import_status: 'completed')
     importing = create(:collection, import_status: 'importing')
@@ -417,7 +419,7 @@ class CollectionTest < ActiveSupport::TestCase
 
     assert_includes eligible_collections, completed1
     assert_includes eligible_collections, completed2
-    assert_includes eligible_collections, importing
+    assert_not_includes eligible_collections, importing
     assert_includes eligible_collections, error
   end
 

@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'rake'
 
 class CollectionsRakeTest < ActiveSupport::TestCase
   def setup
@@ -7,12 +8,14 @@ class CollectionsRakeTest < ActiveSupport::TestCase
   end
 
   test "collections:sync task should sync least recently synced collections" do
-    old_collection = create(:collection, last_synced_at: 2.days.ago)
-    new_collection = create(:collection, last_synced_at: 1.day.ago)
-    never_synced = create(:collection, last_synced_at: nil)
+    old_collection = create(:collection, import_status: 'completed', last_synced_at: 2.days.ago)
+    new_collection = create(:collection, import_status: 'completed', last_synced_at: 1.day.ago)
+    never_synced = create(:collection, import_status: 'completed', last_synced_at: nil)
     importing_collection = create(:collection, import_status: 'importing')
 
-    assert_difference 'SyncCollectionWorker.jobs.size', 4 do
+    # Should queue all sync_eligible collections (excluding importing ones)
+    sync_eligible_count = Collection.sync_eligible.count
+    assert_difference 'SyncCollectionWorker.jobs.size', sync_eligible_count do
       Rake::Task['collections:sync'].invoke
     end
 

@@ -53,20 +53,6 @@ Rails.application.routes.draw do
     
     resources :projects, constraints: { id: /.*/ }, defaults: { format: 'html' }, format: false, except: [:index, :new, :create, :destroy] do
       member do
-        get :packages
-        get :issues
-        get :releases
-        get :commits
-        get :advisories
-        get :security
-
-        get :productivity
-        get :responsiveness
-        get :finance
-        get :engagement
-        get :adoption
-        get :dependencies
-
         get :sync
         get :meta
         get :syncing
@@ -82,20 +68,6 @@ Rails.application.routes.draw do
       get :lookup
     end
     member do
-      get :packages
-      get :issues
-      get :releases
-      get :commits
-      get :advisories
-      get :security
-
-      get :productivity
-      get :responsiveness
-      get :finance
-      get :engagement
-      get :adoption
-      get :dependencies
-
       get :sync
       get :meta
       get :syncing

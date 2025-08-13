@@ -1,0 +1,66 @@
+<% @meta_title = "#{@project} advisories" %>
+<% @meta_description = "Security advisories for #{@project}" %>
+
+<%= render 'project_header' %>
+<div class="container">
+
+  <div class="dashboard-layout">
+    <%= render 'nav' %>
+
+    <div class="dashboard-layout__dboard">
+      <div class="d-md-flex justify-content-between align-items-center mb-4">
+        <h1>Advisories</h1>
+      </div>
+
+      <% if @advisories.any? %>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Advisory</th>
+                <th>Severity</th>
+                <th>Published</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @advisories.each do |advisory| %>
+                <tr>
+                  <td>
+                    <% if advisory.advisory_url.present? %>
+                      <a href="<%= advisory.advisory_url %>" target="_blank" rel="noopener">
+                        <%= advisory.title %>
+                      </a>
+                    <% else %>
+                      <%= advisory.title %>
+                    <% end %>
+                    <br>
+                    <small class="text-muted"><%= truncate(advisory.description, length: 150) %></small>
+                  </td>
+                  <td>
+                    <% if advisory.severity.present? %>
+                      <span class="badge badge-<%= advisory.severity.downcase == 'critical' ? 'danger' : (advisory.severity.downcase == 'high' ? 'warning' : 'info') %>">
+                        <%= advisory.severity.capitalize %>
+                      </span>
+                    <% end %>
+                  </td>
+                  <td>
+                    <%= advisory.published_at.strftime('%B %d, %Y') if advisory.published_at %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+
+        <%= render partial: 'shared/pagination', locals: { pagy: @pagy } %>
+      <% else %>
+        <div class="empty-state">
+          <div class="well">
+            <h3>No advisories found</h3>
+            <p>This project has no security advisories.</p>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

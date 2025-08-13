@@ -15,7 +15,7 @@ class Collection < ApplicationRecord
   belongs_to :source_project, class_name: 'Project', optional: true
 
   scope :visible, -> { where(visibility: 'public') }
-  scope :sync_eligible, -> { all }
+  scope :sync_eligible, -> { where.not(import_status: 'importing') }
 
 
   before_validation :set_name_from_source

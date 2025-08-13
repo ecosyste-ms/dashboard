@@ -30,26 +30,55 @@ module ProjectsHelper
 
   # Generate project sub-page path helpers dynamically
   %w[packages issues releases commits advisories security productivity 
-     responsiveness finance engagement adoption dependencies sync meta 
-     syncing owner_collection add_to_list remove_from_list 
-     create_collection_from_dependencies].each do |action|
+     responsiveness finance engagement adoption dependencies].each do |action|
     
     define_method "#{action}_project_path" do |project, *args|
-      return super(project, *args) if args.any? # Fall back to Rails for collection routes
-      "#{project_path(project)}/#{action}"
+      if args.any?
+        # For backwards compatibility, fall back to tab-based URL with args
+        "#{project_path(project)}?tab=#{action}"
+      else
+        "#{project_path(project)}?tab=#{action}"
+      end
     end
 
     # Also define collection project helpers
     define_method "#{action}_collection_project_path" do |collection, project, *args|
-      return super(collection, project, *args) if args.any?
-      return super(collection, project) if project.slug.blank?
-      
-      if project.slug.include?('..')
-        Rails.logger.warn "Potential path traversal attempt: #{project.slug}"
-        return super(collection, project)
+      base_path = if project.slug.blank?
+        collection_project_path(collection, project)
+      else
+        if project.slug.include?('..')
+          Rails.logger.warn "Potential path traversal attempt: #{project.slug}"
+          collection_project_path(collection, project)
+        else
+          "/collections/#{collection.to_param}/projects/#{project.slug}"
+        end
       end
       
-      "/collections/#{collection.to_param}/projects/#{project.slug}/#{action}"
+      "#{base_path}?tab=#{action}"
+    end
+  end
+  
+  # Generate remaining project action helpers that are NOT tabs
+  %w[sync meta syncing owner_collection add_to_list remove_from_list 
+     create_collection_from_dependencies].each do |action|
+    
+    define_method "#{action}_project_path" do |project, *args|
+      "#{project_path(project)}/#{action}"
+    end
+
+    define_method "#{action}_collection_project_path" do |collection, project, *args|
+      base_path = if project.slug.blank?
+        collection_project_path(collection, project)
+      else
+        if project.slug.include?('..')
+          Rails.logger.warn "Potential path traversal attempt: #{project.slug}"
+          collection_project_path(collection, project)
+        else
+          "/collections/#{collection.to_param}/projects/#{project.slug}"
+        end
+      end
+      
+      "#{base_path}/#{action}"
     end
   end
 

@@ -1,24 +1,29 @@
 class ProjectsController < ApplicationController
   before_action :set_period_vars, only: [:engagement, :productivity, :finance, :responsiveness, :security]
+  before_action :set_range_and_period, only: [:show]
   before_action :authenticate_user!, only: [:index, :new, :create, :add_to_list, :remove_from_list, :create_collection_from_dependencies]
   before_action :set_collection, if: :nested_route?
   before_action :set_project_and_redirect_legacy, only: [:show, :packages, :commits, :releases, :issues, :advisories, :security, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :sync, :meta, :syncing, :owner_collection, :create_collection_from_dependencies]
   before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :packages, :commits, :releases, :issues, :advisories, :security]
 
   def show
-    @range = range
-    @period = period
-    
-    # Generate dynamic commit data for the chart
-    if @range.to_i <= 180  # 6 months or less
-      @commits_per_period = @project.commits.group_by_month(:timestamp, format: '%b', last: 6, expand_range: true, default_value: 0).count
-    else
-      @commits_per_period = @project.commits.group_by_year(:timestamp, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+    # Handle tab content if tab parameter is present
+    if params[:tab].present?
+      handle_tab_content
+      return
     end
     
-    # Calculate current and previous period commits
-    current_period_start = @range.to_i.days.ago
-    previous_period_start = (@range.to_i * 2).days.ago
+    # Default overview tab content (only if no tab is specified)
+    # Generate dynamic commit data for the chart
+    if @range == 'year'
+      @commits_per_period = @project.commits.group_by_year(:timestamp, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+    else
+      @commits_per_period = @project.commits.group_by_month(:timestamp, format: '%b', last: 6, expand_range: true, default_value: 0).count
+    end
+    
+    # Calculate current and previous period commits (using 30 days as default period)
+    current_period_start = 30.days.ago
+    previous_period_start = 60.days.ago
     
     @commits_this_period = @project.commits.where('timestamp >= ?', current_period_start).count
     @commits_last_period = @project.commits.where('timestamp >= ? AND timestamp < ?', previous_period_start, current_period_start).count
@@ -399,7 +404,7 @@ class ProjectsController < ApplicationController
     if collection
       redirect_to collection, notice: 'Collection created successfully from project dependencies!'
     else
-      redirect_to dependencies_project_path(@project), alert: 'Unable to create collection. This project may not have any dependencies.'
+      redirect_to "#{project_path(@project)}?tab=dependencies", alert: 'Unable to create collection. This project may not have any dependencies.'
     end
   end
 
@@ -433,6 +438,32 @@ class ProjectsController < ApplicationController
 
   private
 
+  def set_range_and_period
+    @range = range
+    @period = period
+  end
+
+  def handle_tab_content
+    tab = params[:tab]
+    return if tab.blank?
+    
+    # Whitelist of allowed tabs
+    allowed_tabs = %w[packages commits releases issues advisories security adoption 
+                      engagement dependencies productivity finance responsiveness meta]
+    
+    return unless allowed_tabs.include?(tab)
+    
+    # Call set_period_vars for tabs that need it
+    if %w[engagement productivity finance responsiveness security].include?(tab)
+      set_period_vars
+    end
+    
+    # Call the method and render the template
+    send(tab)
+    render tab.to_sym and return
+  end
+
+
   def nested_route?
     params[:collection_id].present?
   end
@@ -441,10 +472,13 @@ class ProjectsController < ApplicationController
     @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
     
     # Redirect legacy numeric IDs to slug-based URLs if slug is present
-    if params[:id].match?(/^\d+$/) && @project&.slug.present?
+    if params[:id].to_s.match?(/^\d+$/) && @project&.slug.present?
       redirect_url = @collection ? 
         clean_collection_project_path(@collection, @project) : 
         clean_project_path(@project)
+      
+      # Preserve query parameters including tab
+      redirect_url += "?#{request.query_string}" unless request.query_string.blank?
       redirect_to redirect_url, status: :moved_permanently
     end
   end

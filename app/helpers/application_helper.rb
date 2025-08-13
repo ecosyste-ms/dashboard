@@ -169,72 +169,35 @@ module ApplicationHelper
 
   def project_path_with_collection(project, action = nil, collection = nil)
     collection ||= @collection
-    if collection
-      case action
-      when nil
-        collection_project_path(collection, project)
-      when 'issues'
-        issues_collection_project_path(collection, project)
-      when 'releases'
-        releases_collection_project_path(collection, project)
-      when 'commits'
-        commits_collection_project_path(collection, project)
-      when 'packages'
-        packages_collection_project_path(collection, project)
-      when 'advisories'
-        advisories_collection_project_path(collection, project)
-      when 'security'
-        security_collection_project_path(collection, project)
-      when 'adoption'
-        adoption_collection_project_path(collection, project)
-      when 'engagement'
-        engagement_collection_project_path(collection, project)
-      when 'dependencies'
-        dependencies_collection_project_path(collection, project)
-      when 'productivity'
-        productivity_collection_project_path(collection, project)
-      when 'finance'
-        finance_collection_project_path(collection, project)
-      when 'responsiveness'
-        responsiveness_collection_project_path(collection, project)
-      when 'meta'
-        meta_collection_project_path(collection, project)
-      else
-        collection_project_path(collection, project)
-      end
+    
+    base_path = if collection
+      collection_project_path(collection, project)
     else
-      case action
-      when nil
-        project_path(project)
-      when 'issues'
-        issues_project_path(project)
-      when 'releases'
-        releases_project_path(project)
-      when 'commits'
-        commits_project_path(project)
-      when 'packages'
-        packages_project_path(project)
-      when 'advisories'
-        advisories_project_path(project)
-      when 'security'
-        security_project_path(project)
-      when 'adoption'
-        adoption_project_path(project)
-      when 'engagement'
-        engagement_project_path(project)
-      when 'dependencies'
-        dependencies_project_path(project)
-      when 'productivity'
-        productivity_project_path(project)
-      when 'finance'
-        finance_project_path(project)
-      when 'responsiveness'
-        responsiveness_project_path(project)
-      when 'meta'
-        meta_project_path(project)
-      else
-        project_path(project)
-      end
+      project_path(project)
     end
+    
+    # Get current request parameters (excluding controller/action/id)
+    current_params = request.query_parameters.except('controller', 'action', 'id', 'collection_id')
+    
+    if action || current_params.any?
+      # Parse existing query string and merge with current params
+      uri = URI.parse(base_path)
+      params = Rack::Utils.parse_query(uri.query).merge(current_params.stringify_keys)
+      params['tab'] = action if action
+      uri.query = params.to_query unless params.empty?
+      uri.to_s
+    else
+      base_path
+    end
+  end
+
+  def current_url_with_params(new_params)
+    # Build URL using current path (preserves encoding) and merge query params
+    uri = URI.parse(request.url)
+    current_params = Rack::Utils.parse_query(uri.query || '')
+    merged_params = current_params.merge(new_params.stringify_keys)
+    
+    uri.query = merged_params.any? ? merged_params.to_query : nil
+    uri.to_s
   end
 end

@@ -24,8 +24,6 @@ class ApplicationController < ActionController::Base
     current_user.present?
   end
 
-  private
-
   def range
     (params[:range].presence || 30).to_i
   end
@@ -117,6 +115,7 @@ class ApplicationController < ActionController::Base
     
     "/projects/#{project.slug}"
   end
+
 
   def clean_collection_project_path(collection, project)
     return collection_project_path(collection, project) if project.slug.blank?
