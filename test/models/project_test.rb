@@ -564,7 +564,8 @@ class ProjectTest < ActiveSupport::TestCase
     project.update!(repository: { 
       'host' => { 'name' => 'GitHub' }, 
       'owner' => { 'login' => 'andrew' }, 
-      'name' => 'purl' 
+      'name' => 'purl',
+      'full_name' => 'andrew/purl'
     })
     
     # Mock Dependabot API response
@@ -635,7 +636,8 @@ class ProjectTest < ActiveSupport::TestCase
     project.update!(repository: { 
       'host' => { 'name' => 'GitHub' }, 
       'owner' => { 'login' => 'andrew' }, 
-      'name' => 'purl' 
+      'name' => 'purl',
+      'full_name' => 'andrew/purl'
     })
     
     # Mock API failure
@@ -658,7 +660,8 @@ class ProjectTest < ActiveSupport::TestCase
     project.update!(repository: { 
       'host' => { 'name' => 'GitHub' }, 
       'owner' => { 'login' => 'andrew' }, 
-      'name' => 'purl' 
+      'name' => 'purl',
+      'full_name' => 'andrew/purl'
     })
     
     # Create existing issue with same UUID
