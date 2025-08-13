@@ -20,6 +20,13 @@ class Project < ApplicationRecord
 
   validates :url, presence: true, uniqueness: { case_sensitive: false }
   validates :url, format: { without: /\Apkg:/, message: "cannot be a PURL (Package URL)" }
+  validates :slug, presence: true, uniqueness: { case_sensitive: false }
+  validates :slug, format: { 
+    with: /\A[a-zA-Z0-9._-]+\/[a-zA-Z0-9._\/-]+\z/, 
+    message: "must be in the format 'host.com/owner/repo'" 
+  }
+  
+  before_validation :generate_slug
 
   scope :active, -> { where("(repository ->> 'archived') = ?", 'false') }
   scope :archived, -> { where("(repository ->> 'archived') = ?", 'true') }
@@ -67,6 +74,14 @@ class Project < ApplicationRecord
 
   def display_name
     url.gsub(/https?:\/\//, '').gsub(/www\./, '').gsub(/\/$/, '')
+  end
+
+  def to_param
+    slug
+  end
+
+  def self.find_by_slug(slug_param)
+    find_by(slug: slug_param.to_s.downcase)
   end
 
   def stars
@@ -1537,6 +1552,39 @@ class Project < ApplicationRecord
   end
 
   private
+
+  def generate_slug
+    return if url.blank?
+    
+    begin
+      # Parse URL safely
+      uri = URI.parse(url.strip)
+      return unless uri.host && uri.path
+      
+      # Build safe slug from parsed components
+      host = uri.host.downcase.gsub(/^www\./, '')
+      path = uri.path.gsub(/^\//, '').gsub(/\/$/, '')
+      
+      # Only allow valid characters
+      host = host.gsub(/[^a-zA-Z0-9._-]/, '')
+      path = path.gsub(/[^a-zA-Z0-9._\/-]/, '')
+      
+      # Ensure we have both host and path
+      return if host.blank? || path.blank?
+      
+      candidate_slug = "#{host}/#{path}".downcase
+      
+      # Final validation - must match expected format
+      if candidate_slug.match?(/\A[a-zA-Z0-9._-]+\/[a-zA-Z0-9._\/-]+\z/)
+        self.slug = candidate_slug
+      else
+        Rails.logger.warn "Could not generate valid slug for URL: #{url}"
+      end
+      
+    rescue URI::InvalidURIError => e
+      Rails.logger.error "Invalid URL format for project: #{url} - #{e.message}"
+    end
+  end
 
   def reject_invalid_funding_link?(link)
     uri = URI.parse(link)

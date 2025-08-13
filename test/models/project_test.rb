@@ -1,6 +1,37 @@
 require 'test_helper'
 
 class ProjectTest < ActiveSupport::TestCase
+  test "generates slug from URL on creation" do
+    project = Project.create!(url: "https://github.com/octocat/hello-world")
+    assert_equal "github.com/octocat/hello-world", project.slug
+  end
+
+  test "generates slug without www prefix" do
+    project = Project.create!(url: "https://www.github.com/octocat/hello-world")
+    assert_equal "github.com/octocat/hello-world", project.slug
+  end
+
+  test "generates slug without trailing slash" do
+    project = Project.create!(url: "https://github.com/octocat/hello-world/")
+    assert_equal "github.com/octocat/hello-world", project.slug
+  end
+
+  test "to_param returns slug" do
+    project = Project.create!(url: "https://github.com/octocat/hello-world")
+    assert_equal "github.com/octocat/hello-world", project.to_param
+  end
+
+  test "find_by_slug works with different cases" do
+    project = Project.create!(url: "https://github.com/octocat/hello-world")
+    
+    found_lower = Project.find_by_slug("github.com/octocat/hello-world")
+    found_upper = Project.find_by_slug("GITHUB.COM/OCTOCAT/HELLO-WORLD")
+    found_mixed = Project.find_by_slug("GitHub.com/OctoCat/Hello-World")
+    
+    assert_equal project, found_lower
+    assert_equal project, found_upper
+    assert_equal project, found_mixed
+  end
   test "github_pages_to_repo_url" do
     project = Project.new
     repo_url = project.github_pages_to_repo_url('https://foo.github.io/bar')

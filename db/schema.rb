@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_06_154038) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_13_113652) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -189,7 +189,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_06_154038) do
     t.integer "direct_dependencies_count", default: 0, null: false
     t.integer "development_dependencies_count", default: 0, null: false
     t.integer "transitive_dependencies_count", default: 0, null: false
+    t.string "slug"
     t.index ["collective_id"], name: "index_projects_on_collective_id"
+    t.index ["slug"], name: "index_projects_on_slug", unique: true
     t.index ["url"], name: "index_projects_on_url", unique: true
   end
 

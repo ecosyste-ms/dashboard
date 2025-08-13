@@ -51,7 +51,7 @@ Rails.application.routes.draw do
       get :syncing
     end
     
-    resources :projects, constraints: { id: /.*/ }, except: [:index, :new, :create, :destroy] do
+    resources :projects, constraints: { id: /.*/ }, defaults: { format: 'html' }, format: false, except: [:index, :new, :create, :destroy] do
       member do
         get :packages
         get :issues
@@ -76,7 +76,7 @@ Rails.application.routes.draw do
     get :projects, to: 'collections#projects'
   end
 
-  resources :projects, constraints: { id: /.*/ } do
+  resources :projects, constraints: { id: /.*/ }, defaults: { format: 'html' }, format: false do
     collection do
       post :lookup
       get :lookup

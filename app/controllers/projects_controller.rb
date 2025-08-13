@@ -5,7 +5,7 @@ class ProjectsController < ApplicationController
   before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :packages, :commits, :releases, :issues, :advisories, :security]
 
   def show
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
     @range = range
     @period = period
     
@@ -146,32 +146,32 @@ class ProjectsController < ApplicationController
   end
 
   def packages
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
     @pagy, @packages = pagy(@project.packages.active.order_by_rankings)
   end
 
   def commits
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
     @pagy, @commits = pagy(@project.commits.order('timestamp DESC'))
   end
 
   def releases
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
     @pagy, @releases = pagy(@project.tags.displayable.order('published_at DESC'))
   end
 
   def issues
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
     @pagy, @issues = pagy(@project.issues.order('created_at DESC'))
   end
 
   def advisories
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
     @pagy, @advisories = pagy(@project.advisories.order('published_at DESC'))
   end
 
   def security
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
 
     # Date filtering using period ranges from set_period_vars
     advisories_scope = @project.advisories
@@ -203,12 +203,12 @@ class ProjectsController < ApplicationController
   end
 
   def adoption
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
     @top_package = @project.packages.order_by_rankings.first
   end
 
   def engagement
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
 
     # Apply bot filtering based on params
     issues_scope = @project.issues
@@ -239,7 +239,7 @@ class ProjectsController < ApplicationController
   end
 
   def dependencies
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
     # Calculate unique counts for filter buttons (to match table display)
     @direct_dependencies = @project.direct_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }.length
     @development_dependencies = @project.development_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }.length
@@ -262,7 +262,7 @@ class ProjectsController < ApplicationController
   end
 
   def productivity
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
     
     # Apply bot filtering based on params
     issues_scope = @project.issues
@@ -304,7 +304,7 @@ class ProjectsController < ApplicationController
   end
 
   def finance
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
 
     if @project.collective.present?
 
@@ -332,7 +332,7 @@ class ProjectsController < ApplicationController
   end
 
   def responsiveness
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
 
     # Apply bot filtering based on params
     issues_scope = @project.issues
@@ -357,7 +357,7 @@ class ProjectsController < ApplicationController
   end
 
   def sync
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
     begin
       @project.sync
       flash[:notice] = 'Project synced'
@@ -368,17 +368,17 @@ class ProjectsController < ApplicationController
   end
 
   def meta
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
   end
 
   def add_to_list
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
     UserProject.add_project_to_user(current_user, @project)
     redirect_back(fallback_location: @project, notice: 'Project added to your list.')
   end
 
   def syncing
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
     
     if @project.sync_stuck?
       @project.update_column(:sync_status, 'completed')
@@ -397,7 +397,7 @@ class ProjectsController < ApplicationController
 
 
   def remove_from_list
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
     user_project = UserProject.find_by(user: current_user, project: @project)
     if user_project
       user_project.soft_delete!
@@ -408,7 +408,7 @@ class ProjectsController < ApplicationController
   end
 
   def create_collection_from_dependencies
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
     
     collection = @project.create_collection_from_dependencies(current_user)
     
@@ -420,7 +420,7 @@ class ProjectsController < ApplicationController
   end
 
   def owner_collection
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
     
     # Check if we can find an existing public collection without needing to authenticate
     existing_collection = find_existing_owner_collection
@@ -514,7 +514,7 @@ class ProjectsController < ApplicationController
   end
 
   def redirect_if_syncing
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
     
     if @project.sync_stuck?
       @project.update_column(:sync_status, 'completed')

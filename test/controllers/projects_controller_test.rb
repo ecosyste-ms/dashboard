@@ -20,6 +20,41 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "should show project by slug" do
+    project = create(:project, :with_repository, url: "https://github.com/octocat/hello-world")
+    get project_url("github.com/octocat/hello-world")
+    assert_response :success
+    assert_equal project, assigns(:project)
+  end
+
+  test "should show project by slug case insensitive" do
+    project = create(:project, :with_repository, url: "https://github.com/octocat/hello-world")
+    get project_url("GITHUB.COM/OCTOCAT/HELLO-WORLD")
+    assert_response :success
+    assert_equal project, assigns(:project)
+  end
+
+  test "should handle project names ending with .json" do
+    project = create(:project, :with_repository, url: "https://github.com/octocat/package.json")
+    get project_url("github.com/octocat/package.json")
+    assert_response :success
+    assert_equal project, assigns(:project)
+  end
+
+  test "clean URL helpers generate unencoded paths" do
+    project = create(:project, :with_repository, url: "https://github.com/octocat/hello-world")
+    
+    # Test that our helpers generate clean paths
+    view_context = ApplicationController.new.view_context
+    
+    clean_path = view_context.project_path(project)
+    assert_equal "/projects/github.com/octocat/hello-world", clean_path
+    
+    clean_packages_path = view_context.packages_project_path(project)
+    assert_equal "/projects/github.com/octocat/hello-world/packages", clean_packages_path
+  end
+
+
   test "should show meta page" do
     project = create(:project, :with_repository)
     get meta_project_url(project)
