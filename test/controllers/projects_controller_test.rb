@@ -796,7 +796,9 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     project.stubs(:direct_dependencies).returns(mock_dependencies)
     project.stubs(:development_dependencies).returns([])
     project.stubs(:transitive_dependencies).returns([])
-    Project.stubs(:find).with(project.id.to_s).returns(project)
+    # Stub both find methods used by the controller
+    Project.stubs(:find_by_slug).with(project.to_param).returns(project)
+    Project.stubs(:find).with(project.id).returns(project)
     
     get dependencies_project_url(project)
     assert_response :success
