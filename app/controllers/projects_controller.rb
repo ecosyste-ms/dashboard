@@ -485,7 +485,7 @@ class ProjectsController < ApplicationController
 
 
   def set_collection
-    @collection = Collection.find_by_uuid(params[:collection_id])
+    @collection = Collection.find_by_slug(params[:collection_id]) || Collection.find_by_uuid(params[:collection_id])
     raise ActiveRecord::RecordNotFound if @collection.nil?
     if @collection.visibility == 'private' && @collection.user != current_user
       raise ActiveRecord::RecordNotFound

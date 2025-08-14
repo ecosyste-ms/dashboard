@@ -7,7 +7,7 @@ FactoryBot.define do
     sequence(:uuid) { |n| SecureRandom.uuid }
     import_status { "completed" }
     sync_status { "ready" }
-    github_organization_url { "https://github.com/testorg" }
+    sequence(:github_organization_url) { |n| "https://github.com/testorg#{n}" }
     
     trait :private do
       visibility { "private" }
@@ -18,7 +18,7 @@ FactoryBot.define do
     end
 
     trait :with_github_org do
-      github_organization_url { "https://github.com/testorg" }
+      sequence(:github_organization_url) { |n| "https://github.com/testorg#{n}" }
     end
 
     trait :with_collective do

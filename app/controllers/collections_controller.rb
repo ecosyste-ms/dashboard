@@ -36,7 +36,7 @@ class CollectionsController < ApplicationController
     if @collection.save
       # Trigger async import with ActionCable updates
       @collection.import_projects_async
-      redirect_to @collection, notice: 'Collection was successfully created.'
+      redirect_to clean_collection_path(@collection), notice: 'Collection was successfully created.'
     else
       flash.now[:alert] = @collection.errors.full_messages.to_sentence
       render :new
@@ -56,7 +56,7 @@ class CollectionsController < ApplicationController
     end
     
     if @collection.update(collection_params)
-      redirect_to @collection, notice: 'Collection was successfully updated.'
+      redirect_to clean_collection_path(@collection), notice: 'Collection was successfully updated.'
     else
       render :edit
     end
@@ -308,7 +308,7 @@ class CollectionsController < ApplicationController
     
     @collection.import_projects_async
     flash[:notice] = 'Collection sync started'
-    redirect_to collection_path(@collection)
+    redirect_to clean_collection_path(@collection)
   end
 
   private
@@ -379,7 +379,7 @@ class CollectionsController < ApplicationController
 
   def set_collection_with_visibility_check
     collection_id = params[:id] || params[:collection_id]
-    @collection = Collection.includes(:projects).find_by_uuid(collection_id)
+    @collection = Collection.includes(:projects).find_by_slug(collection_id) || Collection.includes(:projects).find_by_uuid(collection_id)
     raise ActiveRecord::RecordNotFound if @collection.nil?
     if @collection.visibility == 'private' && @collection.user != current_user
       raise ActiveRecord::RecordNotFound

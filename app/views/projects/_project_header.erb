@@ -20,7 +20,7 @@
           <nav aria-label="breadcrumb">
             <ol class="breadcrumb bg-transparent p-0 mb-2">
               <li class="breadcrumb-item">
-                <%= link_to @collection.name, collection_path(@collection), class: "text-light" %>
+                <%= link_to @collection.name, clean_collection_path(@collection), class: "text-light" %>
               </li>
               <li class="breadcrumb-item active text-light" aria-current="page">
                 <%= @project.name || @project.to_s.split('/').last %>

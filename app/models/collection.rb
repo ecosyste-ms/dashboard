@@ -19,12 +19,15 @@ class Collection < ApplicationRecord
 
 
   before_validation :set_name_from_source
+  before_validation :generate_slug
+  after_create :update_slug_if_needed
   validate :at_least_one_import_source, on: :create
   validate :valid_dependency_file_format
   
   validates :github_organization_url, format: { with: %r{\Ahttps://github\.com/[^/]+/?\z}, message: "must be a valid GitHub organization URL" }, allow_blank: true
   validates :collective_url, format: { with: %r{\Ahttps://opencollective\.com/[^/]+/?\z}, message: "must be a valid Open Collective URL" }, allow_blank: true
   validates :github_repo_url, format: { with: %r{\Ahttps://github\.com/[^/]+/[^/]+/?\z}, message: "must be a valid GitHub repository URL" }, allow_blank: true
+  validates :slug, presence: true, uniqueness: { case_sensitive: false }
 
 
   def set_name_from_source
@@ -57,7 +60,11 @@ class Collection < ApplicationRecord
   end
 
   def to_param
-    uuid
+    slug
+  end
+  
+  def self.find_by_slug(slug_param)
+    find_by(slug: slug_param.to_s.downcase)
   end
 
   def import_projects_sync
@@ -554,6 +561,89 @@ class Collection < ApplicationRecord
       }
       
       CollectionSyncChannel.broadcast_to(self, fallback_data)
+    end
+  end
+  
+  def generate_slug
+    return if slug.present?
+    
+    if github_organization_url.present?
+      # Owner collection: github.com/owner format
+      generate_owner_slug_from_github_url
+    elsif collective_url.present?
+      # Open Collective: opencollective.com/owner format  
+      generate_owner_slug_from_collective_url
+    else
+      # For other types, we'll use UUID after creation
+      self.slug = 'temp-slug-' + SecureRandom.hex(8)
+    end
+  end
+  
+  def update_slug_if_needed
+    if slug&.start_with?('temp-slug-')
+      update_column(:slug, uuid)
+    end
+  end
+  
+  private
+  
+  def generate_owner_slug_from_github_url
+    begin
+      uri = URI.parse(github_organization_url.strip)
+      
+      if uri.host && uri.path
+        # Extract owner name from path (e.g. "/octobox" -> "octobox")
+        path = uri.path.gsub(/^\//, '').gsub(/\/$/, '')
+        
+        if path.present?
+          # Create slug in format: github.com/owner
+          candidate_slug = "github.com/#{path}".downcase
+          
+          # Validate format
+          if candidate_slug.match?(/\Agithub\.com\/[a-zA-Z0-9._-]+\z/)
+            self.slug = candidate_slug
+            return
+          end
+        end
+      end
+      
+      # Fallback for invalid URLs
+      Rails.logger.warn "Could not generate valid owner slug for GitHub URL: #{github_organization_url}"
+      self.slug = 'temp-slug-' + SecureRandom.hex(8)
+      
+    rescue URI::InvalidURIError => e
+      Rails.logger.error "Invalid GitHub organization URL format: #{github_organization_url} - #{e.message}"
+      self.slug = 'temp-slug-' + SecureRandom.hex(8)
+    end
+  end
+  
+  def generate_owner_slug_from_collective_url
+    begin
+      uri = URI.parse(collective_url.strip)
+      
+      if uri.host && uri.path
+        # Extract collective name from path (e.g. "/babel" -> "babel")  
+        path = uri.path.gsub(/^\//, '').gsub(/\/$/, '')
+        
+        if path.present?
+          # Create slug in format: opencollective.com/collective
+          candidate_slug = "opencollective.com/#{path}".downcase
+          
+          # Validate format
+          if candidate_slug.match?(/\Aopencollective\.com\/[a-zA-Z0-9._-]+\z/)
+            self.slug = candidate_slug
+            return
+          end
+        end
+      end
+      
+      # Fallback for invalid URLs
+      Rails.logger.warn "Could not generate valid owner slug for Open Collective URL: #{collective_url}"
+      self.slug = 'temp-slug-' + SecureRandom.hex(8)
+      
+    rescue URI::InvalidURIError => e
+      Rails.logger.error "Invalid Open Collective URL format: #{collective_url} - #{e.message}"
+      self.slug = 'temp-slug-' + SecureRandom.hex(8)
     end
   end
 end
