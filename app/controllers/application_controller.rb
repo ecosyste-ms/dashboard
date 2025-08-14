@@ -139,7 +139,7 @@ class ApplicationController < ActionController::Base
     end
     
     # Build clean path manually but use Rails' parameter handling for security
-    path = "/collections/#{collection.slug}"
+    path = "/collections/#{CGI.escape(collection.slug)}"
     
     if query_params.present?
       # Use Rails' to_query method for safe parameter encoding

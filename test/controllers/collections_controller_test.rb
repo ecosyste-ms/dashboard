@@ -270,8 +270,8 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   # URL parameter tests
-  test "collection should use uuid as parameter" do
-    assert_equal @collection.uuid, @collection.to_param
+  test "collection should use slug as parameter" do
+    assert_equal @collection.slug, @collection.to_param
   end
 
   # Scope tests

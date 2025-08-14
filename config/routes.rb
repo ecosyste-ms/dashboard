@@ -31,7 +31,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :collections do
+  resources :collections, constraints: { id: /.*/ } do
     member do
       get :packages
       get :issues
