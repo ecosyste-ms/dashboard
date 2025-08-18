@@ -72,57 +72,63 @@
           <div class="full-width-widget">
             <div class="card well p-3 border-0">
               <div class="card-body">
-                <h5 class="card-title">Dependencies</h5>
-                <div class="table-responsive">
-                  <table class="table table-hover table--purple">
-                    <thead>
-                      <tr>
-                        <th style="width: 30%;">Package Name</th>
-                        <th style="width: 12%;">Direct/Trans</th>
-                        <th style="width: 18%;">Requirements</th>
-                        <th style="width: 12%;">Kind</th>
-                        <th style="width: 15%;">Ecosystem</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <% @unique_dependencies.each do |dep| %>
-                        <% package_name = dep['package_name'] || dep['name'] %>
-                        <% is_direct = @project.direct_dependencies.any? { |d| (d['package_name'] || d['name']) == package_name } %>
-                        <% dep_directness = is_direct ? 'direct' : 'transitive' %>
+                <figure>
+                  <figcaption id="unique-dependencies-table-caption" class="mb-4">
+                  <h5 class="card-title">Dependencies</h5>
+                  </figcaption>
+                  <div class="table-wrapper table-responsive-lg" role="group" tabindex="0" aria-labelledby="unique-dependencies-table-caption">
+                    <table class="table table-hover table--purple">
+                      <thead>
                         <tr>
-                          <td>
-                            <% ecosystem = dep['ecosystem'] %>
-                            <% if package_name.present? && ecosystem.present? %>
-                              <% purl_type = convert_purl_type(ecosystem.downcase) %>
-                              <% purl = "pkg:#{purl_type}/#{package_name}" %>
-                              <%= link_to package_name, lookup_projects_path(purl: purl), 
-                                         class: "text-decoration-none",
-                                         title: "Look up #{package_name} project" %>
-                            <% else %>
-                              <%= package_name || 'N/A' %>
-                            <% end %>
-                          </td>
-                          <td>
-                            <% if dep_directness == 'direct' %>
-                              <span class="badge bg-primary">Direct</span>
-                            <% else %>
-                              <span class="badge bg-secondary">Transitive</span>
-                            <% end %>
-                          </td>
-                          <td style="word-break: break-word; max-width: 150px;">
-                            <% requirements = dep['requirements'] || 'N/A' %>
-                            <% if requirements.length > 15 %>
-                              <span title="<%= requirements %>"><%= truncate(requirements, length: 15) %></span>
-                            <% else %>
-                              <%= requirements %>
-                            <% end %>
-                          </td>
-                          <td><%= dep['kind'] || 'N/A' %></td>
-                          <td><%= dep['ecosystem'] || 'N/A' %></td>
+                          <th style="width: 30%;">Package Name</th>
+                          <th style="width: 12%;">Direct/Trans</th>
+                          <th style="width: 18%;">Requirements</th>
+                          <th style="width: 12%;">Kind</th>
+                          <th style="width: 15%;">Ecosystem</th>
                         </tr>
-                      <% end %>
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        <% @unique_dependencies.each do |dep| %>
+                          <% package_name = dep['package_name'] || dep['name'] %>
+                          <% is_direct = @project.direct_dependencies.any? { |d| (d['package_name'] || d['name']) == package_name } %>
+                          <% dep_directness = is_direct ? 'direct' : 'transitive' %>
+                          <tr>
+                            <td>
+                              <% ecosystem = dep['ecosystem'] %>
+                              <% if package_name.present? && ecosystem.present? %>
+                                <% purl_type = convert_purl_type(ecosystem.downcase) %>
+                                <% purl = "pkg:#{purl_type}/#{package_name}" %>
+                                <%= link_to package_name, lookup_projects_path(purl: purl), 
+                                          class: "text-decoration-none",
+                                          title: "Look up #{package_name} project" %>
+                              <% else %>
+                                <%= package_name || 'N/A' %>
+                              <% end %>
+                            </td>
+                            <td>
+                              <% if dep_directness == 'direct' %>
+                                <span class="badge bg-primary">Direct</span>
+                              <% else %>
+                                <span class="badge bg-secondary">Transitive</span>
+                              <% end %>
+                            </td>
+                            <td style="word-break: break-word; max-width: 150px;">
+                              <% requirements = dep['requirements'] || 'N/A' %>
+                              <% if requirements.length > 15 %>
+                                <span title="<%= requirements %>"><%= truncate(requirements, length: 15) %></span>
+                              <% else %>
+                                <%= requirements %>
+                              <% end %>
+                            </td>
+                            <td><%= dep['kind'] || 'N/A' %></td>
+                            <td><%= dep['ecosystem'] || 'N/A' %></td>
+                          </tr>
+                        <% end %>
+                      </tbody>
+                    </table>
+                  </div>
+                </figure>
+
                 </div>
               </div>
             </div>

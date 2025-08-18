@@ -49,79 +49,89 @@
           <div class="full-width-widget">
             <div class="card well p-3 border-0">
               <div class="card-body">
-                <h5 class="card-title">Dependencies</h5>
-                <div class="table-responsive">
-                  <table class="table table-hover table--purple">
-                    <thead>
-                      <tr>
-                        <th style="width: 25%;">Package Name</th>
-                        <th style="width: 10%;">Direct/Trans</th>
-                        <th style="width: 10%;">Usage Count</th>
-                        <th style="width: 20%;">Requirements</th>
-                        <th style="width: 15%;">Kind</th>
-                        <th style="width: 20%;">Ecosystem</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <% dependencies = case params[:filter]
-                         when 'direct'
-                           @direct_deps
-                         when 'development'
-                           @development_deps
-                         when 'transitive'
-                           @transitive_deps
-                         else
-                           (@direct_deps + @development_deps + @transitive_deps).uniq { |dep| dep['package_name'] || dep['name'] }
-                         end.sort_by { |dep| -(@dependency_usage_counts[dep['package_name'] || dep['name']] || 0) } %>
-                      <% dependencies.each do |dep| %>
-                        <% package_name = dep['package_name'] || dep['name'] || 'N/A'
-                           dep_directness = if @direct_dep_names.include?(package_name)
-                                              'direct'
-                                            else
-                                              'transitive'
-                                            end
-                           # Get pre-calculated usage count
-                           usage_count = @dependency_usage_counts[package_name] || 0
-                        %>
+                <figure>
+                  <figcaption id="dependencies-table-caption" class="mb-4">
+                                    <h5 class="card-title">Dependencies</h5>
+                  </figcaption>
+                  <div class="table-wrapper table-responsive-lg" role="group" tabindex="0" aria-labelledby="dependencies-table-caption">
+                    <table class="table table-hover table--purple">
+                      <thead>
                         <tr>
-                          <td>
-                            <% ecosystem = dep['ecosystem'] %>
-                            <% if package_name.present? && package_name != 'N/A' && ecosystem.present? %>
-                              <% purl_type = convert_purl_type(ecosystem.downcase) %>
-                              <% purl = "pkg:#{purl_type}/#{package_name}" %>
-                              <%= link_to package_name, lookup_projects_path(purl: purl), 
-                                         class: "text-decoration-none",
-                                         title: "Look up #{package_name} project" %>
-                            <% else %>
-                              <%= package_name %>
-                            <% end %>
-                          </td>
-                          <td>
-                            <% if dep_directness == 'direct' %>
-                              <span class="badge bg-primary">Direct</span>
-                            <% else %>
-                              <span class="badge bg-secondary">Transitive</span>
-                            <% end %>
-                          </td>
-                          <td><span class="badge bg-info"><%= usage_count %></span></td>
-                          <td style="word-break: break-word; max-width: 150px;">
-                            <% requirements = dep['requirements'] || 'N/A' %>
-                            <% if requirements.length > 15 %>
-                              <span title="<%= requirements %>"><%= truncate(requirements, length: 15) %></span>
-                            <% else %>
-                              <%= requirements %>
-                            <% end %>
-                          </td>
-                          <td><%= dep['kind'] || 'N/A' %></td>
-                          <td><%= dep['ecosystem'] || 'N/A' %></td>
+                          <th style="width: 25%;">Package Name</th>
+                          <th style="width: 10%;">Direct/Trans</th>
+                          <th style="width: 10%;">Usage Count</th>
+                          <th style="width: 20%;">Requirements</th>
+                          <th style="width: 15%;">Kind</th>
+                          <th style="width: 20%;">Ecosystem</th>
                         </tr>
-                      <% end %>
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        <% dependencies = case params[:filter]
+                          when 'direct'
+                            @direct_deps
+                          when 'development'
+                            @development_deps
+                          when 'transitive'
+                            @transitive_deps
+                          else
+                            (@direct_deps + @development_deps + @transitive_deps).uniq { |dep| dep['package_name'] || dep['name'] }
+                          end.sort_by { |dep| -(@dependency_usage_counts[dep['package_name'] || dep['name']] || 0) } %>
+                        
+                        <% dependencies.each do |dep| %>
+                          <% package_name = dep['package_name'] || dep['name'] || 'N/A'
+                            dep_directness = if @direct_dep_names.include?(package_name)
+                                                'direct'
+                                              else
+                                                'transitive'
+                                              end
+                            usage_count = @dependency_usage_counts[package_name] || 0
+                          %>
+                          
+                          <tr>
+                            <td>
+                              <% ecosystem = dep['ecosystem'] %>
+                              <% if package_name.present? && package_name != 'N/A' && ecosystem.present? %>
+                                <% purl_type = convert_purl_type(ecosystem.downcase) %>
+                                <% purl = "pkg:#{purl_type}/#{package_name}" %>
+                                <%= link_to package_name, lookup_projects_path(purl: purl),
+                                          class: "text-decoration-none",
+                                          title: "Look up #{package_name} project" %>
+                              <% else %>
+                                <%= package_name %>
+                              <% end %>
+                            </td>
+                            
+                            <td>
+                              <% if dep_directness == 'direct' %>
+                                <span class="badge bg-primary">Direct</span>
+                              <% else %>
+                                <span class="badge bg-secondary">Transitive</span>
+                              <% end %>
+                            </td>
+                            
+                            <td><span class="badge bg-info"><%= usage_count %></span></td>
+                            
+                            <td style="word-break: break-word; max-width: 150px;">
+                              <% requirements = dep['requirements'] || 'N/A' %>
+                              <% if requirements.length > 15 %>
+                                <span title="<%= requirements %>"><%= truncate(requirements, length: 15) %></span>
+                              <% else %>
+                                <%= requirements %>
+                              <% end %>
+                            </td>
+                            
+                            <td><%= dep['kind'] || 'N/A' %></td>
+                            <td><%= dep['ecosystem'] || 'N/A' %></td>
+                          </tr>
+                        <% end %>
+                      </tbody>
+                    </table>
+                  </div>
+                </figure>
               </div>
             </div>
           </div>
+        </div>
     </div>
   </div>
 </div>
