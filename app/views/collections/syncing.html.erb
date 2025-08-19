@@ -16,7 +16,7 @@
 
     <div id="sync-status" 
          data-collection-id="<%= @collection.uuid %>"
-         data-collection-url="<%= collection_path(@collection) %>">
+         data-collection-url="<%= clean_collection_path(@collection) %>">
       <%= render 'sync_status', collection: @collection %>
     </div>
   </div>

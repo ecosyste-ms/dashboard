@@ -1,24 +1,29 @@
 class ProjectsController < ApplicationController
   before_action :set_period_vars, only: [:engagement, :productivity, :finance, :responsiveness, :security]
+  before_action :set_range_and_period, only: [:show]
   before_action :authenticate_user!, only: [:index, :new, :create, :add_to_list, :remove_from_list, :create_collection_from_dependencies]
   before_action :set_collection, if: :nested_route?
+  before_action :set_project_and_redirect_legacy, only: [:show, :packages, :commits, :releases, :issues, :advisories, :security, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :sync, :meta, :syncing, :owner_collection, :create_collection_from_dependencies]
   before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :packages, :commits, :releases, :issues, :advisories, :security]
 
   def show
-    @project = Project.find(params[:id])
-    @range = range
-    @period = period
-    
-    # Generate dynamic commit data for the chart
-    if @range.to_i <= 180  # 6 months or less
-      @commits_per_period = @project.commits.group_by_month(:timestamp, format: '%b', last: 6, expand_range: true, default_value: 0).count
-    else
-      @commits_per_period = @project.commits.group_by_year(:timestamp, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+    # Handle tab content if tab parameter is present
+    if params[:tab].present?
+      handle_tab_content
+      return
     end
     
-    # Calculate current and previous period commits
-    current_period_start = @range.to_i.days.ago
-    previous_period_start = (@range.to_i * 2).days.ago
+    # Default overview tab content (only if no tab is specified)
+    # Generate dynamic commit data for the chart
+    if @range == 'year'
+      @commits_per_period = @project.commits.group_by_year(:timestamp, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+    else
+      @commits_per_period = @project.commits.group_by_month(:timestamp, format: '%b', last: 6, expand_range: true, default_value: 0).count
+    end
+    
+    # Calculate current and previous period commits (using 30 days as default period)
+    current_period_start = 30.days.ago
+    previous_period_start = 60.days.ago
     
     @commits_this_period = @project.commits.where('timestamp >= ?', current_period_start).count
     @commits_last_period = @project.commits.where('timestamp >= ? AND timestamp < ?', previous_period_start, current_period_start).count
@@ -146,32 +151,26 @@ class ProjectsController < ApplicationController
   end
 
   def packages
-    @project = Project.find(params[:id])
     @pagy, @packages = pagy(@project.packages.active.order_by_rankings)
   end
 
   def commits
-    @project = Project.find(params[:id])
     @pagy, @commits = pagy(@project.commits.order('timestamp DESC'))
   end
 
   def releases
-    @project = Project.find(params[:id])
     @pagy, @releases = pagy(@project.tags.displayable.order('published_at DESC'))
   end
 
   def issues
-    @project = Project.find(params[:id])
     @pagy, @issues = pagy(@project.issues.order('created_at DESC'))
   end
 
   def advisories
-    @project = Project.find(params[:id])
     @pagy, @advisories = pagy(@project.advisories.order('published_at DESC'))
   end
 
   def security
-    @project = Project.find(params[:id])
 
     # Date filtering using period ranges from set_period_vars
     advisories_scope = @project.advisories
@@ -203,12 +202,10 @@ class ProjectsController < ApplicationController
   end
 
   def adoption
-    @project = Project.find(params[:id])
     @top_package = @project.packages.order_by_rankings.first
   end
 
   def engagement
-    @project = Project.find(params[:id])
 
     # Apply bot filtering based on params
     issues_scope = @project.issues
@@ -239,7 +236,6 @@ class ProjectsController < ApplicationController
   end
 
   def dependencies
-    @project = Project.find(params[:id])
     # Calculate unique counts for filter buttons (to match table display)
     @direct_dependencies = @project.direct_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }.length
     @development_dependencies = @project.development_dependencies.uniq { |dep| dep['package_name'] || dep['name'] }.length
@@ -262,7 +258,6 @@ class ProjectsController < ApplicationController
   end
 
   def productivity
-    @project = Project.find(params[:id])
     
     # Apply bot filtering based on params
     issues_scope = @project.issues
@@ -304,7 +299,6 @@ class ProjectsController < ApplicationController
   end
 
   def finance
-    @project = Project.find(params[:id])
 
     if @project.collective.present?
 
@@ -332,7 +326,6 @@ class ProjectsController < ApplicationController
   end
 
   def responsiveness
-    @project = Project.find(params[:id])
 
     # Apply bot filtering based on params
     issues_scope = @project.issues
@@ -357,28 +350,25 @@ class ProjectsController < ApplicationController
   end
 
   def sync
-    @project = Project.find(params[:id])
     begin
       @project.sync
       flash[:notice] = 'Project synced'
     rescue => e
       flash[:alert] = "Sync failed: #{e.message}"
     end
-    redirect_to project_path(@project)
+    redirect_to clean_project_path(@project)
   end
 
   def meta
-    @project = Project.find(params[:id])
   end
 
   def add_to_list
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
     UserProject.add_project_to_user(current_user, @project)
     redirect_back(fallback_location: @project, notice: 'Project added to your list.')
   end
 
   def syncing
-    @project = Project.find(params[:id])
     
     if @project.sync_stuck?
       @project.update_column(:sync_status, 'completed')
@@ -397,7 +387,7 @@ class ProjectsController < ApplicationController
 
 
   def remove_from_list
-    @project = Project.find(params[:id])
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
     user_project = UserProject.find_by(user: current_user, project: @project)
     if user_project
       user_project.soft_delete!
@@ -408,19 +398,17 @@ class ProjectsController < ApplicationController
   end
 
   def create_collection_from_dependencies
-    @project = Project.find(params[:id])
     
     collection = @project.create_collection_from_dependencies(current_user)
     
     if collection
       redirect_to collection, notice: 'Collection created successfully from project dependencies!'
     else
-      redirect_to dependencies_project_path(@project), alert: 'Unable to create collection. This project may not have any dependencies.'
+      redirect_to "#{project_path(@project)}?tab=dependencies", alert: 'Unable to create collection. This project may not have any dependencies.'
     end
   end
 
   def owner_collection
-    @project = Project.find(params[:id])
     
     # Check if we can find an existing public collection without needing to authenticate
     existing_collection = find_existing_owner_collection
@@ -450,12 +438,54 @@ class ProjectsController < ApplicationController
 
   private
 
+  def set_range_and_period
+    @range = range
+    @period = period
+  end
+
+  def handle_tab_content
+    tab = params[:tab]
+    return if tab.blank?
+    
+    # Whitelist of allowed tabs
+    allowed_tabs = %w[packages commits releases issues advisories security adoption 
+                      engagement dependencies productivity finance responsiveness meta]
+    
+    return unless allowed_tabs.include?(tab)
+    
+    # Call set_period_vars for tabs that need it
+    if %w[engagement productivity finance responsiveness security].include?(tab)
+      set_period_vars
+    end
+    
+    # Call the method and render the template
+    send(tab)
+    render tab.to_sym and return
+  end
+
+
   def nested_route?
     params[:collection_id].present?
   end
 
+  def set_project_and_redirect_legacy
+    @project = Project.find_by_slug(params[:id]) || Project.find(params[:id])
+    
+    # Redirect legacy numeric IDs to slug-based URLs if slug is present
+    if params[:id].to_s.match?(/^\d+$/) && @project&.slug.present?
+      redirect_url = @collection ? 
+        clean_collection_project_path(@collection, @project) : 
+        clean_project_path(@project)
+      
+      # Preserve query parameters including tab
+      redirect_url += "?#{request.query_string}" unless request.query_string.blank?
+      redirect_to redirect_url, status: :moved_permanently
+    end
+  end
+
+
   def set_collection
-    @collection = Collection.find_by_uuid(params[:collection_id])
+    @collection = Collection.find_by_slug(params[:collection_id]) || Collection.find_by_uuid(params[:collection_id])
     raise ActiveRecord::RecordNotFound if @collection.nil?
     if @collection.visibility == 'private' && @collection.user != current_user
       raise ActiveRecord::RecordNotFound
@@ -514,8 +544,6 @@ class ProjectsController < ApplicationController
   end
 
   def redirect_if_syncing
-    @project = Project.find(params[:id])
-    
     if @project.sync_stuck?
       @project.update_column(:sync_status, 'completed')
       @project.sync_async

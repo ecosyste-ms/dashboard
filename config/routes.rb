@@ -31,7 +31,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :collections do
+  resources :collections, constraints: { id: /.*/ } do
     member do
       get :packages
       get :issues
@@ -51,22 +51,8 @@ Rails.application.routes.draw do
       get :syncing
     end
     
-    resources :projects, constraints: { id: /.*/ }, except: [:index, :new, :create, :destroy] do
+    resources :projects, constraints: { id: /.*/ }, defaults: { format: 'html' }, format: false, except: [:index, :new, :create, :destroy] do
       member do
-        get :packages
-        get :issues
-        get :releases
-        get :commits
-        get :advisories
-        get :security
-
-        get :productivity
-        get :responsiveness
-        get :finance
-        get :engagement
-        get :adoption
-        get :dependencies
-
         get :sync
         get :meta
         get :syncing
@@ -76,26 +62,12 @@ Rails.application.routes.draw do
     get :projects, to: 'collections#projects'
   end
 
-  resources :projects, constraints: { id: /.*/ } do
+  resources :projects, constraints: { id: /.*/ }, defaults: { format: 'html' }, format: false do
     collection do
       post :lookup
       get :lookup
     end
     member do
-      get :packages
-      get :issues
-      get :releases
-      get :commits
-      get :advisories
-      get :security
-
-      get :productivity
-      get :responsiveness
-      get :finance
-      get :engagement
-      get :adoption
-      get :dependencies
-
       get :sync
       get :meta
       get :syncing

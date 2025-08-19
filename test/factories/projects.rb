@@ -5,6 +5,7 @@ FactoryBot.define do
     sync_status { "completed" }
     
     trait :with_repository do
+      sequence(:url) { |n| "https://github.com/example/with-repo-#{n}" }
       repository do
         {
           "full_name" => "example/test-repo",

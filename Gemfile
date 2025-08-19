@@ -64,4 +64,5 @@ group :test do
   gem "mocha"
   gem "rails-controller-testing"
   gem "factory_bot_rails"
+  gem "database_cleaner-active_record"
 end

@@ -1,7 +1,7 @@
 <div class="dashboard-layout__navigation">
   <ul class="nav nav-pills flex-column dboard-nav me-4">
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'show' %>" href="<%= collection_path(@collection, request.query_parameters) %>">Overview</a>
+      <a class="nav-link <%= 'active' if action_name == 'show' %>" href="<%= clean_collection_path(@collection, request.query_parameters) %>">Overview</a>
     </li>
     <li class="nav-item">
       <a class="nav-link <%= 'active' if action_name == 'productivity' %>" aria-current="page" href="<%= productivity_collection_path(@collection, request.query_parameters) %>">Productivity</a>

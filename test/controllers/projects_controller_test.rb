@@ -20,6 +20,41 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "should show project by slug" do
+    project = create(:project, :with_repository, url: "https://github.com/octocat/hello-world")
+    get project_url("github.com/octocat/hello-world")
+    assert_response :success
+    assert_equal project, assigns(:project)
+  end
+
+  test "should show project by slug case insensitive" do
+    project = create(:project, :with_repository, url: "https://github.com/octocat/hello-world")
+    get project_url("GITHUB.COM/OCTOCAT/HELLO-WORLD")
+    assert_response :success
+    assert_equal project, assigns(:project)
+  end
+
+  test "should handle project names ending with .json" do
+    project = create(:project, :with_repository, url: "https://github.com/octocat/package.json")
+    get project_url("github.com/octocat/package.json")
+    assert_response :success
+    assert_equal project, assigns(:project)
+  end
+
+  test "clean URL helpers generate unencoded paths" do
+    project = create(:project, :with_repository, url: "https://github.com/octocat/hello-world")
+    
+    # Test that our helpers generate clean paths
+    view_context = ApplicationController.new.view_context
+    
+    clean_path = view_context.project_path(project)
+    assert_equal "/projects/github.com/octocat/hello-world", clean_path
+    
+    clean_packages_path = view_context.packages_project_path(project)
+    assert_equal "/projects/github.com/octocat/hello-world?tab=packages", clean_packages_path
+  end
+
+
   test "should show meta page" do
     project = create(:project, :with_repository)
     get meta_project_url(project)
@@ -41,7 +76,8 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     Project.any_instance.expects(:sync).once
     
     get sync_project_url(project)
-    assert_redirected_to project_url(project)
+    assert_response :redirect
+    assert_match %r{/projects/#{Regexp.escape(project.slug)}$}, response.location
     assert_equal 'Project synced', flash[:notice]
   end
 
@@ -52,7 +88,8 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     Project.any_instance.expects(:sync).raises(StandardError.new("Connection timeout"))
     
     get sync_project_url(project)
-    assert_redirected_to project_url(project)
+    assert_response :redirect
+    assert_match %r{/projects/#{Regexp.escape(project.slug)}$}, response.location
     assert_equal 'Sync failed: Connection timeout', flash[:alert]
   end
 
@@ -181,37 +218,37 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
 
   test "should show project packages" do
     project = create(:project, :with_repository)
-    get packages_project_url(project)
+    get project_url(project, tab: 'packages')
     assert_response :success
   end
 
   test "should show project commits" do
     project = create(:project, :with_repository)
-    get commits_project_url(project)
+    get project_url(project, tab: 'commits')
     assert_response :success
   end
 
   test "should show project issues" do
     project = create(:project, :with_repository)
-    get issues_project_url(project)
+    get project_url(project, tab: 'issues')
     assert_response :success
   end
 
   test "should show project releases" do
     project = create(:project, :with_repository)
-    get releases_project_url(project)
+    get project_url(project, tab: 'releases')
     assert_response :success
   end
 
   test "should show project advisories" do
     project = create(:project, :with_repository)
-    get security_project_url(project)
+    get project_url(project, tab: 'advisories')
     assert_response :success
   end
 
   test "should show project security" do
     project = create(:project, :with_repository)
-    get security_project_url(project)
+    get project_url(project, tab: 'security')
     assert_response :success
   end
 
@@ -231,7 +268,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     }
     
     project = create(:project, repository: repository_data)
-    get security_project_url(project)
+    get project_url(project, tab: 'security')
     
     assert_response :success
     assert_select 'h5', text: 'Security Documentation'
@@ -253,7 +290,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     }
     
     project = create(:project, repository: repository_data)
-    get security_project_url(project)
+    get project_url(project, tab: 'security')
     
     assert_response :success
     assert_select 'h5', text: 'Security Documentation'
@@ -268,7 +305,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     }
     
     project = create(:project, repository: repository_data)
-    get security_project_url(project)
+    get project_url(project, tab: 'security')
     
     assert_response :success
     assert_select 'h5', text: 'Security Documentation'
@@ -278,7 +315,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   test "should not show security documentation section when no repository is present" do
     # Create project without repository
     project = create(:project, repository: nil)
-    get security_project_url(project)
+    get project_url(project, tab: 'security')
     
     assert_response :success
     assert_select 'h5', { count: 0, text: 'Security Documentation' }
@@ -582,7 +619,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     create_list(:issue, 3, project: project, state: "closed", created_at: 3.weeks.ago, closed_at: 1.week.ago)
     
     travel_to Time.parse('2024-02-15') do
-      get engagement_project_url(project)
+      get project_url(project, tab: 'engagement')
       assert_response :success
       assert_template :engagement
       
@@ -624,7 +661,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     create_list(:issue, 4, project: project, state: "closed", created_at: 3.weeks.ago, closed_at: 1.week.ago)
     
     travel_to Time.parse('2024-02-15') do
-      get productivity_project_url(project)
+      get project_url(project, tab: 'productivity')
       assert_response :success
       assert_template :productivity
       
@@ -661,7 +698,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     project = create(:project, :with_repository)
     
     travel_to Time.parse('2024-01-15') do
-      get engagement_project_url(project)
+      get project_url(project, tab: 'engagement')
       assert_response :success
       
       # Should default to December 2023 (previous month across year boundary)
@@ -674,7 +711,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   # Analytics pages tests
   test "should show adoption page" do
     project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
-    get adoption_project_url(project)
+    get project_url(project, tab: 'adoption')
     assert_response :success
     assert_template :adoption
     
@@ -689,7 +726,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
 
   test "should show dependencies page" do
     project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
-    get dependencies_project_url(project)
+    get project_url(project, tab: 'dependencies')
     assert_response :success
     assert_template :dependencies
     
@@ -708,7 +745,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   
   test "should show dependencies page with direct filter" do
     project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
-    get dependencies_project_url(project, filter: 'direct')
+    get project_url(project, tab: 'dependencies', filter: 'direct')
     assert_response :success
     assert_template :dependencies
     
@@ -718,7 +755,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   
   test "should show dependencies page with development filter" do
     project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
-    get dependencies_project_url(project, filter: 'development')
+    get project_url(project, tab: 'dependencies', filter: 'development')
     assert_response :success
     assert_template :dependencies
     
@@ -728,7 +765,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   
   test "should show dependencies page with transitive filter" do
     project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
-    get dependencies_project_url(project, filter: 'transitive')
+    get project_url(project, tab: 'dependencies', filter: 'transitive')
     assert_response :success
     assert_template :dependencies
     
@@ -761,9 +798,11 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     project.stubs(:direct_dependencies).returns(mock_dependencies)
     project.stubs(:development_dependencies).returns([])
     project.stubs(:transitive_dependencies).returns([])
-    Project.stubs(:find).with(project.id.to_s).returns(project)
+    # Stub both find methods used by the controller
+    Project.stubs(:find_by_slug).with(project.to_param).returns(project)
+    Project.stubs(:find).with(project.id).returns(project)
     
-    get dependencies_project_url(project)
+    get project_url(project, tab: 'dependencies')
     assert_response :success
     assert_template :dependencies
     
@@ -778,7 +817,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
 
   test "should show finance page" do
     project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
-    get finance_project_url(project)
+    get project_url(project, tab: 'finance')
     assert_response :success
     assert_template :finance
     
@@ -792,7 +831,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
 
   test "should show responsiveness page" do
     project = create(:project, :with_repository, last_synced_at: 30.minutes.ago)
-    get responsiveness_project_url(project)
+    get project_url(project, tab: 'responsiveness')
     assert_response :success
     assert_template :responsiveness
     
@@ -811,19 +850,19 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     project = create(:project, :without_repository, last_synced_at: nil, sync_status: 'pending')
     
     # Test that analytics pages redirect to syncing for unready projects
-    get adoption_project_url(project)
+    get project_url(project, tab: 'adoption')
     assert_response :success
     assert_template :syncing
     
-    get dependencies_project_url(project)
+    get project_url(project, tab: 'dependencies')
     assert_response :success
     assert_template :syncing
     
-    get finance_project_url(project)
+    get project_url(project, tab: 'finance')
     assert_response :success
     assert_template :syncing
     
-    get responsiveness_project_url(project)
+    get project_url(project, tab: 'responsiveness')
     assert_response :success
     assert_template :syncing
   end
@@ -835,12 +874,12 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     create_list(:issue, 3, project: project, state: "open", created_at: 2.weeks.ago)
     
     # Test exclude_bots parameter
-    get engagement_project_url(project), params: { exclude_bots: 'true' }
+    get project_url(project, tab: 'engagement'), params: { exclude_bots: 'true' }
     assert_response :success
     assert_template :engagement
     
     # Test only_bots parameter  
-    get engagement_project_url(project), params: { only_bots: 'true' }
+    get project_url(project, tab: 'engagement'), params: { only_bots: 'true' }
     assert_response :success
     assert_template :engagement
   end
@@ -850,12 +889,12 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     create_list(:issue, 3, project: project, state: "open", created_at: 2.weeks.ago)
     
     # Test exclude_bots parameter
-    get productivity_project_url(project), params: { exclude_bots: 'true' }
+    get project_url(project, tab: 'productivity'), params: { exclude_bots: 'true' }
     assert_response :success
     assert_template :productivity
     
     # Test only_bots parameter
-    get productivity_project_url(project), params: { only_bots: 'true' }
+    get project_url(project, tab: 'productivity'), params: { only_bots: 'true' }
     assert_response :success
     assert_template :productivity
   end
@@ -865,12 +904,12 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     create_list(:issue, 3, project: project, state: "closed", created_at: 3.weeks.ago, closed_at: 2.weeks.ago)
     
     # Test exclude_bots parameter
-    get responsiveness_project_url(project), params: { exclude_bots: 'true' }
+    get project_url(project, tab: 'responsiveness'), params: { exclude_bots: 'true' }
     assert_response :success
     assert_template :responsiveness
     
     # Test only_bots parameter
-    get responsiveness_project_url(project), params: { only_bots: 'true' }
+    get project_url(project, tab: 'responsiveness'), params: { only_bots: 'true' }
     assert_response :success
     assert_template :responsiveness
   end
@@ -901,15 +940,15 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     create(:collection_project, collection: collection, project: project)
     
     # Test nested analytics routes
-    get engagement_collection_project_url(collection, project)
+    get collection_project_url(collection, project, tab: 'engagement')
     assert_response :success
     assert_template :engagement
     
-    get productivity_collection_project_url(collection, project)
+    get collection_project_url(collection, project, tab: 'productivity')
     assert_response :success
     assert_template :productivity
     
-    get adoption_collection_project_url(collection, project)
+    get collection_project_url(collection, project, tab: 'adoption')
     assert_response :success
     assert_template :adoption
     
@@ -1030,7 +1069,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
       post create_collection_from_dependencies_project_path(project)
     end
     
-    assert_redirected_to dependencies_project_path(project)
+    assert_redirected_to project_url(project, tab: 'dependencies')
     assert_match /Unable to create collection/, flash[:alert]
   end
 

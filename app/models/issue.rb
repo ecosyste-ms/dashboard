@@ -47,7 +47,8 @@ class Issue < ApplicationRecord
   scope :package_name, ->(name) { where("dependency_metadata::jsonb -> 'packages' @> ?::jsonb", [{ name: name }].to_json) }
   scope :has_body, -> { where.not(body: [nil, '']) }
   scope :security_prs, -> { 
-    where("title ~* 'CVE-\\d{4}-\\d+|GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}|RUSTSEC-\\d{4}-\\d+|security|vulnerability'")
+    where("title ~* 'CVE-\\d{4}-\\d+|GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}|RUSTSEC-\\d{4}-\\d+'")
+    .or(where("body ~* 'CVE-\\d{4}-\\d+|GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}|RUSTSEC-\\d{4}-\\d+'"))
     .or(where("dependency_metadata::jsonb ->> 'security' = 'true'"))
     .or(where("dependency_metadata::jsonb -> 'packages' @> '[{\"security\": true}]'::jsonb"))
     .or(where("labels && ARRAY[?]::varchar[]", 'security'))
