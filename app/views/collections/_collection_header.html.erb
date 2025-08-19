@@ -10,51 +10,54 @@
   </div>
 </div>
 
-<div class="project-header purple-grad-bg  mb-5 pt-4 pb-4">
+<div class="project-header purple-grad-bg pt-4 pb-4 mb-5">
   <div class="container">
     <div class="row">
-      
-      <div class="col-md-1 mb-3 pt-1">
-      <% if @collection.avatar_url.present? %>
-        <img src="<%= @collection.avatar_url %>" alt="<%= @collection.to_s %> logo" class="img-fluid project-logo" onerror="this.style.display='none'" />
-      <% else %>
-        <%= image_tag("collections-default.png", alt: " ", class: "img-fluid project-logo", size: "130x130") %>
-      <% end %>
 
-      </div>
-  
-      <div class="col-md-11">
-        <div class="d-md-flex justify-content-between align-items-center">
-          <p class="h3 mb-0 text-muted">
-            <% if @collection.visibility == 'private' %>
-              <%= bootstrap_icon 'lock-fill',
-              width: 20, height: 20, aria_hidden: 'true', focusable: 'false', role: 'img',  title: 'This collection is private', class: 'flex-shrink-0 me-1'
-              %> Private collection 
-            <% else %>
-              Collection
-            <% end %>
-          </p>
-          <a id="copyLink"
-            href="javascript:void(0)"
-            role="button"
-            class="btn btn-primary btn-primary--dark btn-sm rounded-pill"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Copy URL">
-            <%= bootstrap_icon 'copy',
-                  width:12, height:12, aria_hidden:'true',
-                  focusable:'false', role:'img', class:'me-1' %>
-            Share
-          </a>
-        </div>
-        
-        <h1 class="display-1 extra-bold">
-          <%= @collection.to_s %>
-        </h1>
-        <% if @collection.last_synced_at %>
-          <p><%= @collection.description %></p>
+      <div class="col-md-2 col-lg-1 mb-3 pt-1 d-flex align-items-start">
+        <% if @collection.avatar_url.present? %>
+          <img src="<%= @collection.avatar_url %>" alt="<%= @collection.to_s %> logo" class="img-fluid project-logo" onerror="this.style.display='none'" />
+        <% else %>
+          <%= image_tag("collections-default.png", alt: " ", class: "img-fluid project-logo", size: "130x130") %>
         <% end %>
       </div>
+
+      <div class="col-12 col-md-10 col-lg-11">
+        <h1 class="display-1 extra-bold"><%= @collection.to_s %></h1>
+        <div class="d-md-flex justify-content-between align-items-center mb-2">
+          <div>
+            <% if @collection.last_synced_at %>
+              <p><%= @collection.description %></p>
+            <% end %>
+            <p class="mb-0 text-muted">
+              <% if @collection.visibility == 'private' %>
+                Private collection
+              <% else %>
+                Collection
+              <% end %>
+              from SBOM 
+            </p>
+          </div>
+          <div class="d-flex gap-2 align-self-start mt-3 mt-xl-0">
+            <a id="copyLink"
+              href="javascript:void(0)"
+              role="button"
+              class="btn btn-primary btn-primary--dark btn-sm rounded-pill"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Copy URL">
+              <%= bootstrap_icon 'copy',
+                width:12, height:12, aria_hidden:'true',
+                focusable:'false', role:'img', class:'me-1' %>
+              Share
+            </a>
+          </div>
+        </div>
+
+        
+        
+      </div>
+
     </div>
   </div>
 </div>
