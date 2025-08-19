@@ -1,14 +1,32 @@
+<% if @collection %>
+<div class="breadcrumb-section py-3  mt-3">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb bg-transparent p-0 mb-2">
+        li class="breadcrumb-item"><a href="/">Home</a></li><!-- if this is a project or collection you made, probably insert your name here? -->
+        <li class="breadcrumb-item">
+          <%= link_to @collection.name, clean_collection_path(@collection), class: "text-light" %>
+        </li>
+        <li class="breadcrumb-item active text-light" aria-current="page">
+          <%= @project.name || @project.to_s.split('/').last %>
+        </li>
+      </ol>
+    </nav>
+  </div>
+</div>
+<% else %>
 <div class="breadcrumb-section py-3  mt-3">
   <div class="container">
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="#">Home</a></li><!-- if this is aproject or collection you made, probably insert your name here? -->
+        <li class="breadcrumb-item"><a href="#">Home</a></li><!-- if this is a project or collection you made, probably insert your name here? -->
         <li class="breadcrumb-item"><a href="#">Projects</a></li>
         <li class="breadcrumb-item active" aria-current="page"><%= @project.name || @project.to_s.split('/').last %></li>
       </ol>
     </nav>
   </div>
 </div>
+<% end %>
 
 <div class="project-header purple-grad-bg pt-4 pb-4 mb-5">
   <div class="container">
@@ -28,21 +46,16 @@
         col-md-10 col-lg-11
       <% end %>
       ">
-        <% if @collection %>
-          <nav aria-label="breadcrumb">
-            <ol class="breadcrumb bg-transparent p-0 mb-2">
-              <li class="breadcrumb-item">
-                <%= link_to @collection.name, clean_collection_path(@collection), class: "text-light" %>
-              </li>
-              <li class="breadcrumb-item active text-light" aria-current="page">
-                <%= @project.name || @project.to_s.split('/').last %>
-              </li>
-            </ol>
-          </nav>
-        <% end %>
-        <div class="d-md-flex justify-content-between align-items-center mb-2">
-          <p class="h3 mb-0 text-muted"><%= @project.to_s %></p>
-          <div class="d-flex gap-2">
+      
+        <h1 class="display-1 extra-bold"><%= @project.name || @project.to_s.split('/').last %></h1>
+        <div class="d-xl-flex justify-content-between align-items-center mb-2">
+          <div>
+            <% if @project.last_synced_at %>
+              <p><%= @project.description %></p>
+            <% end %>
+            <p class="mb-0 text-muted"><%= @project.to_s %></p>
+          </div>
+          <div class="d-flex gap-2 align-self-start mt-3 mt-xl-0">
             <% if logged_in? %>
               <% if current_user.has_project?(@project) %>
                 <%= link_to remove_from_list_project_path(@project), method: :delete,
@@ -84,11 +97,7 @@
             </a>
           </div>
         </div>
-      
-        <h1 class="display-1 extra-bold"><%= @project.name || @project.to_s.split('/').last %></h1>
-        <% if @project.last_synced_at %>
-          <p><%= @project.description %></p>
-        <% end %>
+        
       </div>
     </div>
   </div>
