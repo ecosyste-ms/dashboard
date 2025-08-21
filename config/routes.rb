@@ -49,6 +49,7 @@ Rails.application.routes.draw do
 
       get :sync
       get :syncing
+      get :meta
     end
     
     resources :projects, constraints: { id: /.*/ }, defaults: { format: 'html' }, format: false, except: [:index, :new, :create, :destroy] do

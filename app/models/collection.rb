@@ -97,9 +97,6 @@ class Collection < ApplicationRecord
     Rails.logger.info "Queued #{projects.count} projects for syncing in collection: #{name}"
   end
 
-
-  private
-
   def import_projects_with_mode
     update_with_broadcast(import_status: 'importing', sync_status: 'pending', last_error_message: nil, last_error_backtrace: nil, last_error_at: nil)
     
@@ -129,8 +126,6 @@ class Collection < ApplicationRecord
       last_error_at: Time.current
     )
   end
-
-  public
 
   def import_from_github_org
     return if github_organization_url.blank?
@@ -521,8 +516,6 @@ class Collection < ApplicationRecord
     )
   end
 
-  private
-
   def update_with_broadcast(attributes)
     update(attributes)
     broadcast_sync_update
@@ -584,8 +577,6 @@ class Collection < ApplicationRecord
       update_column(:slug, uuid)
     end
   end
-  
-  private
   
   def generate_owner_slug_from_github_url
     begin

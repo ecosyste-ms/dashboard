@@ -1205,4 +1205,25 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".card-title", text: "Projects Affected"
     assert_select ".card-title", text: "Security Advisories"
   end
+
+  test "should show meta page" do
+    login_as(@user)
+    get meta_collection_path(@collection)
+    assert_response :success
+    assert_template :meta
+  end
+
+
+  test "should not allow access to private collection meta page for non-owner" do
+    login_as(@other_user)
+    get meta_collection_path(@private_collection)
+    assert_response :not_found
+  end
+
+  test "should allow access to public collection meta page for any user" do
+    login_as(@other_user)
+    get meta_collection_path(@collection)
+    assert_response :success
+    assert_template :meta
+  end
 end

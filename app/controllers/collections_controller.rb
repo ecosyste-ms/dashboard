@@ -296,6 +296,9 @@ class CollectionsController < ApplicationController
     @pagy, @projects = pagy(@projects)
   end
 
+  def meta
+  end
+
   def sync
     # Clear any existing errors before starting new sync
     @collection.update(

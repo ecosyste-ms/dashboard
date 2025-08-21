@@ -37,6 +37,11 @@
 
   <hr class="mt-5 me-3" />
   <div class="p-3 ">
+    
+    <h5 class="text-muted fs-6 font-weight-normal"><%= bootstrap_icon 'arrow-down-up',
+    width: 18, height: 18, aria_hidden: 'true', focusable: 'false', role: 'img',  title: 'Last synced', class: 'flex-shrink-0 me-1'
+    %>  Last sync</h5>
+    <p class="small ms-4"><a href="<%= meta_collection_path(@collection, request.query_parameters) %>"><%= @collection.last_synced_at ? "#{time_ago_in_words(@collection.last_synced_at)} ago" : 'Never' %></a></p>
       <% if Rails.env.development? %>
         <%= link_to 'Sync collection', sync_collection_path(@collection), method: :get, class: 'btn btn-primary rounded-pill' %>
       <% end %>
