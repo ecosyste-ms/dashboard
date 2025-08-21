@@ -584,10 +584,29 @@ class Project < ApplicationRecord
     return unless response_data
     
     issues_list_url = response_data['issues_url']
+    
+    # Find the oldest issue we haven't synced yet by looking at created_at timestamps
+    # Start from the oldest unsynced issue to avoid re-processing the same records
+    latest_issue_created_at = issues.order(:created_at).last&.created_at
+    
+    # Build URL with parameters to get oldest issues first
+    url_params = []
+    url_params << "sort=created_at"
+    url_params << "order=asc"  # ascending to get oldest first
+    
+    if latest_issue_created_at.present?
+      # Use created_after to start from where we left off
+      url_params << "created_after=#{latest_issue_created_at.iso8601}"
+    end
+    
+    # Add parameters to URL
+    separator = issues_list_url.include?('?') ? '&' : '?'
+    paginated_url = "#{issues_list_url}#{separator}#{url_params.join('&')}"
+    
     # Limit pages in test environment to avoid excessive HTTP requests
     max_pages = Rails.application.config.x.pagination_limits&.dig(:issues) || 50
     per_page = Rails.application.config.x.per_page_limits&.dig(:issues) || 100
-    issues_data = fetch_paginated_data(issues_list_url, per_page: per_page, max_pages: max_pages)
+    issues_data = fetch_paginated_data(paginated_url, per_page: per_page, max_pages: max_pages)
     
     # Process issues if we have any
     unless issues_data.empty?
@@ -698,11 +717,29 @@ class Project < ApplicationRecord
     response_data = fetch_json_with_retry(commits_api_url)
     return unless response_data
     
-    commits_list_url = response_data['commits_url'] + '?sort=timestamp'
+    # Find the latest commit timestamp we have to start from where we left off
+    # Use timestamp instead of created_at since commits are ordered by their actual commit time
+    latest_commit_timestamp = commits.order(:timestamp).last&.timestamp
+    
+    # Build URL with parameters to get oldest commits first
+    url_params = []
+    url_params << "sort=timestamp"
+    url_params << "order=asc"  # ascending to get oldest first
+    
+    if latest_commit_timestamp.present?
+      # Use since parameter to start from where we left off
+      url_params << "since=#{latest_commit_timestamp.iso8601}"
+    end
+    
+    # Add parameters to URL
+    commits_list_url = response_data['commits_url']
+    separator = commits_list_url.include?('?') ? '&' : '?'
+    paginated_url = "#{commits_list_url}#{separator}#{url_params.join('&')}"
+    
     # Limit pages in test environment to avoid excessive HTTP requests  
     max_pages = Rails.application.config.x.pagination_limits&.dig(:commits) || 50
     per_page = Rails.application.config.x.per_page_limits&.dig(:commits) || 1000
-    commits_data = fetch_paginated_data(commits_list_url, per_page: per_page, max_pages: max_pages)
+    commits_data = fetch_paginated_data(paginated_url, per_page: per_page, max_pages: max_pages)
     
     # Process commits if we have any
     unless commits_data.empty?
