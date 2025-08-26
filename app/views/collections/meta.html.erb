@@ -1,0 +1,175 @@
+<% @meta_title = "#{@collection} - Metadata" %>
+<% @meta_description = "Collection metadata and configuration details for #{@collection} including projects, sync status, and collection settings" %>
+
+<%= render 'collection_header' %>
+<div class="container">
+
+  <div class="dashboard-layout">
+    <%= render 'nav' %>
+
+    <div class="dashboard-layout__dboard">
+      <div class="d-md-flex justify-content-between align-items-center mb-4">
+        <h1>Dashboard metadata</h1>
+        <%= render 'bots' %>
+      </div>
+      <div class="dashboard-grid">  
+        <div class="three-equal-widgets">
+          <%= stat_card_widget 'Projects', @collection.projects.count, nil, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Packages', @collection.packages.count, nil, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Issues', @collection.issues.count, nil, title_class: "card-title small", stat_size: "large" %>
+        </div>
+        <div class="three-equal-widgets">
+          <%= stat_card_widget 'Commits', @collection.commits.count, nil, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Tags', @collection.tags.count, nil, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Advisories', @collection.advisories.count, nil, title_class: "card-title small", stat_size: "large" %>
+        </div>
+        <div class="three-col-widget">
+          <div class="card well p-3 border-0">
+            <div class="card-body">
+              <h5 class="card-title mb-3">Sync Status</h5>
+              
+              <!-- Collection sync status -->
+              <div class="d-flex align-items-center mb-3">
+                <%= bootstrap_icon 'collection', width: 18, height: 18, class: "me-2", aria_hidden: "true" %>
+                <strong class="me-2">Collection:</strong>
+                <span class="small text-muted">
+                  <%= @collection.last_synced_at ? time_ago_in_words(@collection.last_synced_at) + ' ago' : 'Never' %>
+                </span>
+              </div>
+
+              <% if @collection.projects.any? %>
+                <!-- Projects sync summary -->
+                <%
+                  total_projects = @collection.projects.count
+                  projects_with_repo = @collection.projects.where.not(repository: nil).count
+                  projects_with_packages = @collection.projects.where.not(packages_last_synced_at: nil).count
+                  projects_with_issues = @collection.projects.where.not(issues_last_synced_at: nil).count
+                  projects_with_commits = @collection.projects.where.not(commits_last_synced_at: nil).count
+                  projects_with_tags = @collection.projects.where.not(tags_last_synced_at: nil).count
+                  projects_with_deps = @collection.projects.where.not(dependencies_last_synced_at: nil).count
+                %>
+                
+                <div class="mb-4">
+                  <div class="d-flex align-items-center mb-2">
+                    <%= bootstrap_icon 'kanban', width: 18, height: 18, class: "me-2", aria_hidden: "true" %>
+                    <strong>Projects (<%= total_projects %>)</strong>
+                  </div>
+                  
+                  <div class="row g-2">
+                    <div class="col-2 text-center">
+                      <div class="small text-muted">Repository</div>
+                      <div class="fw-bold <%= projects_with_repo == total_projects ? 'text-success' : 'text-warning' %>">
+                        <%= projects_with_repo %>/<%= total_projects %>
+                      </div>
+                    </div>
+                    <div class="col-2 text-center">
+                      <div class="small text-muted">Packages</div>
+                      <div class="fw-bold <%= projects_with_packages == total_projects ? 'text-success' : 'text-warning' %>">
+                        <%= projects_with_packages %>/<%= total_projects %>
+                      </div>
+                    </div>
+                    <div class="col-2 text-center">
+                      <div class="small text-muted">Issues</div>
+                      <div class="fw-bold <%= projects_with_issues == total_projects ? 'text-success' : 'text-warning' %>">
+                        <%= projects_with_issues %>/<%= total_projects %>
+                      </div>
+                    </div>
+                    <div class="col-2 text-center">
+                      <div class="small text-muted">Commits</div>
+                      <div class="fw-bold <%= projects_with_commits == total_projects ? 'text-success' : 'text-warning' %>">
+                        <%= projects_with_commits %>/<%= total_projects %>
+                      </div>
+                    </div>
+                    <div class="col-2 text-center">
+                      <div class="small text-muted">Tags</div>
+                      <div class="fw-bold <%= projects_with_tags == total_projects ? 'text-success' : 'text-warning' %>">
+                        <%= projects_with_tags %>/<%= total_projects %>
+                      </div>
+                    </div>
+                    <div class="col-2 text-center">
+                      <div class="small text-muted">Dependencies</div>
+                      <div class="fw-bold <%= projects_with_deps == total_projects ? 'text-success' : 'text-warning' %>">
+                        <%= projects_with_deps %>/<%= total_projects %>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Overall progress bar -->
+                  <%
+                    total_sync_steps = total_projects * 6
+                    completed_sync_steps = projects_with_repo + projects_with_packages + projects_with_issues + projects_with_commits + projects_with_tags + projects_with_deps
+                    overall_progress = total_sync_steps > 0 ? (completed_sync_steps.to_f / total_sync_steps * 100).round : 0
+                  %>
+                  <div class="mt-2">
+                    <div class="progress" style="height: 8px;">
+                      <div class="progress-bar" role="progressbar" 
+                           style="width: <%= overall_progress %>%"
+                           aria-valuenow="<%= completed_sync_steps %>" 
+                           aria-valuemin="0" 
+                           aria-valuemax="<%= total_sync_steps %>">
+                      </div>
+                    </div>
+                    <small class="text-muted">
+                      <%= overall_progress %>% complete (<%= completed_sync_steps %>/<%= total_sync_steps %> steps)
+                    </small>
+                  </div>
+                </div>
+
+                <!-- Recent project activity (top 10 most recently synced) -->
+                <div class="mb-3">
+                  <h6 class="mb-2">Recent Activity</h6>
+                  <div class="small">
+                    <% @collection.projects.where.not(last_synced_at: nil).order(last_synced_at: :desc).limit(10).each do |project| %>
+                      <div class="d-flex justify-content-between align-items-center py-1">
+                        <%= link_to project_path(project), class: "text-decoration-none text-truncate me-2", style: "max-width: 60%;" do %>
+                          <%= project.name || project.url %>
+                        <% end %>
+                        <%
+                          project_sync_count = 0
+                          project_sync_count += 1 if project.repository.present?
+                          project_sync_count += 1 if project.packages_last_synced_at.present?
+                          project_sync_count += 1 if project.issues_last_synced_at.present?
+                          project_sync_count += 1 if project.commits_last_synced_at.present?
+                          project_sync_count += 1 if project.tags_last_synced_at.present?
+                          project_sync_count += 1 if project.dependencies_last_synced_at.present?
+                        %>
+                        <div class="d-flex align-items-center">
+                          <span class="badge <%= project_sync_count == 6 ? 'bg-success' : project_sync_count >= 3 ? 'bg-warning text-dark' : 'bg-secondary' %> me-2">
+                            <%= project_sync_count %>/6
+                          </span>
+                          <span class="text-muted">
+                            <%= time_ago_in_words(project.last_synced_at) %> ago
+                          </span>
+                        </div>
+                      </div>
+                    <% end %>
+                    
+                    <% if @collection.projects.where(last_synced_at: nil).any? %>
+                      <div class="d-flex justify-content-between align-items-center py-1 text-muted">
+                        <span>Never synced projects:</span>
+                        <span><%= @collection.projects.where(last_synced_at: nil).count %></span>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+
+                <!-- Link to full project list -->
+                <div class="text-center">
+                  <%= link_to collection_projects_path(@collection), class: "btn btn-outline-secondary btn-sm" do %>
+                    <%= bootstrap_icon 'arrow-right', width: 16, height: 16, class: "me-1" %>
+                    View all <%= total_projects %> projects
+                  <% end %>
+                </div>
+              <% else %>
+                <div class="text-center text-muted py-4">
+                  <%= bootstrap_icon 'kanban', width: 24, height: 24, class: "mb-2", aria_hidden: "true" %>
+                  <div>No projects in this collection</div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+      </div>
+    </div>
+  </div>
+</div>
