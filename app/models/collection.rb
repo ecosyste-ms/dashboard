@@ -603,6 +603,18 @@ class Collection < ApplicationRecord
   def unique_collective_ids
     projects.where.not(collective_id: nil).distinct.pluck(:collective_id)
   end
+  
+  def has_github_sponsors?
+    projects.where.not(github_sponsors: nil).exists?
+  end
+  
+  def total_github_sponsors_count
+    projects.where.not(github_sponsors: nil).sum { |p| p.current_github_sponsors_count }
+  end
+  
+  def github_sponsors_projects_count
+    projects.where.not(github_sponsors: nil).count
+  end
 
   def watchers
     projects.map(&:watchers).compact.sum

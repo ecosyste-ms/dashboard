@@ -44,9 +44,28 @@ class CollectionsController < ApplicationController
       @reimbursements_last_period = transactions.reimbursements
         .between(@last_period_range.begin, @last_period_range.end)
         .sum(:amount)
+      
+      # Calculate balance (donations minus expenses) for overview page
+      donations_total_this = transactions.donations.between(@this_period_range.begin, @this_period_range.end).sum(:amount)
+      expenses_total_this = transactions.expenses.between(@this_period_range.begin, @this_period_range.end).sum(:amount)
+      @balance_this_period = donations_total_this - expenses_total_this
+      
+      donations_total_last = transactions.donations.between(@last_period_range.begin, @last_period_range.end).sum(:amount)
+      expenses_total_last = transactions.expenses.between(@last_period_range.begin, @last_period_range.end).sum(:amount)
+      @balance_last_period = donations_total_last - expenses_total_last
+      
+      # Amount spent and received for overview page
+      @amount_spent_this_period = expenses_total_this
+      @amount_spent_last_period = expenses_total_last
+      
+      @amount_received_this_period = donations_total_this
+      @amount_received_last_period = donations_total_last
     else
       @payments_this_period = @payments_last_period = 0
       @reimbursements_this_period = @reimbursements_last_period = 0
+      @balance_this_period = @balance_last_period = 0
+      @amount_spent_this_period = @amount_spent_last_period = 0
+      @amount_received_this_period = @amount_received_last_period = 0
     end
     
     # Load productivity metrics
@@ -58,6 +77,21 @@ class CollectionsController < ApplicationController
     
     @open_prs_last_period = issues_scope.pull_request.open_between(@last_period_range.begin, @last_period_range.end).count
     @open_prs_this_period = issues_scope.pull_request.open_between(@this_period_range.begin, @this_period_range.end).count
+    
+    # Load new PRs data for overview page
+    @new_prs_this_period = issues_scope.pull_request.between(@this_period_range.begin, @this_period_range.end).count
+    @new_prs_last_period = issues_scope.pull_request.between(@last_period_range.begin, @last_period_range.end).count
+    
+    # Generate time series data for new PRs chart
+    if @range == 'year'
+      @new_prs_per_period = issues_scope.pull_request.group_by_year(:created_at, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+    else
+      @new_prs_per_period = issues_scope.pull_request.group_by_month(:created_at, format: '%b', last: 6, expand_range: true, default_value: 0).count
+    end
+    
+    # Load committers stats
+    @committers_this_period = @collection.commits.between(@this_period_range.begin, @this_period_range.end).select(:author).distinct.count
+    @committers_last_period = @collection.commits.between(@last_period_range.begin, @last_period_range.end).select(:author).distinct.count
     
     # Load unique authors metrics
     @unique_issue_authors_this_period = issues_scope.issue.between(@this_period_range.begin, @this_period_range.end).distinct.count(:user)

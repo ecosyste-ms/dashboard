@@ -44,6 +44,17 @@ class ProjectsController < ApplicationController
     @open_issues_this_period = issues_scope.issue.open_between(@this_period_range.begin, @this_period_range.end).count
     @open_issues_last_period = issues_scope.issue.open_between(@last_period_range.begin, @last_period_range.end).count
     
+    # Load new PRs data for overview page
+    @new_prs_this_period = issues_scope.pull_request.between(@this_period_range.begin, @this_period_range.end).count
+    @new_prs_last_period = issues_scope.pull_request.between(@last_period_range.begin, @last_period_range.end).count
+    
+    # Generate time series data for new PRs chart
+    if @range == 'year'
+      @new_prs_per_period = issues_scope.pull_request.group_by_year(:created_at, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+    else
+      @new_prs_per_period = issues_scope.pull_request.group_by_month(:created_at, format: '%b', last: 6, expand_range: true, default_value: 0).count
+    end
+    
     # Load unique authors metrics
     @unique_issue_authors_this_period = issues_scope.issue.between(@this_period_range.begin, @this_period_range.end).distinct.count(:user)
     @unique_issue_authors_last_period = issues_scope.issue.between(@last_period_range.begin, @last_period_range.end).distinct.count(:user)

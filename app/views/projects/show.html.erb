@@ -99,13 +99,6 @@
           </div>
         </div> 
         <% end %>
-        <% if @project.packages.any? %>
-          <div class="three-equal-widgets">
-            <%= stat_card_widget 'Dependent packages', @project.dependent_packages_count, nil, title_class: "card-title small", stat_size: "large" %>
-            <%= stat_card_widget 'Dependent repos', @project.dependent_repos_count, nil, title_class: "card-title small", stat_size: "large" %>
-            <%= stat_card_widget 'Downloads', @project.downloads, nil, title_class: "card-title small", stat_size: "large" %>
-          </div>
-        <% end %>
 
         <% if @project.packages.any? && @top_package.present? %>
           <div class="full-width-widget">
@@ -130,43 +123,44 @@
               </div>
             </div>
           </div>
-
-          <div class="three-equal-widgets">
-            <%= stat_card_widget 'Dependent packages', @project.dependent_packages_count, nil, title_class: "card-title small", stat_size: "large" %>
-            <%= stat_card_widget 'Dependent repos', @project.dependent_repos_count, nil, title_class: "card-title small", stat_size: "large" %>
-            <%= stat_card_widget 'Downloads', @project.downloads, nil, title_class: "card-title small", stat_size: "large" %>
-          </div>
         <% end %>
         <div class="full-width-widget">
-          <!-- <%= stat_card_widget 'Commits', 882, 781, increase_good: true, symbol: '', title_class: "card-title" %> -->
           <div class="card well p-3 border-0">
               <div class="card-body">
-                <h5 class="card-title">Commits</h5>
+                <h5 class="card-title">New PRs</h5>
                 <div class="stat-card mb-2">
                   <div class="stat-card-body">
-                    <span class="stat-card-title stat-card-title--large <%= @commits_this_period >= @commits_last_period ? 'stat-card-number-positive' : 'stat-card-number-negative' %>">
-                      <%= number_to_human(@commits_this_period, precision: 1) %> <%= bootstrap_icon(@commits_this_period >= @commits_last_period ? 'caret-up-fill' : 'caret-down-fill', width: 18, height: 18, class: 'flex-shrink-0') %>
+                    <span class="stat-card-title stat-card-title--large <%= @new_prs_this_period >= @new_prs_last_period ? 'stat-card-number-positive' : 'stat-card-number-negative' %>">
+                      <%= number_to_human(@new_prs_this_period, precision: 1) %> <%= bootstrap_icon(@new_prs_this_period >= @new_prs_last_period ? 'caret-up-fill' : 'caret-down-fill', width: 18, height: 18, class: 'flex-shrink-0') %>
                     </span>
-                    <span class="stat-card-text stat-card-text"><%= number_to_human(@commits_last_period, precision: 1) %> <%= last_period_text %></span>
+                    <span class="stat-card-text stat-card-text"><%= number_to_human(@new_prs_last_period, precision: 1) %> <%= last_period_text %></span>
                   </div>
                 </div>
                 <div class="chart-wrapper">
                   <canvas 
-                    id="commitChart" 
+                    id="newPRsChart" 
                     width="600"
                     data-chart="line"
-                    data-chart-data='<%= {labels: @commits_per_period.map(&:first), label: "Commits", values: @commits_per_period.map(&:last)}.to_json.html_safe %>'
-                    data-chart-options='<%= {scales: {y: {max: (@commits_per_period.map(&:last).max.to_i * 1.1).ceil}}}.to_json.html_safe %>'
+                    data-chart-data='<%= {labels: @new_prs_per_period.map(&:first), label: "New PRs", values: @new_prs_per_period.map(&:last)}.to_json.html_safe %>'
+                    data-chart-options='<%= {scales: {y: {max: (@new_prs_per_period.map(&:last).max.to_i * 1.1).ceil}}}.to_json.html_safe %>'
                   ></canvas>
                 </div>
               </div>
             </div>
           </div>
           <div class="three-equal-widgets">
-          <%= stat_card_widget 'Committers', @committers_this_period, @committers_last_period, title_class: "card-title small", stat_size: "large" %>
           <%= stat_card_widget 'Open PRs', @open_prs_this_period, @open_prs_last_period,  increase_good: false, title_class: "card-title small", stat_size: "large" %>
           <%= stat_card_widget 'Open issues', @open_issues_this_period, @open_issues_last_period,  increase_good: false, title_class: "card-title small", stat_size: "large" %>
-        </div>     
+          <%= stat_card_widget 'Committers', @committers_this_period, @committers_last_period, title_class: "card-title small", stat_size: "large" %>
+        </div>
+        <% if @project.packages.any? && @top_package.present? %>
+        <div class="three-equal-widgets">
+          <%= stat_card_widget 'Dependent packages', @project.dependent_packages_count, nil, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Dependent repos', @project.dependent_repos_count, nil, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Downloads', @project.downloads, nil, title_class: "card-title small", stat_size: "large" %>
+        </div>
+        <% end %>
+        <% if @project.collective.present? %>
         <div class="two-thirds-widgets">
           <%= stat_card_widget 'Balance', @balance_this_period, @balance_last_period, symbol: '$', increase_good: nil,  currency: true, title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
           <%= stat_card_widget 'Amount spent', @amount_spent_this_period, @amount_spent_last_period, symbol: '$', increase_good: nil,  currency: true, stat_size: "small",  title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
@@ -174,6 +168,30 @@
         <div class="two-thirds-widgets">
           <%= stat_card_widget 'Amount received', @amount_received_this_period, @amount_received_last_period, symbol: '$', increase_good: nil,  currency: true, stat_size: "small", title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
         </div>
+        <% elsif @project.github_sponsors.present? %>
+        <div class="three-equal-widgets">
+          <%= stat_card_widget 'Active sponsors', @project.current_github_sponsors_count, nil, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Total sponsors', @project.total_github_sponsors_count, nil, title_class: "card-title small", stat_size: "large" %>
+          <div class="card well p-3 border-0">
+            <div class="card-body">
+              <h5 class="card-title small">Sponsor this project</h5>
+              <div class="stat-card mb-2">
+                <div class="stat-card-body">
+                  <% if @project.github_sponsors_url.present? %>
+                    <%= link_to @project.github_sponsors_url, target: "_blank", rel: "noopener", class: "btn btn-sm btn-outline-primary" do %>
+                      <%= bootstrap_icon 'heart-fill', width: 16, height: 16, class: "me-1" %>
+                      Sponsor on GitHub
+                    <% end %>
+                    <p class="small text-muted mt-2 mb-0">
+                      From $<%= @project.github_minimum_sponsorship_amount %>/month
+                    </p>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <% end %>
 
       </div>
   </div>
