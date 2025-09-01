@@ -1137,7 +1137,7 @@ body {
 }
 
 .full-width-widget {
-  grid-template-columns: 1;
+  grid-template-columns: 1fr;
 }
 
 .two-thirds-widgets {
@@ -1284,6 +1284,10 @@ body {
     max-width: 100%;
     height: auto;
   }
+}
+
+.chart-wrapper--shallow {
+  aspect-ratio: 10/2; /* Modern aspect control */
 }
 
 .project-logo {
