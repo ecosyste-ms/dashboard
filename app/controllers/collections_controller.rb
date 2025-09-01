@@ -33,8 +33,18 @@ class CollectionsController < ApplicationController
       
       @payments_this_period = transactions.expenses.between(@this_period_range.begin, @this_period_range.end).count
       @payments_last_period = transactions.expenses.between(@last_period_range.begin, @last_period_range.end).count
+      
+      # Calculate reimbursements for show page
+      @reimbursements_this_period = transactions.reimbursements
+        .between(@this_period_range.begin, @this_period_range.end)
+        .sum(:amount)
+      
+      @reimbursements_last_period = transactions.reimbursements
+        .between(@last_period_range.begin, @last_period_range.end)
+        .sum(:amount)
     else
       @payments_this_period = @payments_last_period = 0
+      @reimbursements_this_period = @reimbursements_last_period = 0
     end
     
     # Load productivity metrics
@@ -46,6 +56,13 @@ class CollectionsController < ApplicationController
     
     @open_prs_last_period = issues_scope.pull_request.open_between(@last_period_range.begin, @last_period_range.end).count
     @open_prs_this_period = issues_scope.pull_request.open_between(@this_period_range.begin, @this_period_range.end).count
+    
+    # Load unique authors metrics
+    @unique_issue_authors_this_period = issues_scope.issue.between(@this_period_range.begin, @this_period_range.end).distinct.count(:user)
+    @unique_issue_authors_last_period = issues_scope.issue.between(@last_period_range.begin, @last_period_range.end).distinct.count(:user)
+    
+    @unique_pr_authors_this_period = issues_scope.pull_request.between(@this_period_range.begin, @this_period_range.end).distinct.count(:user)
+    @unique_pr_authors_last_period = issues_scope.pull_request.between(@last_period_range.begin, @last_period_range.end).distinct.count(:user)
     
     # Load responsiveness metrics
     @time_to_close_issues_last_period = (issues_scope.issue.closed_between(@last_period_range.begin, @last_period_range.end)
@@ -255,9 +272,46 @@ class CollectionsController < ApplicationController
 
       @total_payees_this_period = transactions.expenses.between(@this_period_range.begin, @this_period_range.end).group(:to_account).count.length
       @total_payees_last_period = transactions.expenses.between(@last_period_range.begin, @last_period_range.end).group(:to_account).count.length
+      
+      # Calculate reimbursements (RECEIPT type expenses)
+      @total_reimbursements_this_period = transactions.reimbursements
+        .between(@this_period_range.begin, @this_period_range.end)
+        .sum(:amount)
+      
+      @total_reimbursements_last_period = transactions.reimbursements
+        .between(@last_period_range.begin, @last_period_range.end)
+        .sum(:amount)
+      
+      # Calculate recurring donor percentage for all collectives combined
+      donors_this_list = transactions.donations
+        .between(@this_period_range.begin, @this_period_range.end)
+        .distinct.pluck(:from_account)
+      donors_last_list = transactions.donations
+        .between(@last_period_range.begin, @last_period_range.end)
+        .distinct.pluck(:from_account)
+      
+      recurring_donors_count = (donors_this_list & donors_last_list).count
+      
+      @total_recurring_donors_percentage_this = donors_this_list.any? ? 
+        (recurring_donors_count.to_f / donors_this_list.count * 100).round(0) : 0
+      
+      # For last period, compare with period before that
+      donors_before_last = transactions.donations
+        .between(@last_period_range.begin - (@last_period_range.end - @last_period_range.begin), @last_period_range.begin)
+        .distinct.pluck(:from_account)
+      
+      recurring_donors_last_count = (donors_last_list & donors_before_last).count
+      @total_recurring_donors_percentage_last = donors_last_list.any? ? 
+        (recurring_donors_last_count.to_f / donors_last_list.count * 100).round(0) : 0
 
-      @total_balance_this_period = 0 # TODO: Fix this
-      @total_balance_last_period = 0 # TODO: Fix this
+      # Calculate balance (donations minus expenses)
+      donations_total_this = transactions.donations.between(@this_period_range.begin, @this_period_range.end).sum(:amount)
+      expenses_total_this = transactions.expenses.between(@this_period_range.begin, @this_period_range.end).sum(:amount)
+      @total_balance_this_period = donations_total_this - expenses_total_this
+      
+      donations_total_last = transactions.donations.between(@last_period_range.begin, @last_period_range.end).sum(:amount)
+      expenses_total_last = transactions.expenses.between(@last_period_range.begin, @last_period_range.end).sum(:amount)
+      @total_balance_last_period = donations_total_last - expenses_total_last
     else
       @total_contributions_this_period = @total_contributions_last_period = 0
       @total_payments_this_period = @total_payments_last_period = 0
@@ -284,6 +338,21 @@ class CollectionsController < ApplicationController
     issues_scope = @collection.issues
     issues_scope = issues_scope.human if params[:exclude_bots] == 'true'
     issues_scope = issues_scope.bot if params[:only_bots] == 'true'
+    
+    # Load unique authors metrics
+    @unique_issue_authors_this_period = issues_scope.issue.between(@this_period_range.begin, @this_period_range.end).distinct.count(:user)
+    @unique_issue_authors_last_period = issues_scope.issue.between(@last_period_range.begin, @last_period_range.end).distinct.count(:user)
+    
+    @unique_pr_authors_this_period = issues_scope.pull_request.between(@this_period_range.begin, @this_period_range.end).distinct.count(:user)
+    @unique_pr_authors_last_period = issues_scope.pull_request.between(@last_period_range.begin, @last_period_range.end).distinct.count(:user)
+    
+    # Load merged PRs count
+    @merged_prs_this_period = issues_scope.pull_request.merged_between(@this_period_range.begin, @this_period_range.end).count
+    @merged_prs_last_period = issues_scope.pull_request.merged_between(@last_period_range.begin, @last_period_range.end).count
+    
+    # Load closed issues count
+    @closed_issues_this_period = issues_scope.issue.closed_between(@this_period_range.begin, @this_period_range.end).count
+    @closed_issues_last_period = issues_scope.issue.closed_between(@last_period_range.begin, @last_period_range.end).count
 
     @time_to_close_prs_last_period = (issues_scope.pull_request.closed_between(@last_period_range.begin, @last_period_range.end)
       .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0

@@ -9,6 +9,7 @@ class Transaction < ApplicationRecord
 
   scope :donations, -> { where(transaction_type: 'CREDIT') }
   scope :expenses, -> { where(transaction_type: 'DEBIT') }
+  scope :reimbursements, -> { expenses.where(transaction_expense_type: 'RECEIPT') }
   scope :host_fees, -> { where(transaction_kind: ['PAYMENT_PROCESSOR_FEE', 'PAYMENT_PROCESSOR_COVER', 'HOST_FEE'])}
   scope :not_host_fees, -> { where.not(transaction_kind: ['PAYMENT_PROCESSOR_FEE', 'PAYMENT_PROCESSOR_COVER', 'HOST_FEE'])}  
 

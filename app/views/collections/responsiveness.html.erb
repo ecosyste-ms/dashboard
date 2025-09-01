@@ -17,11 +17,13 @@
         <!-- Row 1: Three equal widgets -->
         <div class="three-equal-widgets">
           <%= small_widget 'Time to close PRs', @time_to_close_prs_this_period, @time_to_close_prs_last_period, symbol: ' days', increase_good: false %>
-          <%= small_widget 'Time to acknowledge PRs', 2.1, 1.3, symbol: ' days' %>
+          <%= small_widget 'Merged PRs', @merged_prs_this_period, @merged_prs_last_period, symbol: '', increase_good: true %>
+          <%= small_widget 'Unique PR authors', @unique_pr_authors_this_period, @unique_pr_authors_last_period, symbol: '', increase_good: true %>
         </div>
         <div class="three-equal-widgets">
             <%= small_widget 'Time to close issues', @time_to_close_issues_this_period, @time_to_close_issues_last_period, symbol: ' days', increase_good: false  %>
-          <%= small_widget 'Time to acknowledge issues', 2.1, 1.3, symbol: ' days' %>
+          <%= small_widget 'Closed issues', @closed_issues_this_period, @closed_issues_last_period, symbol: '', increase_good: true %>
+          <%= small_widget 'Unique issue authors', @unique_issue_authors_this_period, @unique_issue_authors_last_period, symbol: '', increase_good: true %>
         </div>
       </div>
     </div>

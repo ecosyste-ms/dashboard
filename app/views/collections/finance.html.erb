@@ -28,11 +28,11 @@
           </div>
           <div class="two-thirds-widgets">
             <%= stat_card_widget 'Total Donors', @total_donors_this_period, @total_donors_last_period, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
-            <%= stat_card_widget 'Recurring donors', 75, 65, symbol: '%', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
+            <%= stat_card_widget 'Recurring donors', @total_recurring_donors_percentage_this, @total_recurring_donors_percentage_last, symbol: '%', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
           </div>
           <div class="two-thirds-widgets">
             <%= stat_card_widget 'Total Payees', @total_payees_this_period, @total_payees_last_period, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
-            <%= stat_card_widget 'Reimbursements', 10000, 9000, symbol: '$', currency: true, stat_size: "small",  title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
+            <%= stat_card_widget 'Reimbursements', @total_reimbursements_this_period, @total_reimbursements_last_period, symbol: '$', currency: true, stat_size: "small", title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
           </div>
         </div>
 
@@ -150,10 +150,18 @@
                 contributions_last_period = projects.sum { |p| p.collective&.transactions&.donations&.between(@last_period_range.begin, @last_period_range.end)&.count || 0 }
                 payments_this_period = projects.sum { |p| p.collective&.transactions&.expenses&.between(@this_period_range.begin, @this_period_range.end)&.count || 0 }
                 payments_last_period = projects.sum { |p| p.collective&.transactions&.expenses&.between(@last_period_range.begin, @last_period_range.end)&.count || 0 }
+                # Calculate balance for this collective's projects
+                donations_total_this = projects.sum { |p| p.collective&.transactions&.donations&.between(@this_period_range.begin, @this_period_range.end)&.sum(:amount) || 0 }
+                expenses_total_this = projects.sum { |p| p.collective&.transactions&.expenses&.between(@this_period_range.begin, @this_period_range.end)&.sum(:amount) || 0 }
+                balance_this_period = donations_total_this - expenses_total_this
+                
+                donations_total_last = projects.sum { |p| p.collective&.transactions&.donations&.between(@last_period_range.begin, @last_period_range.end)&.sum(:amount) || 0 }
+                expenses_total_last = projects.sum { |p| p.collective&.transactions&.expenses&.between(@last_period_range.begin, @last_period_range.end)&.sum(:amount) || 0 }
+                balance_last_period = donations_total_last - expenses_total_last
               %>
               <%= small_widget 'Contributions', contributions_this_period, contributions_last_period, symbol: '$', currency: true %>
               <%= small_widget 'Payments', payments_this_period, payments_last_period, symbol: '$', currency: true %>
-              <%= small_widget 'Balance', 0, 0, symbol: '$', currency: true %>
+              <%= small_widget 'Balance', balance_this_period, balance_last_period, symbol: '$', currency: true %>
             </div>
             <div class="two-thirds-widgets">
               <%
@@ -161,7 +169,7 @@
                 donors_last_period = projects.sum { |p| p.collective&.transactions&.donations&.between(@last_period_range.begin, @last_period_range.end)&.group(:from_account)&.count&.length || 0 }
               %>
               <%= stat_card_widget 'Donors', donors_this_period, donors_last_period, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
-              <%= stat_card_widget 'Recurring donors', 75, 65, symbol: '%', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
+              <%= stat_card_widget 'Recurring donors', @total_recurring_donors_percentage_this, @total_recurring_donors_percentage_last, symbol: '%', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
             </div>
             <div class="two-thirds-widgets">
               <%
@@ -169,7 +177,7 @@
                 payees_last_period = projects.sum { |p| p.collective&.transactions&.expenses&.between(@last_period_range.begin, @last_period_range.end)&.group(:to_account)&.count&.length || 0 }
               %>
               <%= stat_card_widget 'Unique payees', payees_this_period, payees_last_period, symbol: '', title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
-              <%= stat_card_widget 'Reimbursements', 10000, 9000, symbol: '$', currency: true, stat_size: "small",  title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
+              <%= stat_card_widget 'Reimbursements', @total_reimbursements_this_period, @total_reimbursements_last_period, symbol: '$', currency: true, stat_size: "small", title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
             </div>
           </div>
         </div>
