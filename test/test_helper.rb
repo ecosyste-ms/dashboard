@@ -27,16 +27,10 @@ class ActiveSupport::TestCase
     DatabaseCleaner[:active_record].strategy = :transaction
     DatabaseCleaner[:active_record].start
     Sidekiq::Worker.clear_all
-    @test_start_time = Time.now
   end
 
   def teardown
     DatabaseCleaner[:active_record].clean
-    return unless @test_start_time
-    duration = Time.now - @test_start_time
-    if duration > 1  # Log tests taking more than 50ms
-      puts "⏱️  SLOW TEST: #{self.class}##{@NAME} took #{duration.round(3)}s"
-    end
   end
 end
 
