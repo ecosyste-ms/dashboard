@@ -18,7 +18,21 @@ class CollectionsController < ApplicationController
   end
 
   def syncing
+    # Don't redirect if sync is complete - the page will handle both states
+    # The redirect_if_syncing before_action handles showing syncing view when needed
     
+    # Automatically recover if there are pending projects but nothing queued
+    Rails.logger.info "Syncing page loaded for collection #{@collection.id}"
+    Rails.logger.info "Collection import_status: #{@collection.import_status}, sync_status: #{@collection.sync_status}"
+    Rails.logger.info "Checking if recovery needed..."
+    
+    if @collection.has_pending_but_nothing_queued?
+      Rails.logger.info "Recovery needed - attempting to recover stuck sync"
+      recovered = @collection.recover_stuck_sync!
+      Rails.logger.info "Recovery result: #{recovered}"
+    else
+      Rails.logger.info "No recovery needed"
+    end
   end
 
   def new
@@ -394,9 +408,16 @@ class CollectionsController < ApplicationController
   end
 
   def redirect_if_syncing
-    # Restart stuck syncs
+    # Check if we have pending projects but nothing queued (stuck sync)
+    if @collection.has_pending_but_nothing_queued?
+      Rails.logger.info "Collection #{@collection.id} has pending projects but nothing queued - recovering..."
+      recovered = @collection.recover_stuck_sync!
+      Rails.logger.info "Recovery result: #{recovered}"
+    end
+    
+    # Also check for general stuck syncs (syncing for too long)
     if @collection.sync_stuck?
-      Rails.logger.info "Restarting stuck sync for collection #{@collection.id}"
+      Rails.logger.info "Restarting stuck sync for collection #{@collection.id} (stuck for too long)"
       @collection.import_projects_async
     end
     

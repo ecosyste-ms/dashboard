@@ -85,6 +85,77 @@
         </div>
       <% end %>
     </div>
+
+    <!-- Detailed Sync Information -->
+    <% if collection.sync_status == 'syncing' || collection.sync_status == 'ready' %>
+      <div class="mt-4">
+        <h5>Sync Details</h5>
+        
+        <% currently_syncing = collection.currently_syncing_projects %>
+        <% if currently_syncing.any? %>
+          <div class="mb-3">
+            <h6 class="text-warning">
+              <%= bootstrap_icon 'arrow-repeat', width: 16, height: 16, class: 'me-1' %>
+              Currently Syncing (<%= currently_syncing.count %>)
+            </h6>
+            <ul class="list-unstyled ms-3">
+              <% currently_syncing.each do |project| %>
+                <li class="mb-1">
+                  <span class="text-muted small">
+                    <%= link_to project.url, project_path(project), class: 'text-decoration-none' %>
+                    <span class="ms-2 text-muted">
+                      (Started <%= time_ago_in_words(project.updated_at) %> ago)
+                    </span>
+                  </span>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+
+        <% pending_projects = collection.pending_sync_projects %>
+        <% if pending_projects.any? %>
+          <div class="mb-3">
+            <h6 class="text-secondary">
+              <%= bootstrap_icon 'clock', width: 16, height: 16, class: 'me-1' %>
+              Pending Sync (<%= pending_projects.count %><% if pending_projects.count == 5 %>+<% end %>)
+            </h6>
+            <ul class="list-unstyled ms-3">
+              <% pending_projects.each do |project| %>
+                <li class="mb-1">
+                  <span class="text-muted small">
+                    <%= link_to project.url, project_path(project), class: 'text-decoration-none' %>
+                  </span>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <% recent_projects = collection.recently_synced_projects %>
+        <% if recent_projects.any? %>
+          <div class="mb-3">
+            <h6 class="text-success">
+              <%= bootstrap_icon 'check-circle', width: 16, height: 16, class: 'me-1' %>
+              Recently Synced
+            </h6>
+            <ul class="list-unstyled ms-3">
+              <% recent_projects.each do |project| %>
+                <li class="mb-1">
+                  <span class="text-muted small">
+                    <%= link_to project.url, project_path(project), class: 'text-decoration-none text-success' %>
+                    <span class="ms-2 text-muted">
+                      (<%= time_ago_in_words(project.last_synced_at) %> ago)
+                    </span>
+                  </span>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
   <% end %>
 
   <% if (collection.import_status == 'error' || collection.sync_status == 'error') && collection.last_error_message.present? %>

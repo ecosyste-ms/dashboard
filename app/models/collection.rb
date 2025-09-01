@@ -82,19 +82,28 @@ class Collection < ApplicationRecord
     import_projects_sync
     
     # Queue ALL current projects (existing + newly imported) that need syncing
+    queued_count = 0
     projects.each do |project|
-      # Skip if already syncing or recently synced
-      next if project.sync_status == 'syncing'      
-      SyncProjectWorker.perform_async(project.id)
+      # Skip if already syncing
+      next if project.sync_status == 'syncing'
+      
+      # Queue if never synced or needs refresh
+      if project.last_synced_at.blank?
+        job_id = SyncProjectWorker.perform_async(project.id)
+        project.update_columns(sync_job_id: job_id) if job_id
+        queued_count += 1
+        Rails.logger.info "Queued project #{project.id} (#{project.url}) for initial sync with job_id: #{job_id}"
+      end
     end
     
     # Update status to syncing and start monitoring (if not already done by import)
     if sync_status != 'syncing'
       update_with_broadcast(sync_status: 'syncing')
-      CheckCollectionSyncStatusWorker.perform_async(id)
+      job_id = CheckCollectionSyncStatusWorker.perform_async(id)
+      update_columns(sync_job_id: job_id) if job_id
     end
     
-    Rails.logger.info "Queued #{projects.count} projects for syncing in collection: #{name}"
+    Rails.logger.info "Queued #{queued_count} of #{projects.count} projects for syncing in collection: #{name}"
   end
 
   def import_projects_with_mode
@@ -153,6 +162,12 @@ class Collection < ApplicationRecord
           
           CollectionProject.add_project_to_collection(self, project)
           
+          # Queue for sync if never synced
+          if project.last_synced_at.blank?
+            job_id = SyncProjectWorker.perform_async(project.id)
+        project.update_columns(sync_job_id: job_id) if job_id
+            Rails.logger.info "Queued project #{project.id} (#{url}) for initial sync during import with job_id: #{job_id}"
+          end
           
           broadcast_sync_progress
         rescue => e
@@ -206,7 +221,8 @@ class Collection < ApplicationRecord
               
               # Queue individual sync job for each project if it needs syncing
               if project.last_synced_at.blank?
-                SyncProjectWorker.perform_async(project.id)
+                job_id = SyncProjectWorker.perform_async(project.id)
+        project.update_columns(sync_job_id: job_id) if job_id
               end
               
               broadcast_sync_progress
@@ -248,6 +264,12 @@ class Collection < ApplicationRecord
           
           CollectionProject.add_project_to_collection(self, project)
           
+          # Queue for sync if never synced
+          if project.last_synced_at.blank?
+            job_id = SyncProjectWorker.perform_async(project.id)
+        project.update_columns(sync_job_id: job_id) if job_id
+            Rails.logger.info "Queued project #{project.id} (#{url}) for initial sync during import with job_id: #{job_id}"
+          end
           
           broadcast_sync_progress
         rescue => e
@@ -296,6 +318,9 @@ class Collection < ApplicationRecord
 
   def import_github_org(org_name)
     page = 1
+    projects_created = 0
+    projects_queued = 0
+    
     loop do
       conn = Faraday.new do |f|
         f.headers['User-Agent'] = 'dashboard.ecosyste.ms'
@@ -329,7 +354,15 @@ class Collection < ApplicationRecord
           next unless project&.persisted?
           
           CollectionProject.add_project_to_collection(self, project)
+          projects_created += 1
           
+          # Queue for sync if never synced
+          if project.last_synced_at.blank?
+            job_id = SyncProjectWorker.perform_async(project.id)
+        project.update_columns(sync_job_id: job_id) if job_id
+            projects_queued += 1
+            Rails.logger.info "Queued project #{project.id} (#{url}) for initial sync during import with job_id: #{job_id}"
+          end
           
           broadcast_sync_progress
         rescue => e
@@ -340,6 +373,8 @@ class Collection < ApplicationRecord
 
       page += 1
     end
+    
+    Rails.logger.info "GitHub org import for #{org_name} completed: #{projects_created} projects found, #{projects_queued} queued for sync"
   end
 
   def to_s
@@ -380,6 +415,156 @@ class Collection < ApplicationRecord
     total = projects.count
     synced = projects.where.not(last_synced_at: nil).count
     { total: total, synced: synced }
+  end
+
+  def currently_syncing_projects
+    projects.where(sync_status: 'syncing').limit(10)
+  end
+
+  def pending_sync_projects
+    projects.where(last_synced_at: nil).where.not(sync_status: 'syncing').limit(5)
+  end
+
+  def recently_synced_projects
+    projects.where.not(last_synced_at: nil).order(last_synced_at: :desc).limit(5)
+  end
+
+
+  def job_exists?(job_id)
+    return false if job_id.blank?
+    
+    # Check if job exists in any Sidekiq queue/set
+    Sidekiq::Queue.new.any? { |job| job.jid == job_id } ||
+    Sidekiq::ScheduledSet.new.any? { |job| job.jid == job_id } ||
+    Sidekiq::RetrySet.new.any? { |job| job.jid == job_id } ||
+    Sidekiq::Workers.new.any? { |_process_id, _thread_id, work| work['payload']['jid'] == job_id }
+  rescue => e
+    Rails.logger.error "Error checking if job exists: #{e.message}"
+    false
+  end
+  
+  def has_pending_but_nothing_queued?
+    # Collection needs recovery if:
+    # 1. Import is completed
+    # 2. There are unsynced projects
+    # 3. No projects are currently syncing
+    # 4. No valid jobs exist for these projects
+    
+    Rails.logger.info "Checking if collection #{id} has pending but nothing queued..."
+    Rails.logger.info "  import_status: #{import_status}, sync_status: #{sync_status}"
+    
+    unless import_status == 'completed'
+      Rails.logger.info "  -> false (import not completed)"
+      return false
+    end
+    
+    if sync_status == 'ready' || sync_status == 'error'
+      Rails.logger.info "  -> false (sync_status is #{sync_status})"
+      return false
+    end
+    
+    pending_projects = projects.where(last_synced_at: nil)
+    Rails.logger.info "  Found #{pending_projects.count} pending projects"
+    
+    if pending_projects.empty?
+      Rails.logger.info "  -> false (no pending projects)"
+      return false
+    end
+    
+    # Check if any projects are actively syncing
+    syncing_count = projects.where(sync_status: 'syncing').count
+    Rails.logger.info "  Projects with sync_status='syncing': #{syncing_count}"
+    
+    if syncing_count > 0
+      Rails.logger.info "  -> false (#{syncing_count} projects actively syncing)"
+      return false
+    end
+    
+    # Check if any pending projects have valid jobs using stored job IDs
+    jobs_exist = false
+    pending_projects.find_each do |project|
+      if project.sync_job_id.present? && project.job_exists?
+        Rails.logger.info "  Project #{project.id} has valid job #{project.sync_job_id}"
+        jobs_exist = true
+        break
+      end
+    end
+    
+    if jobs_exist
+      Rails.logger.info "  -> false (found valid jobs for pending projects)"
+      return false
+    end
+    
+    # Also check for jobs we might not have tracked (fallback)
+    project_ids = pending_projects.pluck(:id)
+    Rails.logger.info "  Double-checking Sidekiq for project IDs: #{project_ids.inspect}"
+    
+    # In test mode, check the fake queue
+    if Rails.env.test? && defined?(Sidekiq::Testing) && Sidekiq::Testing.fake?
+      fake_jobs = SyncProjectWorker.jobs.select do |job|
+        project_ids.include?(job['args'][0])
+      end
+      Rails.logger.info "  Jobs in fake queue (test mode): #{fake_jobs.count}"
+      result = fake_jobs.empty?
+    else
+      # In production/development, check real queues
+      queued_jobs = Sidekiq::Queue.new.select do |job|
+        job.klass == 'SyncProjectWorker' && project_ids.include?(job.args[0])
+      end
+      Rails.logger.info "  Jobs in main queue: #{queued_jobs.count}"
+      
+      scheduled_jobs = Sidekiq::ScheduledSet.new.select do |job|
+        job.klass == 'SyncProjectWorker' && project_ids.include?(job.args[0])
+      end
+      Rails.logger.info "  Jobs in scheduled set: #{scheduled_jobs.count}"
+      
+      retry_jobs = Sidekiq::RetrySet.new.select do |job|
+        job.klass == 'SyncProjectWorker' && project_ids.include?(job.args[0])
+      end
+      Rails.logger.info "  Jobs in retry set: #{retry_jobs.count}"
+      
+      # If no jobs are queued/scheduled/retrying for our pending projects, we're stuck
+      result = queued_jobs.empty? && scheduled_jobs.empty? && retry_jobs.empty?
+    end
+    Rails.logger.info "  -> #{result} (needs recovery: #{result})"
+    result
+  end
+
+  def recover_stuck_sync!
+    return false unless has_pending_but_nothing_queued?
+    
+    Rails.logger.info "Recovering stuck sync for collection #{id}: re-enqueueing pending projects"
+    
+    # Clear old job IDs that are no longer valid
+    projects.where.not(sync_job_id: nil).update_all(sync_job_id: nil)
+    
+    # Queue sync for ALL unsynced projects (not just 10)
+    unsynced_projects = projects.where(last_synced_at: nil)
+    queued_count = 0
+    
+    unsynced_projects.find_each do |project|
+      # Double-check project isn't already syncing
+      next if project.sync_status == 'syncing'
+      
+      job_id = SyncProjectWorker.perform_async(project.id)
+      project.update_columns(sync_job_id: job_id) if job_id
+      queued_count += 1
+      Rails.logger.info "Re-queued project #{project.id} (#{project.url}) for sync with job_id: #{job_id}"
+    end
+    
+    Rails.logger.info "Recovery complete: queued #{queued_count} projects for collection #{id}"
+    
+    # Update collection status if needed
+    if sync_status != 'syncing'
+      update_columns(sync_status: 'syncing', updated_at: Time.current)
+    end
+    
+    # Ensure monitoring job is running
+    job_id = CheckCollectionSyncStatusWorker.perform_async(id)
+    update_columns(sync_job_id: job_id) if job_id
+    
+    broadcast_sync_progress
+    true
   end
 
   def avatar_url
@@ -489,18 +674,35 @@ class Collection < ApplicationRecord
 
   def broadcast_sync_progress
     begin
+      # Always include HTML for consistent updates
+      html_content = ApplicationController.render(
+        partial: 'collections/sync_status',
+        locals: { collection: self }
+      )
+      
       data = {
         type: 'progress_update',
         progress: projects_sync_progress,
-        sync_status: sync_status
+        sync_status: sync_status,
+        import_status: import_status,
+        html: html_content
       }
       
-      Rails.logger.info "Broadcasting progress update for collection #{id}: #{data}"
+      Rails.logger.info "Broadcasting progress update for collection #{id}: #{data.except(:html)}"
       
       CollectionSyncChannel.broadcast_to(self, data)
     rescue => e
       Rails.logger.error "Error broadcasting progress update for collection #{id}: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
+      
+      # Fallback without HTML
+      fallback_data = {
+        type: 'progress_update',
+        progress: projects_sync_progress,
+        sync_status: sync_status
+      }
+      
+      CollectionSyncChannel.broadcast_to(self, fallback_data)
     end
   end
 

@@ -11,6 +11,12 @@ class CheckCollectionSyncStatusWorker
     # Only check if we're in syncing state
     return unless collection.sync_status == 'syncing'
     
+    # Check if sync is stuck and needs recovery
+    if collection.has_pending_but_nothing_queued?
+      Rails.logger.info "CheckCollectionSyncStatusWorker detected stuck sync for collection #{collection_id}, recovering..."
+      collection.recover_stuck_sync!
+    end
+    
     # This will broadcast progress or mark as complete
     collection.check_and_update_sync_status
     

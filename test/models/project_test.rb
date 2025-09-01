@@ -16,6 +16,42 @@ class ProjectTest < ActiveSupport::TestCase
     assert_equal "github.com/octocat/hello-world", project.slug
   end
 
+  test "normalizes URL by removing trailing slashes" do
+    project = Project.new(url: 'https://github.com/kenaniah/sidekiq-status/')
+    project.valid?
+    assert_equal 'https://github.com/kenaniah/sidekiq-status', project.url
+    assert_equal 'github.com/kenaniah/sidekiq-status', project.slug
+  end
+
+  test "normalizes URL with multiple trailing slashes" do
+    project = Project.new(url: 'https://github.com/kenaniah/sidekiq-status///')
+    project.valid?
+    assert_equal 'https://github.com/kenaniah/sidekiq-status', project.url
+    assert_equal 'github.com/kenaniah/sidekiq-status', project.slug
+  end
+
+  test "prevents duplicate slug errors for URLs with trailing slashes" do
+    # Create first project without trailing slash
+    project1 = Project.create!(url: 'https://github.com/test/unique-repo')
+    assert_equal 'github.com/test/unique-repo', project1.slug
+    
+    # Try to create second project with trailing slash - should fail with same slug
+    project2 = Project.new(url: 'https://github.com/test/unique-repo/')
+    assert_not project2.valid?
+    assert_includes project2.errors[:slug], 'has already been taken'
+    
+    # But normalized URLs should be the same
+    project2.valid? # triggers normalization
+    assert_equal project1.url, project2.url
+  end
+
+  test "handles URLs with spaces and trailing slashes" do
+    project = Project.new(url: '  https://github.com/test/repo/  ')
+    project.valid?
+    assert_equal 'https://github.com/test/repo', project.url
+    assert_equal 'github.com/test/repo', project.slug
+  end
+
   test "to_param returns slug" do
     project = Project.create!(url: "https://github.com/octocat/hello-world")
     assert_equal "github.com/octocat/hello-world", project.to_param

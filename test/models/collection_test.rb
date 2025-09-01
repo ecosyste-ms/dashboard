@@ -426,6 +426,65 @@ class CollectionTest < ActiveSupport::TestCase
   end
 
 
+  test "currently_syncing_projects returns projects with syncing status" do
+    collection = create(:collection)
+    syncing_project = create(:project, sync_status: 'syncing')
+    completed_project = create(:project, sync_status: 'completed')
+    pending_project = create(:project, sync_status: 'pending')
+    
+    collection.projects << [syncing_project, completed_project, pending_project]
+    
+    currently_syncing = collection.currently_syncing_projects
+    assert_includes currently_syncing, syncing_project
+    assert_not_includes currently_syncing, completed_project
+    assert_not_includes currently_syncing, pending_project
+  end
+
+  test "has_pending_but_nothing_queued detects stuck collections" do
+    Sidekiq::Queue.new.clear
+    Sidekiq::ScheduledSet.new.clear
+    Sidekiq::RetrySet.new.clear
+    
+    collection = create(:collection, import_status: 'completed', sync_status: 'syncing')
+    unsynced_project = create(:project, last_synced_at: nil, sync_status: 'pending')
+    collection.projects << unsynced_project
+    
+    assert collection.has_pending_but_nothing_queued?
+  end
+
+  test "has_pending_but_nothing_queued returns false when jobs are queued" do
+    collection = create(:collection, import_status: 'completed', sync_status: 'syncing')
+    unsynced_project = create(:project, last_synced_at: nil, sync_status: 'pending')
+    collection.projects << unsynced_project
+    
+    # Queue a job for this project
+    SyncProjectWorker.perform_async(unsynced_project.id)
+    
+    assert_not collection.has_pending_but_nothing_queued?
+  end
+
+  test "has_pending_but_nothing_queued returns false for actively syncing projects" do
+    collection = create(:collection, import_status: 'completed', sync_status: 'syncing')
+    syncing_project = create(:project, sync_status: 'syncing')
+    collection.projects << syncing_project
+    
+    assert_not collection.has_pending_but_nothing_queued?
+  end
+
+  test "recover_stuck_sync queues jobs for unsynced projects" do
+    Sidekiq::Queue.new.clear
+    
+    collection = create(:collection, import_status: 'completed', sync_status: 'syncing')
+    unsynced_project1 = create(:project, last_synced_at: nil, sync_status: 'pending')
+    unsynced_project2 = create(:project, last_synced_at: nil, sync_status: 'pending')
+    collection.projects << [unsynced_project1, unsynced_project2]
+    
+    assert_difference 'SyncProjectWorker.jobs.size', 2 do
+      result = collection.recover_stuck_sync!
+      assert result
+    end
+  end
+
   test "sync_eligible scope should exclude importing collections" do
     completed1 = create(:collection, import_status: 'completed')
     completed2 = create(:collection, import_status: 'completed')
