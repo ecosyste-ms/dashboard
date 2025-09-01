@@ -1,5 +1,5 @@
 class CollectionsController < ApplicationController
-  before_action :set_period_vars, only: [:engagement, :productivity, :finance, :responsiveness, :security]
+  before_action :set_period_vars, only: [:show, :engagement, :productivity, :finance, :responsiveness, :security]
 
   before_action :authenticate_user!
 
@@ -15,6 +15,54 @@ class CollectionsController < ApplicationController
     @range = range
     @period = period
     @top_package = @collection.packages.order_by_rankings.first
+    
+    # Load engagement metrics
+    issues_scope = @collection.issues
+    @active_contributors_last_period = issues_scope.between(@last_period_range.begin, @last_period_range.end).group(:user).count.length
+    @active_contributors_this_period = issues_scope.between(@this_period_range.begin, @this_period_range.end).group(:user).count.length
+    
+    @contributions_last_period = issues_scope.between(@last_period_range.begin, @last_period_range.end).count
+    @contributions_this_period = issues_scope.between(@this_period_range.begin, @this_period_range.end).count
+    
+    @contributor_role_breakdown_this_period = issues_scope.between(@this_period_range.begin, @this_period_range.end).group(:author_association).count.sort_by { |_role, count| -count }.to_h
+    
+    # Load finance metrics
+    collective_ids = @collection.unique_collective_ids
+    if collective_ids.any?
+      transactions = Transaction.where(collective_id: collective_ids)
+      
+      @payments_this_period = transactions.expenses.between(@this_period_range.begin, @this_period_range.end).count
+      @payments_last_period = transactions.expenses.between(@last_period_range.begin, @last_period_range.end).count
+    else
+      @payments_this_period = @payments_last_period = 0
+    end
+    
+    # Load productivity metrics
+    @tags_last_period = @collection.tags.between(@last_period_range.begin, @last_period_range.end).count
+    @tags_this_period = @collection.tags.between(@this_period_range.begin, @this_period_range.end).count
+    
+    @open_isues_last_period = issues_scope.issue.open_between(@last_period_range.begin, @last_period_range.end).count
+    @open_isues_this_period = issues_scope.issue.open_between(@this_period_range.begin, @this_period_range.end).count
+    
+    @open_prs_last_period = issues_scope.pull_request.open_between(@last_period_range.begin, @last_period_range.end).count
+    @open_prs_this_period = issues_scope.pull_request.open_between(@this_period_range.begin, @this_period_range.end).count
+    
+    # Load responsiveness metrics
+    @time_to_close_issues_last_period = (issues_scope.issue.closed_between(@last_period_range.begin, @last_period_range.end)
+      .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
+    @time_to_close_issues_last_period = @time_to_close_issues_last_period.round(1)
+    
+    @time_to_close_issues_this_period = (issues_scope.issue.closed_between(@this_period_range.begin, @this_period_range.end)
+      .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
+    @time_to_close_issues_this_period = @time_to_close_issues_this_period.round(1)
+    
+    @time_to_close_prs_last_period = (issues_scope.pull_request.closed_between(@last_period_range.begin, @last_period_range.end)
+      .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
+    @time_to_close_prs_last_period = @time_to_close_prs_last_period.round(1)
+    
+    @time_to_close_prs_this_period = (issues_scope.pull_request.closed_between(@this_period_range.begin, @this_period_range.end)
+      .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
+    @time_to_close_prs_this_period = @time_to_close_prs_this_period.round(1)
   end
 
   def syncing
