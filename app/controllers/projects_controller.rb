@@ -5,6 +5,8 @@ class ProjectsController < ApplicationController
   before_action :set_collection, if: :nested_route?
   before_action :set_project_and_redirect_legacy, only: [:show, :packages, :commits, :releases, :issues, :advisories, :security, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :sync, :meta, :syncing, :owner_collection, :create_collection_from_dependencies]
   before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :packages, :commits, :releases, :issues, :advisories, :security]
+  
+  rescue_from ActiveRecord::RecordNotFound, with: :handle_not_found
 
   def show
     # Handle tab content if tab parameter is present
@@ -554,6 +556,19 @@ class ProjectsController < ApplicationController
   end
 
   private
+
+  def handle_not_found
+    # Extract GitHub URL from the slug if it looks like a GitHub path
+    if params[:id] && params[:id].include?('github.com/')
+      # Build the full GitHub URL from the slug
+      url = "https://#{params[:id]}"
+      # Redirect to the lookup action with the URL as a query parameter for GET
+      redirect_to lookup_projects_path + "?url=#{CGI.escape(url)}", alert: "Project not found. Let's try to find it..."
+    else
+      # For non-GitHub URLs or other cases, show a generic 404
+      raise ActiveRecord::RecordNotFound
+    end
+  end
 
   def set_range_and_period
     @range = range

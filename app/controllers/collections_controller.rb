@@ -5,6 +5,8 @@ class CollectionsController < ApplicationController
 
   before_action :set_collection_with_visibility_check, except: [:index, :new, :create]
   before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :packages, :projects, :security]
+  
+  rescue_from ActiveRecord::RecordNotFound, with: :handle_not_found
 
   def index
     scope = current_user.collections
@@ -102,6 +104,22 @@ class CollectionsController < ApplicationController
 
   def new
     @collection = current_user.collections.build
+    # Pre-fill with GitHub URL if provided
+    if params[:github_url].present?
+      # For GitHub organization collections, set github_organization_url
+      if params[:collection_type] == 'github'
+        @collection.github_organization_url = params[:github_url]
+      else
+        @collection.url = params[:github_url]
+      end
+      # Try to extract a name from the URL
+      if params[:github_url].include?('github.com/')
+        org_name = params[:github_url].split('github.com/').last.split('/').first
+        @collection.name = org_name if org_name.present?
+      end
+      # Default to public visibility when coming from a 404 redirect
+      @collection.visibility = 'public'
+    end
   end
 
   def create
@@ -464,6 +482,19 @@ class CollectionsController < ApplicationController
   end
 
   private
+
+  def handle_not_found
+    # Check if this looks like a GitHub organization URL
+    if params[:id] && params[:id].include?('github.com/')
+      # Build the GitHub org URL
+      github_url = "https://#{params[:id]}"
+      # Redirect to new collection form with the URL pre-filled and collection_type set to 'github'
+      redirect_to new_collection_path(github_url: github_url, collection_type: 'github'), alert: "Collection not found. Create a new collection for this organization?"
+    else
+      # For non-GitHub URLs or other cases, show a generic 404
+      raise ActiveRecord::RecordNotFound
+    end
+  end
 
   def collection_params
     params.require(:collection).permit(
