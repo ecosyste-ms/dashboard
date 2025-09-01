@@ -1,5 +1,5 @@
 class ProjectsController < ApplicationController
-  before_action :set_period_vars, only: [:engagement, :productivity, :finance, :responsiveness, :security]
+  before_action :set_period_vars, only: [:show, :engagement, :productivity, :finance, :responsiveness, :security]
   before_action :set_range_and_period, only: [:show]
   before_action :authenticate_user!, only: [:index, :new, :create, :add_to_list, :remove_from_list, :create_collection_from_dependencies]
   before_action :set_collection, if: :nested_route?
@@ -14,6 +14,9 @@ class ProjectsController < ApplicationController
     end
     
     # Default overview tab content (only if no tab is specified)
+    # Load top package for ranking display
+    @top_package = @project.packages.order_by_rankings.first
+    
     # Generate dynamic commit data for the chart
     if @range == 'year'
       @commits_per_period = @project.commits.group_by_year(:timestamp, format: '%Y', last: 6, expand_range: true, default_value: 0).count
@@ -21,12 +24,48 @@ class ProjectsController < ApplicationController
       @commits_per_period = @project.commits.group_by_month(:timestamp, format: '%b', last: 6, expand_range: true, default_value: 0).count
     end
     
-    # Calculate current and previous period commits (using 30 days as default period)
-    current_period_start = 30.days.ago
-    previous_period_start = 60.days.ago
+    # Calculate commits using period ranges from set_period_vars
+    @commits_this_period = @project.commits.between(@this_period_range.begin, @this_period_range.end).count
+    @commits_last_period = @project.commits.between(@last_period_range.begin, @last_period_range.end).count
     
-    @commits_this_period = @project.commits.where('timestamp >= ?', current_period_start).count
-    @commits_last_period = @project.commits.where('timestamp >= ? AND timestamp < ?', previous_period_start, current_period_start).count
+    # Load committers stats
+    commits_this = @project.commits.between(@this_period_range.begin, @this_period_range.end)
+    commits_last = @project.commits.between(@last_period_range.begin, @last_period_range.end)
+    @committers_this_period = commits_this.select(:author).distinct.count
+    @committers_last_period = commits_last.select(:author).distinct.count
+    
+    # Load issue and PR stats
+    issues_scope = @project.issues
+    @open_prs_this_period = issues_scope.pull_request.open_between(@this_period_range.begin, @this_period_range.end).count
+    @open_prs_last_period = issues_scope.pull_request.open_between(@last_period_range.begin, @last_period_range.end).count
+    
+    @open_issues_this_period = issues_scope.issue.open_between(@this_period_range.begin, @this_period_range.end).count
+    @open_issues_last_period = issues_scope.issue.open_between(@last_period_range.begin, @last_period_range.end).count
+    
+    # Load finance stats if collective exists
+    if @project.collective.present?
+      transactions = @project.collective.transactions
+      
+      # Calculate balance (sum of donations minus expenses)
+      donations_total_this = transactions.donations.between(@this_period_range.begin, @this_period_range.end).sum(:amount)
+      expenses_total_this = transactions.expenses.between(@this_period_range.begin, @this_period_range.end).sum(:amount)
+      @balance_this_period = donations_total_this - expenses_total_this
+      
+      donations_total_last = transactions.donations.between(@last_period_range.begin, @last_period_range.end).sum(:amount)
+      expenses_total_last = transactions.expenses.between(@last_period_range.begin, @last_period_range.end).sum(:amount)
+      @balance_last_period = donations_total_last - expenses_total_last
+      
+      @amount_spent_this_period = expenses_total_this
+      @amount_spent_last_period = expenses_total_last
+      
+      @amount_received_this_period = donations_total_this
+      @amount_received_last_period = donations_total_last
+    else
+      # Set to 0 if no collective
+      @balance_this_period = @balance_last_period = 0
+      @amount_spent_this_period = @amount_spent_last_period = 0
+      @amount_received_this_period = @amount_received_last_period = 0
+    end
   end
 
   def index

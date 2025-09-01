@@ -163,16 +163,16 @@
             </div>
           </div>
           <div class="three-equal-widgets">
-          <%= stat_card_widget 'Committers', 75, 65, title_class: "card-title small", stat_size: "large" %>
-          <%= stat_card_widget 'Open PRs', 11, 9,  increase_good: false, title_class: "card-title small", stat_size: "large" %>
-          <%= stat_card_widget 'Open issues', 704, 654,  increase_good: false, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Committers', @committers_this_period, @committers_last_period, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Open PRs', @open_prs_this_period, @open_prs_last_period,  increase_good: false, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Open issues', @open_issues_this_period, @open_issues_last_period,  increase_good: false, title_class: "card-title small", stat_size: "large" %>
         </div>     
         <div class="two-thirds-widgets">
-          <%= stat_card_widget 'Balance', 9822, 11877, symbol: '$', increase_good: nil,  currency: true, title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
-          <%= stat_card_widget 'Amount spent', 15778, 11123, symbol: '$', increase_good: nil,  currency: true, stat_size: "small",  title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
+          <%= stat_card_widget 'Balance', @balance_this_period, @balance_last_period, symbol: '$', increase_good: nil,  currency: true, title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
+          <%= stat_card_widget 'Amount spent', @amount_spent_this_period, @amount_spent_last_period, symbol: '$', increase_good: nil,  currency: true, stat_size: "small",  title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
         </div>
         <div class="two-thirds-widgets">
-          <%= stat_card_widget 'Amount received', 25600, 23000, symbol: '$', increase_good: nil,  currency: true, stat_size: "small", title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
+          <%= stat_card_widget 'Amount received', @amount_received_this_period, @amount_received_last_period, symbol: '$', increase_good: nil,  currency: true, stat_size: "small", title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
         </div>
 
       </div>
