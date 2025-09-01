@@ -87,9 +87,21 @@ function createLineChart(canvas, data, options = {}) {
 
   const chartOptions = { ...defaultOptions, ...options };
 
-  new Chart(canvas, {
-    type: 'line',
-    data: {
+  // Check if data already contains a datasets array (multi-line chart)
+  let chartData;
+  if (data.datasets) {
+    // Multi-line chart - use datasets directly
+    chartData = {
+      labels: data.labels || [],
+      datasets: data.datasets
+    };
+    // Enable legend for multi-line charts
+    chartOptions.plugins.legend.display = true;
+    // Enable Y axis for better readability
+    chartOptions.scales.y.display = true;
+  } else {
+    // Single line chart - wrap in dataset
+    chartData = {
       labels: data.labels || [],
       datasets: [{
         label: data.label || 'Data',
@@ -102,7 +114,12 @@ function createLineChart(canvas, data, options = {}) {
         backgroundColor: esOrangeTransparent,
         ...data.dataset
       }]
-    },
+    };
+  }
+
+  new Chart(canvas, {
+    type: 'line',
+    data: chartData,
     options: chartOptions
   });
 }

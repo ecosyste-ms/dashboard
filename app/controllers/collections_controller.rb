@@ -244,6 +244,15 @@ class CollectionsController < ApplicationController
 
     @merged_prs_last_period = issues_scope.pull_request.merged_between(@last_period_range.begin, @last_period_range.end).count
     @merged_prs_this_period = issues_scope.pull_request.merged_between(@this_period_range.begin, @this_period_range.end).count
+    
+    # Time series data for productivity chart (new issues and PRs opened)
+    if @range == 'year'
+      @new_issues_per_period = issues_scope.issue.group_by_year(:created_at, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+      @new_prs_per_period = issues_scope.pull_request.group_by_year(:created_at, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+    else
+      @new_issues_per_period = issues_scope.issue.group_by_month(:created_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
+      @new_prs_per_period = issues_scope.pull_request.group_by_month(:created_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
+    end
   end
 
   def finance
@@ -369,6 +378,15 @@ class CollectionsController < ApplicationController
     @time_to_close_issues_this_period = (issues_scope.issue.closed_between(@this_period_range.begin, @this_period_range.end)
       .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
     @time_to_close_issues_this_period = @time_to_close_issues_this_period.round(1)
+    
+    # Time series data for responsiveness chart (issues closed and PRs merged)
+    if @range == 'year'
+      @closed_issues_per_period = issues_scope.issue.where.not(closed_at: nil).group_by_year(:closed_at, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+      @merged_prs_per_period = issues_scope.pull_request.where.not(merged_at: nil).group_by_year(:merged_at, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+    else
+      @closed_issues_per_period = issues_scope.issue.where.not(closed_at: nil).group_by_month(:closed_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
+      @merged_prs_per_period = issues_scope.pull_request.where.not(merged_at: nil).group_by_month(:merged_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
+    end
   end
 
   def packages

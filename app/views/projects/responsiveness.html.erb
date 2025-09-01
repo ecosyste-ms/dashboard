@@ -14,6 +14,46 @@
         <%= render 'date_nav' %>
 
         <div class="dashboard-grid">
+          <div class="full-width-widget">
+            <div class="card well p-3 border-0">
+              <div class="card-body">
+                <h5 class="card-title">Resolution Trends</h5>
+                <div class="chart-wrapper">
+                  <canvas 
+                    id="responsivenessChart" 
+                    width="600"
+                    data-chart="line"
+                    data-chart-data='<%= {
+                      labels: @closed_issues_per_period.map(&:first),
+                      datasets: [
+                        {
+                          label: "Issues Closed",
+                          data: @closed_issues_per_period.map(&:last),
+                          borderColor: "rgb(75, 192, 192)",
+                          backgroundColor: "rgba(75, 192, 192, 0.1)"
+                        },
+                        {
+                          label: "PRs Merged",
+                          data: @merged_prs_per_period.map(&:last),
+                          borderColor: "rgb(153, 102, 255)",
+                          backgroundColor: "rgba(153, 102, 255, 0.1)"
+                        }
+                      ]
+                    }.to_json.html_safe %>'
+                    data-chart-options='<%= {
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                          max: ([@closed_issues_per_period.map(&:last).max.to_i, @merged_prs_per_period.map(&:last).max.to_i].max * 1.1).ceil
+                        }
+                      }
+                    }.to_json.html_safe %>'
+                  ></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <!-- Row 1: Three equal widgets -->
           <div class="three-equal-widgets">
             <%= small_widget 'Time to close PRs', @time_to_close_prs_this_period, @time_to_close_prs_last_period, symbol: ' days', increase_good: false %>
