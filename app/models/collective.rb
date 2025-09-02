@@ -223,7 +223,7 @@ class Collective < ApplicationRecord
   end
 
   def ping_owner
-    Faraday.get(ping_owner_url) rescue nil
+    Faraday.get(ping_owner_url, nil, {'User-Agent' => 'dashboard.ecosyste.ms'}) rescue nil
   end
 
   def fetch_owner
@@ -336,7 +336,7 @@ class Collective < ApplicationRecord
     page = 1
     loop do
       per_page = Rails.application.config.x.per_page_limits&.dig(:repositories) || 100
-      resp = Faraday.get("https://repos.ecosyste.ms/api/v1/hosts/#{project_host}/owners/#{project_owner}/repositories?per_page=#{per_page}&page=#{page}")
+      resp = Faraday.get("https://repos.ecosyste.ms/api/v1/hosts/#{project_host}/owners/#{project_owner}/repositories?per_page=#{per_page}&page=#{page}", nil, {'User-Agent' => 'dashboard.ecosyste.ms'})
       break unless resp.status == 200
 
       data = JSON.parse(resp.body)
