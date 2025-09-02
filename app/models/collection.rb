@@ -149,7 +149,7 @@ class Collection < ApplicationRecord
     org_name = uri.path.split("/")[1]
     
     oc_api_url = "https://opencollective.ecosyste.ms/api/v1/collectives/#{org_name}/projects"
-    resp = Faraday.get(oc_api_url)
+    resp = Faraday.get(oc_api_url, nil, {'User-Agent' => 'dashboard.ecosyste.ms'})
     if resp.status == 200
       data = JSON.parse(resp.body)
       urls = data.map { |p| p['url'] }.uniq.reject(&:blank?)
