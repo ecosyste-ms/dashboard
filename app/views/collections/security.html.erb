@@ -76,7 +76,7 @@
 
       <!-- Security Activity Chart -->
       <% if @dependabot_security_per_period.values.sum > 0 || @advisories_per_period.values.sum > 0 %>
-        <div class="card mb-4">
+        <div class="card well p-3 border-0 mb-4">
           <div class="card-body">
             <h5 class="card-title">Security Activity Over Time</h5>
             <canvas id="securityChart" width="400" height="200"></canvas>

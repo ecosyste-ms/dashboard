@@ -26,6 +26,7 @@ class Project < ApplicationRecord
     message: "must be in the format 'host.com/owner/repo'" 
   }
   
+  before_validation :normalize_url
   before_validation :generate_slug
 
   scope :active, -> { where("(repository ->> 'archived') = ?", 'false') }
@@ -199,7 +200,22 @@ class Project < ApplicationRecord
   end
 
   def sync_async
-    SyncProjectWorker.perform_async(id)
+    job_id = SyncProjectWorker.perform_async(id)
+    update_columns(sync_job_id: job_id) if job_id
+    job_id
+  end
+  
+  def job_exists?
+    return false if sync_job_id.blank?
+    
+    # Check if job exists in any Sidekiq queue/set
+    Sidekiq::Queue.new.any? { |job| job.jid == sync_job_id } ||
+    Sidekiq::ScheduledSet.new.any? { |job| job.jid == sync_job_id } ||
+    Sidekiq::RetrySet.new.any? { |job| job.jid == sync_job_id } ||
+    Sidekiq::Workers.new.any? { |_process_id, _thread_id, work| work['payload']['jid'] == sync_job_id }
+  rescue => e
+    Rails.logger.error "Error checking if job exists for project #{id}: #{e.message}"
+    false
   end
 
   def ready?
@@ -321,10 +337,6 @@ class Project < ApplicationRecord
     ping_urls.each do |url|
       ecosystems_api_request(url) rescue nil
     end
-    
-    if sync_commits_url.present?
-      ecosystems_api_request(sync_commits_url, method: :post) rescue nil
-    end
   end
 
   def ping_urls
@@ -344,11 +356,6 @@ class Project < ApplicationRecord
   def commits_ping_url
     return unless repository.present?
     "https://commits.ecosyste.ms/api/v1/hosts/#{repository['host']['name']}/repositories/#{repository['full_name']}/ping"
-  end
-
-  def sync_commits_url
-    return unless repository.present?
-    "https://commits.ecosyste.ms/api/v1/hosts/#{repository['host']['name']}/repositories/#{repository['full_name']}/sync_commits"
   end
 
   def packages_ping_urls
@@ -1588,6 +1595,13 @@ class Project < ApplicationRecord
       .reject { |link| reject_invalid_funding_link?(link) }
   end
 
+  def normalize_url
+    return if url.blank?
+    
+    # Remove trailing slashes from the URL
+    self.url = url.strip.gsub(/\/+$/, '')
+  end
+
   def generate_slug
     return if url.blank?
     
@@ -1695,7 +1709,9 @@ class Project < ApplicationRecord
   end
 
   def notify_collections_of_sync
-    collections.where(sync_status: 'syncing').each do |collection|
+    # Notify ALL collections this project belongs to, not just ones currently syncing
+    # This ensures all users viewing any collection containing this project see updates
+    collections.each do |collection|
       collection.broadcast_sync_progress
     end
   end
@@ -1717,6 +1733,8 @@ class Project < ApplicationRecord
 
   def safe_broadcast_sync_update
     broadcast_sync_update
+    # Also notify collections of the update so the syncing page stays updated
+    notify_collections_of_sync
   rescue => e
     Rails.logger.warn "Failed to broadcast sync update for project #{id}: #{e.message}"
     # Continue sync even if broadcast fails

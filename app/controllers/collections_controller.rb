@@ -1,10 +1,12 @@
 class CollectionsController < ApplicationController
-  before_action :set_period_vars, only: [:engagement, :productivity, :finance, :responsiveness, :security]
+  before_action :set_period_vars, only: [:show, :engagement, :productivity, :finance, :responsiveness, :security]
 
   before_action :authenticate_user!
 
   before_action :set_collection_with_visibility_check, except: [:index, :new, :create]
   before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :packages, :projects, :security]
+  
+  rescue_from ActiveRecord::RecordNotFound, with: :handle_not_found
 
   def index
     scope = current_user.collections
@@ -15,14 +17,143 @@ class CollectionsController < ApplicationController
     @range = range
     @period = period
     @top_package = @collection.packages.order_by_rankings.first
+    
+    # Load engagement metrics
+    issues_scope = @collection.issues
+    @active_contributors_last_period = issues_scope.between(@last_period_range.begin, @last_period_range.end).group(:user).count.length
+    @active_contributors_this_period = issues_scope.between(@this_period_range.begin, @this_period_range.end).group(:user).count.length
+    
+    @contributions_last_period = issues_scope.between(@last_period_range.begin, @last_period_range.end).count
+    @contributions_this_period = issues_scope.between(@this_period_range.begin, @this_period_range.end).count
+    
+    @contributor_role_breakdown_this_period = issues_scope.between(@this_period_range.begin, @this_period_range.end).group(:author_association).count.sort_by { |_role, count| -count }.to_h
+    
+    # Load finance metrics
+    collective_ids = @collection.unique_collective_ids
+    if collective_ids.any?
+      transactions = Transaction.where(collective_id: collective_ids)
+      
+      @payments_this_period = transactions.expenses.between(@this_period_range.begin, @this_period_range.end).count
+      @payments_last_period = transactions.expenses.between(@last_period_range.begin, @last_period_range.end).count
+      
+      # Calculate reimbursements for show page
+      @reimbursements_this_period = transactions.reimbursements
+        .between(@this_period_range.begin, @this_period_range.end)
+        .sum(:amount)
+      
+      @reimbursements_last_period = transactions.reimbursements
+        .between(@last_period_range.begin, @last_period_range.end)
+        .sum(:amount)
+      
+      # Calculate balance (donations minus expenses) for overview page
+      donations_total_this = transactions.donations.between(@this_period_range.begin, @this_period_range.end).sum(:amount)
+      expenses_total_this = transactions.expenses.between(@this_period_range.begin, @this_period_range.end).sum(:amount)
+      @balance_this_period = donations_total_this - expenses_total_this
+      
+      donations_total_last = transactions.donations.between(@last_period_range.begin, @last_period_range.end).sum(:amount)
+      expenses_total_last = transactions.expenses.between(@last_period_range.begin, @last_period_range.end).sum(:amount)
+      @balance_last_period = donations_total_last - expenses_total_last
+      
+      # Amount spent and received for overview page
+      @amount_spent_this_period = expenses_total_this
+      @amount_spent_last_period = expenses_total_last
+      
+      @amount_received_this_period = donations_total_this
+      @amount_received_last_period = donations_total_last
+    else
+      @payments_this_period = @payments_last_period = 0
+      @reimbursements_this_period = @reimbursements_last_period = 0
+      @balance_this_period = @balance_last_period = 0
+      @amount_spent_this_period = @amount_spent_last_period = 0
+      @amount_received_this_period = @amount_received_last_period = 0
+    end
+    
+    # Load productivity metrics
+    @tags_last_period = @collection.tags.between(@last_period_range.begin, @last_period_range.end).count
+    @tags_this_period = @collection.tags.between(@this_period_range.begin, @this_period_range.end).count
+    
+    @open_isues_last_period = issues_scope.issue.open_between(@last_period_range.begin, @last_period_range.end).count
+    @open_isues_this_period = issues_scope.issue.open_between(@this_period_range.begin, @this_period_range.end).count
+    
+    @open_prs_last_period = issues_scope.pull_request.open_between(@last_period_range.begin, @last_period_range.end).count
+    @open_prs_this_period = issues_scope.pull_request.open_between(@this_period_range.begin, @this_period_range.end).count
+    
+    # Load new PRs data for overview page
+    @new_prs_this_period = issues_scope.pull_request.between(@this_period_range.begin, @this_period_range.end).count
+    @new_prs_last_period = issues_scope.pull_request.between(@last_period_range.begin, @last_period_range.end).count
+    
+    # Generate time series data for new PRs chart
+    if @range == 'year'
+      @new_prs_per_period = issues_scope.pull_request.group_by_year(:created_at, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+    else
+      @new_prs_per_period = issues_scope.pull_request.group_by_month(:created_at, format: '%b', last: 6, expand_range: true, default_value: 0).count
+    end
+    
+    # Load committers stats
+    @committers_this_period = @collection.commits.between(@this_period_range.begin, @this_period_range.end).select(:author).distinct.count
+    @committers_last_period = @collection.commits.between(@last_period_range.begin, @last_period_range.end).select(:author).distinct.count
+    
+    # Load unique authors metrics
+    @unique_issue_authors_this_period = issues_scope.issue.between(@this_period_range.begin, @this_period_range.end).distinct.count(:user)
+    @unique_issue_authors_last_period = issues_scope.issue.between(@last_period_range.begin, @last_period_range.end).distinct.count(:user)
+    
+    @unique_pr_authors_this_period = issues_scope.pull_request.between(@this_period_range.begin, @this_period_range.end).distinct.count(:user)
+    @unique_pr_authors_last_period = issues_scope.pull_request.between(@last_period_range.begin, @last_period_range.end).distinct.count(:user)
+    
+    # Load responsiveness metrics
+    @time_to_close_issues_last_period = (issues_scope.issue.closed_between(@last_period_range.begin, @last_period_range.end)
+      .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
+    @time_to_close_issues_last_period = @time_to_close_issues_last_period.round(1)
+    
+    @time_to_close_issues_this_period = (issues_scope.issue.closed_between(@this_period_range.begin, @this_period_range.end)
+      .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
+    @time_to_close_issues_this_period = @time_to_close_issues_this_period.round(1)
+    
+    @time_to_close_prs_last_period = (issues_scope.pull_request.closed_between(@last_period_range.begin, @last_period_range.end)
+      .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
+    @time_to_close_prs_last_period = @time_to_close_prs_last_period.round(1)
+    
+    @time_to_close_prs_this_period = (issues_scope.pull_request.closed_between(@this_period_range.begin, @this_period_range.end)
+      .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
+    @time_to_close_prs_this_period = @time_to_close_prs_this_period.round(1)
   end
 
   def syncing
+    # Don't redirect if sync is complete - the page will handle both states
+    # The redirect_if_syncing before_action handles showing syncing view when needed
     
+    # Automatically recover if there are pending projects but nothing queued
+    Rails.logger.info "Syncing page loaded for collection #{@collection.id}"
+    Rails.logger.info "Collection import_status: #{@collection.import_status}, sync_status: #{@collection.sync_status}"
+    Rails.logger.info "Checking if recovery needed..."
+    
+    if @collection.has_pending_but_nothing_queued?
+      Rails.logger.info "Recovery needed - attempting to recover stuck sync"
+      recovered = @collection.recover_stuck_sync!
+      Rails.logger.info "Recovery result: #{recovered}"
+    else
+      Rails.logger.info "No recovery needed"
+    end
   end
 
   def new
     @collection = current_user.collections.build
+    # Pre-fill with GitHub URL if provided
+    if params[:github_url].present?
+      # For GitHub organization collections, set github_organization_url
+      if params[:collection_type] == 'github'
+        @collection.github_organization_url = params[:github_url]
+      else
+        @collection.url = params[:github_url]
+      end
+      # Try to extract a name from the URL
+      if params[:github_url].include?('github.com/')
+        org_name = params[:github_url].split('github.com/').last.split('/').first
+        @collection.name = org_name if org_name.present?
+      end
+      # Default to public visibility when coming from a 404 redirect
+      @collection.visibility = 'public'
+    end
   end
 
   def create
@@ -165,6 +296,15 @@ class CollectionsController < ApplicationController
 
     @merged_prs_last_period = issues_scope.pull_request.merged_between(@last_period_range.begin, @last_period_range.end).count
     @merged_prs_this_period = issues_scope.pull_request.merged_between(@this_period_range.begin, @this_period_range.end).count
+    
+    # Time series data for productivity chart (new issues and PRs opened)
+    if @range == 'year'
+      @new_issues_per_period = issues_scope.issue.group_by_year(:created_at, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+      @new_prs_per_period = issues_scope.pull_request.group_by_year(:created_at, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+    else
+      @new_issues_per_period = issues_scope.issue.group_by_month(:created_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
+      @new_prs_per_period = issues_scope.pull_request.group_by_month(:created_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
+    end
   end
 
   def finance
@@ -193,9 +333,46 @@ class CollectionsController < ApplicationController
 
       @total_payees_this_period = transactions.expenses.between(@this_period_range.begin, @this_period_range.end).group(:to_account).count.length
       @total_payees_last_period = transactions.expenses.between(@last_period_range.begin, @last_period_range.end).group(:to_account).count.length
+      
+      # Calculate reimbursements (RECEIPT type expenses)
+      @total_reimbursements_this_period = transactions.reimbursements
+        .between(@this_period_range.begin, @this_period_range.end)
+        .sum(:amount)
+      
+      @total_reimbursements_last_period = transactions.reimbursements
+        .between(@last_period_range.begin, @last_period_range.end)
+        .sum(:amount)
+      
+      # Calculate recurring donor percentage for all collectives combined
+      donors_this_list = transactions.donations
+        .between(@this_period_range.begin, @this_period_range.end)
+        .distinct.pluck(:from_account)
+      donors_last_list = transactions.donations
+        .between(@last_period_range.begin, @last_period_range.end)
+        .distinct.pluck(:from_account)
+      
+      recurring_donors_count = (donors_this_list & donors_last_list).count
+      
+      @total_recurring_donors_percentage_this = donors_this_list.any? ? 
+        (recurring_donors_count.to_f / donors_this_list.count * 100).round(0) : 0
+      
+      # For last period, compare with period before that
+      donors_before_last = transactions.donations
+        .between(@last_period_range.begin - (@last_period_range.end - @last_period_range.begin), @last_period_range.begin)
+        .distinct.pluck(:from_account)
+      
+      recurring_donors_last_count = (donors_last_list & donors_before_last).count
+      @total_recurring_donors_percentage_last = donors_last_list.any? ? 
+        (recurring_donors_last_count.to_f / donors_last_list.count * 100).round(0) : 0
 
-      @total_balance_this_period = 0 # TODO: Fix this
-      @total_balance_last_period = 0 # TODO: Fix this
+      # Calculate balance (donations minus expenses)
+      donations_total_this = transactions.donations.between(@this_period_range.begin, @this_period_range.end).sum(:amount)
+      expenses_total_this = transactions.expenses.between(@this_period_range.begin, @this_period_range.end).sum(:amount)
+      @total_balance_this_period = donations_total_this - expenses_total_this
+      
+      donations_total_last = transactions.donations.between(@last_period_range.begin, @last_period_range.end).sum(:amount)
+      expenses_total_last = transactions.expenses.between(@last_period_range.begin, @last_period_range.end).sum(:amount)
+      @total_balance_last_period = donations_total_last - expenses_total_last
     else
       @total_contributions_this_period = @total_contributions_last_period = 0
       @total_payments_this_period = @total_payments_last_period = 0
@@ -222,6 +399,21 @@ class CollectionsController < ApplicationController
     issues_scope = @collection.issues
     issues_scope = issues_scope.human if params[:exclude_bots] == 'true'
     issues_scope = issues_scope.bot if params[:only_bots] == 'true'
+    
+    # Load unique authors metrics
+    @unique_issue_authors_this_period = issues_scope.issue.between(@this_period_range.begin, @this_period_range.end).distinct.count(:user)
+    @unique_issue_authors_last_period = issues_scope.issue.between(@last_period_range.begin, @last_period_range.end).distinct.count(:user)
+    
+    @unique_pr_authors_this_period = issues_scope.pull_request.between(@this_period_range.begin, @this_period_range.end).distinct.count(:user)
+    @unique_pr_authors_last_period = issues_scope.pull_request.between(@last_period_range.begin, @last_period_range.end).distinct.count(:user)
+    
+    # Load merged PRs count
+    @merged_prs_this_period = issues_scope.pull_request.merged_between(@this_period_range.begin, @this_period_range.end).count
+    @merged_prs_last_period = issues_scope.pull_request.merged_between(@last_period_range.begin, @last_period_range.end).count
+    
+    # Load closed issues count
+    @closed_issues_this_period = issues_scope.issue.closed_between(@this_period_range.begin, @this_period_range.end).count
+    @closed_issues_last_period = issues_scope.issue.closed_between(@last_period_range.begin, @last_period_range.end).count
 
     @time_to_close_prs_last_period = (issues_scope.pull_request.closed_between(@last_period_range.begin, @last_period_range.end)
       .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
@@ -238,6 +430,15 @@ class CollectionsController < ApplicationController
     @time_to_close_issues_this_period = (issues_scope.issue.closed_between(@this_period_range.begin, @this_period_range.end)
       .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
     @time_to_close_issues_this_period = @time_to_close_issues_this_period.round(1)
+    
+    # Time series data for responsiveness chart (issues closed and PRs merged)
+    if @range == 'year'
+      @closed_issues_per_period = issues_scope.issue.where.not(closed_at: nil).group_by_year(:closed_at, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+      @merged_prs_per_period = issues_scope.pull_request.where.not(merged_at: nil).group_by_year(:merged_at, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+    else
+      @closed_issues_per_period = issues_scope.issue.where.not(closed_at: nil).group_by_month(:closed_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
+      @merged_prs_per_period = issues_scope.pull_request.where.not(merged_at: nil).group_by_month(:merged_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
+    end
   end
 
   def packages
@@ -315,6 +516,19 @@ class CollectionsController < ApplicationController
   end
 
   private
+
+  def handle_not_found
+    # Check if this looks like a GitHub organization URL
+    if params[:id] && params[:id].include?('github.com/')
+      # Build the GitHub org URL
+      github_url = "https://#{params[:id]}"
+      # Redirect to new collection form with the URL pre-filled and collection_type set to 'github'
+      redirect_to new_collection_path(github_url: github_url, collection_type: 'github'), alert: "Collection not found. Create a new collection for this organization?"
+    else
+      # For non-GitHub URLs or other cases, show a generic 404
+      raise ActiveRecord::RecordNotFound
+    end
+  end
 
   def collection_params
     params.require(:collection).permit(
@@ -394,9 +608,16 @@ class CollectionsController < ApplicationController
   end
 
   def redirect_if_syncing
-    # Restart stuck syncs
+    # Check if we have pending projects but nothing queued (stuck sync)
+    if @collection.has_pending_but_nothing_queued?
+      Rails.logger.info "Collection #{@collection.id} has pending projects but nothing queued - recovering..."
+      recovered = @collection.recover_stuck_sync!
+      Rails.logger.info "Recovery result: #{recovered}"
+    end
+    
+    # Also check for general stuck syncs (syncing for too long)
     if @collection.sync_stuck?
-      Rails.logger.info "Restarting stuck sync for collection #{@collection.id}"
+      Rails.logger.info "Restarting stuck sync for collection #{@collection.id} (stuck for too long)"
       @collection.import_projects_async
     end
     

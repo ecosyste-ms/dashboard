@@ -15,6 +15,46 @@
       <%= render 'date_nav' %>
 
       <div class="dashboard-grid">
+        <div class="full-width-widget">
+          <div class="card well p-3 border-0">
+            <div class="card-body">
+              <h5 class="card-title">Activity Trends</h5>
+              <div class="chart-wrapper">
+                <canvas 
+                  id="productivityChart" 
+                  width="600"
+                  data-chart="line"
+                  data-chart-data='<%= {
+                    labels: @new_issues_per_period.map(&:first),
+                    datasets: [
+                      {
+                        label: "New Issues",
+                        data: @new_issues_per_period.map(&:last),
+                        borderColor: "rgb(255, 99, 132)",
+                        backgroundColor: "rgba(255, 99, 132, 0.1)"
+                      },
+                      {
+                        label: "New PRs",
+                        data: @new_prs_per_period.map(&:last),
+                        borderColor: "rgb(54, 162, 235)",
+                        backgroundColor: "rgba(54, 162, 235, 0.1)"
+                      }
+                    ]
+                  }.to_json.html_safe %>'
+                  data-chart-options='<%= {
+                    scales: {
+                      y: {
+                        beginAtZero: true,
+                        max: ([@new_issues_per_period.map(&:last).max.to_i, @new_prs_per_period.map(&:last).max.to_i].max * 1.1).ceil
+                      }
+                    }
+                  }.to_json.html_safe %>'
+                ></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <div class="three-equal-widgets">
           <%= small_widget 'Commits', @commits_this_period, @commits_last_period, symbol: '' %>
           <%= small_widget 'Releases', @tags_this_period, @tags_last_period, symbol: '' %>
@@ -30,11 +70,6 @@
           <%= small_widget 'New PRs', @new_prs_last_period, @new_prs_this_period, symbol: '' %>
           <%= small_widget 'Open PRs', @open_prs_this_period, @open_prs_last_period,  symbol: '', increase_good: false %>
           <%= small_widget 'Merged PRs', @merged_prs_this_period, @merged_prs_last_period, symbol: '' %>
-        </div>
-        <div class="three-equal-widgets">
-          
-          
-
         </div>
         
       </div>

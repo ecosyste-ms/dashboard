@@ -16,89 +16,75 @@
       </div>
       <div class="dashboard-grid">  
         
-        <div class="two-thirds-widgets">
-          <div class="card  well p-3 border-0">
-            <div class="card-body">
-              <h5 class="card-title small">Created by</h5>
-              <div class="stat-card mb-2">
-                <div class="stat-card-body">
-                  <span class="stat-card-text"><%= @collection.user.name %></span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="two-thirds-widgets__large card well p-3 border-0">
-            <div class="card-body">
-              <h5 class="card-title small">Created</h5>
-              <div class="stat-card mb-2">
-                <div class="stat-card-body">
-                  <span class="stat-card-text">
-                    <%= time_ago_in_words(@collection.created_at) %> ago
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="two-thirds-widgets">
-          <%= stat_card_widget 'Active contributors', @active_contributors_this_period, @active_contributors_last_period, symbol: '', increase_good: true, stat_size: "large", title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
-
-          <div class="card two-thirds-widgets__large well p-3 border-0">
-            <div class="card-body">
-              <h5 class="card-title small mb-4">Contributor breakdown</h5>
-              <% if @contributor_role_breakdown_this_period.present? %>
-                <div class="stacked-bar">
-                  <% total = @contributor_role_breakdown_this_period.values.sum.to_f %>
-                  <% @contributor_role_breakdown_this_period.each_with_index do |(role, count), index| %>
-                    <% percent = ((count / total) * 100).round(1) %>
-                    <div class="segment seg-<%= ('a'.ord + index).chr %>" style="--w: <%= percent %>%"></div>
-                  <% end %>
-                </div>
-                <div class="graph-key py-3">
-                  <% @contributor_role_breakdown_this_period.each_with_index do |(role, count), index| %>
-                    <% percent = ((count / total) * 100).round(1) %>
-                    <div class="graph-key__item">
-                      <span class="dot dot-<%= ('a'.ord + index).chr %>"></span>
-                      <% display_role = (role.nil? || role == "NONE") ? "Community" : role.capitalize %>
-                      <span class="label"><%= display_role %> <%= percent %>%</span>
-                    </div>
-                  <% end %>
-                </div>
-              <% else %>
-
-              <% end %>          
-            </div>
-          </div>
-        </div>
-        <div class="three-equal-widgets">
-          <%= small_widget 'Contributions', @contributions_this_period, @contributions_last_period, symbol: '$', currency: true %>
-          <%= small_widget 'Payments', @payments_this_period, @payments_last_period, symbol: '$', currency: true %>
-          <%= stat_card_widget 'Reimbursements', 10000, 9000, symbol: '$', currency: true, stat_size: "small",  title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
-        </div>
-
-        <% if @collection.packages.count > 0 %>
-          <div class="three-equal-widgets">
-            <%= stat_card_widget 'Dependent packages', @collection.dependent_packages_count, nil, title_class: "card-title small", stat_size: "large" %>
-            <%= stat_card_widget 'Dependent repos', @collection.dependent_repos_count, nil, title_class: "card-title small", stat_size: "large" %>
-            <%= stat_card_widget 'Downloads', @collection.downloads, nil, title_class: "card-title small", stat_size: "large" %>
-          </div>
-        <% end %>
-
         <div class="full-width-widget">
-          <%= small_widget 'Releases', @tags_this_period, @tags_last_period, symbol: '' %>
-        </div>
-
+          <div class="card well p-3 border-0">
+              <div class="card-body">
+                <h5 class="card-title">New PRs</h5>
+                <div class="stat-card mb-2">
+                  <div class="stat-card-body">
+                    <span class="stat-card-title stat-card-title--large <%= @new_prs_this_period >= @new_prs_last_period ? 'stat-card-number-positive' : 'stat-card-number-negative' %>">
+                      <%= number_to_human(@new_prs_this_period, precision: 1) %> <%= bootstrap_icon(@new_prs_this_period >= @new_prs_last_period ? 'caret-up-fill' : 'caret-down-fill', width: 18, height: 18, class: 'flex-shrink-0') %>
+                    </span>
+                    <span class="stat-card-text stat-card-text"><%= number_to_human(@new_prs_last_period, precision: 1) %> <%= last_period_text %></span>
+                  </div>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas 
+                    id="newPRsChart" 
+                    width="600"
+                    data-chart="line"
+                    data-chart-data='<%= {labels: @new_prs_per_period.map(&:first), label: "New PRs", values: @new_prs_per_period.map(&:last)}.to_json.html_safe %>'
+                    data-chart-options='<%= {scales: {y: {max: (@new_prs_per_period.map(&:last).max.to_i * 1.1).ceil}}}.to_json.html_safe %>'
+                  ></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          
         <div class="three-equal-widgets">
-          <%= small_widget 'Open issues', @open_isues_this_period, @open_isues_last_period,  symbol: '', increase_good: false %>
-          <%= small_widget 'Time to close issues', @time_to_close_issues_this_period, @time_to_close_issues_last_period, symbol: ' days', increase_good: false  %>
-          <%= small_widget 'Time to acknowledge issues', 2.1, 1.3, symbol: ' days' %>
+          <%= stat_card_widget 'Open PRs', @open_prs_this_period, @open_prs_last_period,  increase_good: false, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Open issues', @open_isues_this_period, @open_isues_last_period,  increase_good: false, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Committers', @committers_this_period, @committers_last_period, title_class: "card-title small", stat_size: "large" %>
         </div>
-
+        
+        <% if @collection.packages.count > 0 && @top_package.present? %>
         <div class="three-equal-widgets">
-          <%= small_widget 'Open PRs', @open_prs_this_period, @open_prs_last_period,  symbol: '', increase_good: false %>
-          <%= small_widget 'Time to close PRs', @time_to_close_prs_this_period, @time_to_close_prs_last_period, symbol: ' days', increase_good: false %>
-            <%= small_widget 'Time to acknowledge PRs', 2.1, 1.3, symbol: ' days' %>
+          <%= stat_card_widget 'Dependent packages', @collection.dependent_packages_count, nil, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Dependent repos', @collection.dependent_repos_count, nil, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Downloads', @collection.downloads, nil, title_class: "card-title small", stat_size: "large" %>
         </div>
+        <% end %>
+        
+        <% if @collection.unique_collective_ids.any? %>
+        <div class="two-thirds-widgets">
+          <%= stat_card_widget 'Balance', @balance_this_period, @balance_last_period, symbol: '$', increase_good: nil,  currency: true, title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
+          <%= stat_card_widget 'Amount spent', @amount_spent_this_period, @amount_spent_last_period, symbol: '$', increase_good: nil,  currency: true, stat_size: "small",  title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
+        </div>
+        <div class="two-thirds-widgets">
+          <%= stat_card_widget 'Amount received', @amount_received_this_period, @amount_received_last_period, symbol: '$', increase_good: nil,  currency: true, stat_size: "small", title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
+        </div>
+        <% elsif @collection.has_github_sponsors? %>
+        <div class="three-equal-widgets">
+          <%= stat_card_widget 'Active sponsors', @collection.total_github_sponsors_count, nil, title_class: "card-title small", stat_size: "large" %>
+          <%= stat_card_widget 'Projects with sponsors', @collection.github_sponsors_projects_count, nil, title_class: "card-title small", stat_size: "large" %>
+          <div class="card well p-3 border-0">
+            <div class="card-body">
+              <h5 class="card-title small">Sponsor links</h5>
+              <div class="stat-card mb-2">
+                <div class="stat-card-body">
+                  <% @collection.projects.where.not(github_sponsors: nil).limit(3).each do |project| %>
+                    <% if project.github_sponsors_url.present? %>
+                      <%= link_to project.github_sponsors_url, target: "_blank", rel: "noopener", class: "d-block small mb-1" do %>
+                        <%= project.name || project.repository['full_name'] %>
+                      <% end %>
+                    <% end %>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <% end %>
 
         
       

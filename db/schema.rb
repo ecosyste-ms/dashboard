@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_14_110316) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_01_125603) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -76,8 +76,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_14_110316) do
     t.integer "transitive_dependencies_count", default: 0, null: false
     t.bigint "source_project_id"
     t.string "slug"
+    t.string "sync_job_id"
     t.index ["slug"], name: "index_collections_on_slug", unique: true
     t.index ["source_project_id"], name: "index_collections_on_source_project_id"
+    t.index ["sync_job_id"], name: "index_collections_on_sync_job_id"
     t.index ["user_id"], name: "index_collections_on_user_id"
   end
 
@@ -192,8 +194,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_14_110316) do
     t.integer "development_dependencies_count", default: 0, null: false
     t.integer "transitive_dependencies_count", default: 0, null: false
     t.string "slug"
+    t.string "sync_job_id"
     t.index ["collective_id"], name: "index_projects_on_collective_id"
     t.index ["slug"], name: "index_projects_on_slug", unique: true
+    t.index ["sync_job_id"], name: "index_projects_on_sync_job_id"
     t.index ["url"], name: "index_projects_on_url", unique: true
   end
 
@@ -232,6 +236,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_14_110316) do
     t.string "transaction_expense_type"
     t.string "from_account"
     t.string "to_account"
+    t.index ["collective_id", "transaction_type", "created_at"], name: "index_transactions_on_collective_type_created"
     t.index ["collective_id"], name: "index_transactions_on_collective_id"
     t.index ["uuid"], name: "index_transactions_on_uuid", unique: true
   end

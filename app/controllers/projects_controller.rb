@@ -1,10 +1,12 @@
 class ProjectsController < ApplicationController
-  before_action :set_period_vars, only: [:engagement, :productivity, :finance, :responsiveness, :security]
+  before_action :set_period_vars, only: [:show, :engagement, :productivity, :finance, :responsiveness, :security]
   before_action :set_range_and_period, only: [:show]
   before_action :authenticate_user!, only: [:index, :new, :create, :add_to_list, :remove_from_list, :create_collection_from_dependencies]
   before_action :set_collection, if: :nested_route?
   before_action :set_project_and_redirect_legacy, only: [:show, :packages, :commits, :releases, :issues, :advisories, :security, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :sync, :meta, :syncing, :owner_collection, :create_collection_from_dependencies]
   before_action :redirect_if_syncing, only: [:show, :adoption, :engagement, :dependencies, :productivity, :finance, :responsiveness, :packages, :commits, :releases, :issues, :advisories, :security]
+  
+  rescue_from ActiveRecord::RecordNotFound, with: :handle_not_found
 
   def show
     # Handle tab content if tab parameter is present
@@ -14,6 +16,9 @@ class ProjectsController < ApplicationController
     end
     
     # Default overview tab content (only if no tab is specified)
+    # Load top package for ranking display
+    @top_package = @project.packages.order_by_rankings.first
+    
     # Generate dynamic commit data for the chart
     if @range == 'year'
       @commits_per_period = @project.commits.group_by_year(:timestamp, format: '%Y', last: 6, expand_range: true, default_value: 0).count
@@ -21,12 +26,66 @@ class ProjectsController < ApplicationController
       @commits_per_period = @project.commits.group_by_month(:timestamp, format: '%b', last: 6, expand_range: true, default_value: 0).count
     end
     
-    # Calculate current and previous period commits (using 30 days as default period)
-    current_period_start = 30.days.ago
-    previous_period_start = 60.days.ago
+    # Calculate commits using period ranges from set_period_vars
+    @commits_this_period = @project.commits.between(@this_period_range.begin, @this_period_range.end).count
+    @commits_last_period = @project.commits.between(@last_period_range.begin, @last_period_range.end).count
     
-    @commits_this_period = @project.commits.where('timestamp >= ?', current_period_start).count
-    @commits_last_period = @project.commits.where('timestamp >= ? AND timestamp < ?', previous_period_start, current_period_start).count
+    # Load committers stats
+    commits_this = @project.commits.between(@this_period_range.begin, @this_period_range.end)
+    commits_last = @project.commits.between(@last_period_range.begin, @last_period_range.end)
+    @committers_this_period = commits_this.select(:author).distinct.count
+    @committers_last_period = commits_last.select(:author).distinct.count
+    
+    # Load issue and PR stats
+    issues_scope = @project.issues
+    @open_prs_this_period = issues_scope.pull_request.open_between(@this_period_range.begin, @this_period_range.end).count
+    @open_prs_last_period = issues_scope.pull_request.open_between(@last_period_range.begin, @last_period_range.end).count
+    
+    @open_issues_this_period = issues_scope.issue.open_between(@this_period_range.begin, @this_period_range.end).count
+    @open_issues_last_period = issues_scope.issue.open_between(@last_period_range.begin, @last_period_range.end).count
+    
+    # Load new PRs data for overview page
+    @new_prs_this_period = issues_scope.pull_request.between(@this_period_range.begin, @this_period_range.end).count
+    @new_prs_last_period = issues_scope.pull_request.between(@last_period_range.begin, @last_period_range.end).count
+    
+    # Generate time series data for new PRs chart
+    if @range == 'year'
+      @new_prs_per_period = issues_scope.pull_request.group_by_year(:created_at, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+    else
+      @new_prs_per_period = issues_scope.pull_request.group_by_month(:created_at, format: '%b', last: 6, expand_range: true, default_value: 0).count
+    end
+    
+    # Load unique authors metrics
+    @unique_issue_authors_this_period = issues_scope.issue.between(@this_period_range.begin, @this_period_range.end).distinct.count(:user)
+    @unique_issue_authors_last_period = issues_scope.issue.between(@last_period_range.begin, @last_period_range.end).distinct.count(:user)
+    
+    @unique_pr_authors_this_period = issues_scope.pull_request.between(@this_period_range.begin, @this_period_range.end).distinct.count(:user)
+    @unique_pr_authors_last_period = issues_scope.pull_request.between(@last_period_range.begin, @last_period_range.end).distinct.count(:user)
+    
+    # Load finance stats if collective exists
+    if @project.collective.present?
+      transactions = @project.collective.transactions
+      
+      # Calculate balance (sum of donations minus expenses)
+      donations_total_this = transactions.donations.between(@this_period_range.begin, @this_period_range.end).sum(:amount)
+      expenses_total_this = transactions.expenses.between(@this_period_range.begin, @this_period_range.end).sum(:amount)
+      @balance_this_period = donations_total_this - expenses_total_this
+      
+      donations_total_last = transactions.donations.between(@last_period_range.begin, @last_period_range.end).sum(:amount)
+      expenses_total_last = transactions.expenses.between(@last_period_range.begin, @last_period_range.end).sum(:amount)
+      @balance_last_period = donations_total_last - expenses_total_last
+      
+      @amount_spent_this_period = expenses_total_this
+      @amount_spent_last_period = expenses_total_last
+      
+      @amount_received_this_period = donations_total_this
+      @amount_received_last_period = donations_total_last
+    else
+      # Set to 0 if no collective
+      @balance_this_period = @balance_last_period = 0
+      @amount_spent_this_period = @amount_spent_last_period = 0
+      @amount_received_this_period = @amount_received_last_period = 0
+    end
   end
 
   def index
@@ -296,6 +355,15 @@ class ProjectsController < ApplicationController
 
     @merged_prs_last_period = issues_scope.pull_request.merged_between(@last_period_range.begin, @last_period_range.end).count
     @merged_prs_this_period = issues_scope.pull_request.merged_between(@this_period_range.begin, @this_period_range.end).count
+    
+    # Time series data for productivity chart (new issues and PRs opened)
+    if @range == 'year'
+      @new_issues_per_period = issues_scope.issue.group_by_year(:created_at, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+      @new_prs_per_period = issues_scope.pull_request.group_by_year(:created_at, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+    else
+      @new_issues_per_period = issues_scope.issue.group_by_month(:created_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
+      @new_prs_per_period = issues_scope.pull_request.group_by_month(:created_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
+    end
   end
 
   def finance
@@ -308,14 +376,52 @@ class ProjectsController < ApplicationController
       @payments_last_period = @project.collective.transactions.expenses.between(@last_period_range.begin, @last_period_range.end).count
       @payments_this_period = @project.collective.transactions.expenses.between(@this_period_range.begin, @this_period_range.end).count
 
-      @balance_last_period = 0 # TODO: Fix this
-      @balance_this_period = 0 # TODO: Fix this
+      # Calculate balance (donations minus expenses)
+      donations_total_this = @project.collective.transactions.donations.between(@this_period_range.begin, @this_period_range.end).sum(:amount)
+      expenses_total_this = @project.collective.transactions.expenses.between(@this_period_range.begin, @this_period_range.end).sum(:amount)
+      @balance_this_period = donations_total_this - expenses_total_this
+      
+      donations_total_last = @project.collective.transactions.donations.between(@last_period_range.begin, @last_period_range.end).sum(:amount)
+      expenses_total_last = @project.collective.transactions.expenses.between(@last_period_range.begin, @last_period_range.end).sum(:amount)
+      @balance_last_period = donations_total_last - expenses_total_last
 
       @donors_last_period =  @project.collective.transactions.donations.between(@last_period_range.begin, @last_period_range.end).group(:from_account).count.length
       @donors_this_period =  @project.collective.transactions.donations.between(@this_period_range.begin, @this_period_range.end).group(:from_account).count.length
 
       @payees_last_period = @project.collective.transactions.expenses.between(@last_period_range.begin, @last_period_range.end).group(:to_account).count.length
       @payees_this_period = @project.collective.transactions.expenses.between(@this_period_range.begin, @this_period_range.end).group(:to_account).count.length
+      
+      # Calculate reimbursements (RECEIPT type expenses)
+      @reimbursements_this_period = @project.collective.transactions.reimbursements
+        .between(@this_period_range.begin, @this_period_range.end)
+        .sum(:amount)
+      
+      @reimbursements_last_period = @project.collective.transactions.reimbursements
+        .between(@last_period_range.begin, @last_period_range.end)
+        .sum(:amount)
+      
+      # Calculate recurring donor percentage
+      # Use pluck for better performance - single query per period
+      donors_this_list = @project.collective.transactions.donations
+        .between(@this_period_range.begin, @this_period_range.end)
+        .distinct.pluck(:from_account)
+      donors_last_list = @project.collective.transactions.donations
+        .between(@last_period_range.begin, @last_period_range.end)
+        .distinct.pluck(:from_account)
+      
+      recurring_donors_count = (donors_this_list & donors_last_list).count
+      
+      @recurring_donors_percentage_this = donors_this_list.any? ? 
+        (recurring_donors_count.to_f / donors_this_list.count * 100).round(0) : 0
+      
+      # For last period, compare with period before that
+      donors_before_last = @project.collective.transactions.donations
+        .between(@last_period_range.begin - (@last_period_range.end - @last_period_range.begin), @last_period_range.begin)
+        .distinct.pluck(:from_account)
+      
+      recurring_donors_last_count = (donors_last_list & donors_before_last).count
+      @recurring_donors_percentage_last = donors_last_list.any? ? 
+        (recurring_donors_last_count.to_f / donors_last_list.count * 100).round(0) : 0
     end
 
     if @project.github_sponsors.present?
@@ -331,6 +437,21 @@ class ProjectsController < ApplicationController
     issues_scope = @project.issues
     issues_scope = issues_scope.human if params[:exclude_bots] == 'true'
     issues_scope = issues_scope.bot if params[:only_bots] == 'true'
+    
+    # Load unique authors metrics
+    @unique_issue_authors_this_period = issues_scope.issue.between(@this_period_range.begin, @this_period_range.end).distinct.count(:user)
+    @unique_issue_authors_last_period = issues_scope.issue.between(@last_period_range.begin, @last_period_range.end).distinct.count(:user)
+    
+    @unique_pr_authors_this_period = issues_scope.pull_request.between(@this_period_range.begin, @this_period_range.end).distinct.count(:user)
+    @unique_pr_authors_last_period = issues_scope.pull_request.between(@last_period_range.begin, @last_period_range.end).distinct.count(:user)
+    
+    # Load merged PRs count
+    @merged_prs_this_period = issues_scope.pull_request.merged_between(@this_period_range.begin, @this_period_range.end).count
+    @merged_prs_last_period = issues_scope.pull_request.merged_between(@last_period_range.begin, @last_period_range.end).count
+    
+    # Load closed issues count
+    @closed_issues_this_period = issues_scope.issue.closed_between(@this_period_range.begin, @this_period_range.end).count
+    @closed_issues_last_period = issues_scope.issue.closed_between(@last_period_range.begin, @last_period_range.end).count
 
     @time_to_close_prs_last_period = (issues_scope.pull_request.closed_between(@last_period_range.begin, @last_period_range.end)
       .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
@@ -347,6 +468,15 @@ class ProjectsController < ApplicationController
     @time_to_close_issues_this_period = (issues_scope.issue.closed_between(@this_period_range.begin, @this_period_range.end)
       .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
     @time_to_close_issues_this_period = @time_to_close_issues_this_period.round(1)
+    
+    # Time series data for responsiveness chart (issues closed and PRs merged)
+    if @range == 'year'
+      @closed_issues_per_period = issues_scope.issue.where.not(closed_at: nil).group_by_year(:closed_at, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+      @merged_prs_per_period = issues_scope.pull_request.where.not(merged_at: nil).group_by_year(:merged_at, format: '%Y', last: 6, expand_range: true, default_value: 0).count
+    else
+      @closed_issues_per_period = issues_scope.issue.where.not(closed_at: nil).group_by_month(:closed_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
+      @merged_prs_per_period = issues_scope.pull_request.where.not(merged_at: nil).group_by_month(:merged_at, format: '%b %Y', last: 6, expand_range: true, default_value: 0).count
+    end
   end
 
   def sync
@@ -437,6 +567,19 @@ class ProjectsController < ApplicationController
   end
 
   private
+
+  def handle_not_found
+    # Extract GitHub URL from the slug if it looks like a GitHub path
+    if params[:id] && params[:id].include?('github.com/')
+      # Build the full GitHub URL from the slug
+      url = "https://#{params[:id]}"
+      # Redirect to the lookup action with the URL as a query parameter for GET
+      redirect_to lookup_projects_path + "?url=#{CGI.escape(url)}", alert: "Project not found. Let's try to find it..."
+    else
+      # For non-GitHub URLs or other cases, show a generic 404
+      raise ActiveRecord::RecordNotFound
+    end
+  end
 
   def set_range_and_period
     @range = range
@@ -569,7 +712,7 @@ class ProjectsController < ApplicationController
       purl_without_version = purl_obj.with(version: nil).to_s
       
       # Call packages.ecosyste.ms API
-      response = Faraday.get("https://packages.ecosyste.ms/api/v1/packages/lookup", { purl: purl_without_version })
+      response = Faraday.get("https://packages.ecosyste.ms/api/v1/packages/lookup", { purl: purl_without_version }, {'User-Agent' => 'dashboard.ecosyste.ms'})
       
       if response.success?
         data = JSON.parse(response.body)

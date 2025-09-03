@@ -48,52 +48,28 @@ function initializeCollectionSync() {
           return;
         }
         
-        if (data.type === 'status_update' && data.html) {
-          // Update the entire sync status area
+        // For any update that includes HTML, replace the entire content
+        if (data.html) {
+          console.log("Updating entire sync status area with new HTML");
+          
+          // Replace the content while preserving the container
           syncStatusElement.innerHTML = data.html;
           
           // If sync is complete, redirect to collection page
-          if (data.import_status === 'completed' && data.sync_status === 'ready') {
+          if (data.sync_status === 'ready') {
+            console.log('Sync complete, redirecting in 2 seconds...');
             setTimeout(() => {
               window.location.href = syncStatusElement.getAttribute('data-collection-url');
             }, 2000);
           }
-        } else if (data.type === 'progress_update') {
-          console.log('Handling progress update:', data.progress);
-          
-          // Update just the progress numbers
-          const progressBadge = document.querySelector('.badge span.spinner-border');
-          console.log('Found progress badge:', progressBadge);
-          
-          if (progressBadge && progressBadge.parentElement) {
-            console.log('Updating progress badge text');
-            progressBadge.parentElement.innerHTML = `
-              <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-              ${data.progress.synced} / ${data.progress.total} projects synced
-            `;
-          } else {
-            console.log('Progress badge not found, looking for alternative selectors...');
-            // Try alternative selector for the syncing badge
-            const syncingBadge = document.querySelector('.badge.bg-warning');
-            console.log('Found syncing badge:', syncingBadge);
-            if (syncingBadge) {
-              syncingBadge.innerHTML = `
-                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                ${data.progress.synced} / ${data.progress.total} projects synced
-              `;
-            }
-          }
-          
-          // Update progress bar
-          const progressBar = document.querySelector('.progress-bar');
-          console.log('Found progress bar:', progressBar, 'Total projects:', data.progress.total);
-          
-          if (progressBar && data.progress.total > 0) {
-            const percentage = Math.round((data.progress.synced / data.progress.total) * 100);
-            console.log('Updating progress bar to:', percentage + '%');
-            progressBar.style.width = percentage + '%';
-            progressBar.setAttribute('aria-valuenow', data.progress.synced);
-            progressBar.textContent = percentage + '%';
+        } else {
+          console.log("No HTML in update, skipping DOM update");
+          // Still check for redirect even without HTML update
+          if (data.sync_status === 'ready' && data.progress && data.progress.synced === data.progress.total) {
+            console.log('Sync complete (no HTML), redirecting in 2 seconds...');
+            setTimeout(() => {
+              window.location.href = syncStatusElement.getAttribute('data-collection-url');
+            }, 2000);
           }
         }
       }
