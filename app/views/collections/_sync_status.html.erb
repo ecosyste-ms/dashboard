@@ -98,7 +98,7 @@
               <%= bootstrap_icon 'arrow-repeat', width: 16, height: 16, class: 'me-1' %>
               Currently Syncing (<%= currently_syncing.count %>)
             </h6>
-            <ul class="list-unstyled ms-3">
+            <ul class="list-unstyled">
               <% currently_syncing.each do |project| %>
                 <li class="mb-1">
                   <span class="text-muted small">
@@ -117,11 +117,11 @@
         <% pending_projects = collection.pending_sync_projects %>
         <% if pending_projects.any? %>
           <div class="mb-3">
-            <h6 class="text-secondary">
+            <h6 class="text-muted">
               <%= bootstrap_icon 'clock', width: 16, height: 16, class: 'me-1' %>
               Pending Sync (<%= pending_projects.count %><% if pending_projects.count == 5 %>+<% end %>)
             </h6>
-            <ul class="list-unstyled ms-3">
+            <ul class="list-unstyled">
               <% pending_projects.each do |project| %>
                 <li class="mb-1">
                   <span class="text-muted small">
