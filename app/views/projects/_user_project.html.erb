@@ -1,7 +1,7 @@
 <div class="card mb-3 pb-4 listing d-flex flex-row align-items-center" id="user_project_<%= user_project.id %>">
   <a href="<%= project_path(user_project.project) %>">
     <% if user_project.project.avatar_url.present? %>
-      <img src="<%= user_project.project.avatar_url %>" alt="<%= user_project.project.name || user_project.project.to_s.split('/').last %> logo" class="project-logo img-fluid" onerror="this.style.display='none'" style="max-width: 60px;">
+      <img src="<%= user_project.project.avatar_url %>" alt="<%= user_project.project.name || user_project.project.to_s.split('/').last %> logo" class="project-logo img-fluid" onerror="this.style.display='none'" style="max-width: 130px;">
     <% else %>
       <%= image_tag("applications.svg", alt: " ", class: "project-logo img-fluid", size: "130x130") %>
     <% end %>
