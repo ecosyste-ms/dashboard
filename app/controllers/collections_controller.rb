@@ -175,11 +175,11 @@ class CollectionsController < ApplicationController
   end
 
   def edit
-    require_owner!
+    return unless require_owner!
   end
 
   def update
-    require_owner!
+    return unless require_owner!
     
     # Handle file upload for dependency_file
     if params[:collection][:dependency_file].respond_to?(:read)
@@ -194,7 +194,7 @@ class CollectionsController < ApplicationController
   end
 
   def destroy
-    require_owner!
+    return unless require_owner!
     @collection.destroy
     redirect_to collections_path, notice: 'Collection was successfully deleted.'
   end
@@ -599,12 +599,18 @@ class CollectionsController < ApplicationController
     @collection = Collection.includes(:projects).find_by_slug(collection_id) || Collection.includes(:projects).find_by_uuid(collection_id)
     raise ActiveRecord::RecordNotFound if @collection.nil?
     if @collection.visibility == 'private' && @collection.user != current_user
-      raise ActiveRecord::RecordNotFound
+      # Return 404 directly for permission denied, bypassing handle_not_found
+      head :not_found
     end
   end
 
   def require_owner!
-    raise ActiveRecord::RecordNotFound unless @collection.user == current_user
+    if @collection.user == current_user
+      true
+    else
+      head :not_found
+      false
+    end
   end
 
   def redirect_if_syncing

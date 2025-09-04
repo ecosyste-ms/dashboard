@@ -421,7 +421,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     mock_response = mock()
     mock_response.expects(:success?).returns(true)
     mock_response.expects(:body).returns([{ 'repository_url' => repository_url }].to_json)
-    Faraday.expects(:get).with("https://packages.ecosyste.ms/api/v1/packages/lookup", { purl: 'pkg:npm/nonexistent-package' }).returns(mock_response)
+    Faraday.expects(:get).with("https://packages.ecosyste.ms/api/v1/packages/lookup", { purl: 'pkg:npm/nonexistent-package' }, {'User-Agent' => 'dashboard.ecosyste.ms'}).returns(mock_response)
     
     # Mock sync_async to avoid background job in test
     Project.any_instance.expects(:sync_async)
@@ -448,7 +448,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     # Mock API failure
     mock_response = mock()
     mock_response.expects(:success?).returns(false)
-    Faraday.expects(:get).with("https://packages.ecosyste.ms/api/v1/packages/lookup", { purl: 'pkg:npm/nonexistent-package' }).returns(mock_response)
+    Faraday.expects(:get).with("https://packages.ecosyste.ms/api/v1/packages/lookup", { purl: 'pkg:npm/nonexistent-package' }, {'User-Agent' => 'dashboard.ecosyste.ms'}).returns(mock_response)
     
     assert_no_difference('Project.count') do
       post lookup_projects_url, params: { url: registry_url }
@@ -497,7 +497,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     mock_response = mock()
     mock_response.expects(:success?).returns(true)
     mock_response.expects(:body).returns([{ 'repository_url' => repository_url }].to_json)
-    Faraday.expects(:get).with("https://packages.ecosyste.ms/api/v1/packages/lookup", { purl: 'pkg:npm/nonexistent-package' }).returns(mock_response)
+    Faraday.expects(:get).with("https://packages.ecosyste.ms/api/v1/packages/lookup", { purl: 'pkg:npm/nonexistent-package' }, {'User-Agent' => 'dashboard.ecosyste.ms'}).returns(mock_response)
     
     # Mock sync_async to avoid background job in test
     Project.any_instance.expects(:sync_async)
@@ -526,7 +526,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     # Mock API failure
     mock_response = mock()
     mock_response.expects(:success?).returns(false)
-    Faraday.expects(:get).with("https://packages.ecosyste.ms/api/v1/packages/lookup", { purl: 'pkg:npm/nonexistent-package' }).returns(mock_response)
+    Faraday.expects(:get).with("https://packages.ecosyste.ms/api/v1/packages/lookup", { purl: 'pkg:npm/nonexistent-package' }, {'User-Agent' => 'dashboard.ecosyste.ms'}).returns(mock_response)
     
     assert_no_difference('Project.count') do
       post lookup_projects_url, params: { purl: purl_string }
