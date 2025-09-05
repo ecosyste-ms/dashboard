@@ -3,7 +3,8 @@ require "test_helper"
 class UserProjectTest < ActiveSupport::TestCase
   def setup
     @user = FactoryBot.create(:user)
-    @project = FactoryBot.create(:project, :with_repository)
+    # Use a unique URL to avoid conflicts
+    @project = FactoryBot.create(:project, url: "https://github.com/test/user-project-#{SecureRandom.hex(8)}")
   end
 
   test "should create user project with valid attributes" do
@@ -82,7 +83,7 @@ class UserProjectTest < ActiveSupport::TestCase
 
   test "active scope should return only non-deleted records" do
     active_project = UserProject.create!(user: @user, project: @project)
-    other_project = FactoryBot.create(:project, :with_repository)
+    other_project = FactoryBot.create(:project, url: "https://github.com/test/active-#{SecureRandom.hex(8)}")
     deleted_project = UserProject.create!(user: @user, project: other_project)
     deleted_project.soft_delete!
     
@@ -92,7 +93,7 @@ class UserProjectTest < ActiveSupport::TestCase
 
   test "deleted scope should return only deleted records" do
     active_project = UserProject.create!(user: @user, project: @project)
-    other_project = FactoryBot.create(:project, :with_repository)
+    other_project = FactoryBot.create(:project, url: "https://github.com/test/deleted-#{SecureRandom.hex(8)}")
     deleted_project = UserProject.create!(user: @user, project: other_project)
     deleted_project.soft_delete!
     
