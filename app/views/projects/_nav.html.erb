@@ -4,7 +4,7 @@
       <a class="nav-link <%= 'active' if params[:tab].blank? %>" href="<%= project_path_with_collection(@project) %>">Overview</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if params[:tab] == 'productivity' %>" aria-current="page" href="<%= project_path_with_collection(@project, 'productivity') %>">Productivity</a>
+      <a class="nav-link <%= 'active' if params[:tab] == 'productivity' %>" href="<%= project_path_with_collection(@project, 'productivity') %>">Productivity</a>
     </li>
     <li class="nav-item">
       <a class="nav-link <%= 'active' if params[:tab] == 'responsiveness' %>" href="<%= project_path_with_collection(@project, 'responsiveness') %>">Responsiveness</a>
