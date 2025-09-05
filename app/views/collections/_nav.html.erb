@@ -1,37 +1,72 @@
 <div class="dashboard-layout__navigation">
   <ul class="nav nav-pills flex-column dboard-nav me-4">
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'show' %>" href="<%= clean_collection_path(@collection, request.query_parameters) %>">Overview</a>
+      <%= link_to "Overview",
+          clean_collection_path(@collection, request.query_parameters),
+          class: "nav-link #{'active' if action_name == 'show'}",
+          aria: (action_name == "show" ? { current: "page" } : {}) %>
     </li>
+
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'productivity' %>" aria-current="page" href="<%= productivity_collection_path(@collection, request.query_parameters) %>">Productivity</a>
+      <%= link_to "Productivity",
+          productivity_collection_path(@collection, request.query_parameters),
+          class: "nav-link #{'active' if action_name == 'productivity'}",
+          aria: (action_name == "productivity" ? { current: "page" } : {}) %>
     </li>
+
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'responsiveness' %>" href="<%= responsiveness_collection_path(@collection, request.query_parameters) %>">Responsiveness</a>
+      <%= link_to "Responsiveness",
+          responsiveness_collection_path(@collection, request.query_parameters),
+          class: "nav-link #{'active' if action_name == 'responsiveness'}",
+          aria: (action_name == "responsiveness" ? { current: "page" } : {}) %>
     </li>
+
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'finance' %>" href="<%= finance_collection_path(@collection, request.query_parameters) %>">Finance</a>
+      <%= link_to "Finance",
+          finance_collection_path(@collection, request.query_parameters),
+          class: "nav-link #{'active' if action_name == 'finance'}",
+          aria: (action_name == "finance" ? { current: "page" } : {}) %>
     </li>
+
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'engagement' %>" href="<%= engagement_collection_path(@collection, request.query_parameters) %>">Engagement</a>
+      <%= link_to "Engagement",
+          engagement_collection_path(@collection, request.query_parameters),
+          class: "nav-link #{'active' if action_name == 'engagement'}",
+          aria: (action_name == "engagement" ? { current: "page" } : {}) %>
     </li>
+
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'adoption' %>" href="<%= adoption_collection_path(@collection, request.query_parameters) %>">Adoption</a>
+      <%= link_to "Adoption",
+          adoption_collection_path(@collection, request.query_parameters),
+          class: "nav-link #{'active' if action_name == 'adoption'}",
+          aria: (action_name == "adoption" ? { current: "page" } : {}) %>
     </li>
+
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'dependencies' %>" href="<%= dependencies_collection_path(@collection, request.query_parameters) %>">Dependencies
+      <%= link_to dependencies_collection_path(@collection, request.query_parameters),
+          class: "nav-link #{'active' if action_name == 'dependencies'}",
+          aria: (action_name == "dependencies" ? { current: "page" } : {}) do %>
+        Dependencies
         <span class="badge bg-secondary ms-1"><%= number_to_human(@collection.total_dependencies_count) %></span>
-      </a>
+      <% end %>
     </li>
+
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'security' %>" href="<%= security_collection_path(@collection, request.query_parameters) %>">Security
+      <%= link_to security_collection_path(@collection, request.query_parameters),
+          class: "nav-link #{'active' if action_name == 'security'}",
+          aria: (action_name == "security" ? { current: "page" } : {}) do %>
+        Security
         <span class="badge bg-secondary ms-1"><%= number_to_human(@collection.advisories_count) %></span>
-      </a>
+      <% end %>
     </li>
+
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if action_name == 'projects' %>" href="<%= collection_projects_path(@collection, request.query_parameters) %>">Projects
+      <%= link_to collection_projects_path(@collection, request.query_parameters),
+          class: "nav-link #{'active' if action_name == 'projects'}",
+          aria: (action_name == "projects" ? { current: "page" } : {}) do %>
+        Projects
         <span class="badge bg-secondary ms-1"><%= number_to_human(@collection.projects.count) %></span>
-      </a>
+      <% end %>
     </li>
   </ul>
 

@@ -1,37 +1,72 @@
 <div class="dashboard-layout__navigation">
   <ul class="nav nav-pills flex-column dboard-nav me-4">
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if params[:tab].blank? %>" href="<%= project_path_with_collection(@project) %>">Overview</a>
+      <%= link_to "Overview",
+          project_path_with_collection(@project),
+          class: "nav-link #{'active' if params[:tab].blank?}",
+          aria: (params[:tab].blank? ? { current: "page" } : {}) %>
     </li>
+
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if params[:tab] == 'productivity' %>" href="<%= project_path_with_collection(@project, 'productivity') %>">Productivity</a>
+      <%= link_to "Productivity",
+          project_path_with_collection(@project, "productivity"),
+          class: "nav-link #{'active' if params[:tab] == 'productivity'}",
+          aria: (params[:tab] == "productivity" ? { current: "page" } : {}) %>
     </li>
+
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if params[:tab] == 'responsiveness' %>" href="<%= project_path_with_collection(@project, 'responsiveness') %>">Responsiveness</a>
+      <%= link_to "Responsiveness",
+          project_path_with_collection(@project, "responsiveness"),
+          class: "nav-link #{'active' if params[:tab] == 'responsiveness'}",
+          aria: (params[:tab] == "responsiveness" ? { current: "page" } : {}) %>
     </li>
+
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if params[:tab] == 'finance' %>" href="<%= project_path_with_collection(@project, 'finance') %>">Finance</a>
+      <%= link_to "Finance",
+          project_path_with_collection(@project, "finance"),
+          class: "nav-link #{'active' if params[:tab] == 'finance'}",
+          aria: (params[:tab] == "finance" ? { current: "page" } : {}) %>
     </li>
+
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if params[:tab] == 'engagement' %>" href="<%= project_path_with_collection(@project, 'engagement') %>">Engagement</a>
+      <%= link_to "Engagement",
+          project_path_with_collection(@project, "engagement"),
+          class: "nav-link #{'active' if params[:tab] == 'engagement'}",
+          aria: (params[:tab] == "engagement" ? { current: "page" } : {}) %>
     </li>
+
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if params[:tab] == 'adoption' %>" href="<%= project_path_with_collection(@project, 'adoption') %>">Adoption</a>
+      <%= link_to "Adoption",
+          project_path_with_collection(@project, "adoption"),
+          class: "nav-link #{'active' if params[:tab] == 'adoption'}",
+          aria: (params[:tab] == "adoption" ? { current: "page" } : {}) %>
     </li>
+
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if params[:tab] == 'dependencies' %>" href="<%= project_path_with_collection(@project, 'dependencies') %>">Dependencies
+      <%= link_to project_path_with_collection(@project, "dependencies"),
+          class: "nav-link #{'active' if params[:tab] == 'dependencies'}",
+          aria: (params[:tab] == "dependencies" ? { current: "page" } : {}) do %>
+        Dependencies
         <span class="badge bg-secondary ms-1"><%= number_to_human(@project.total_dependencies_count) %></span>
-      </a>
+      <% end %>
     </li>
+
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if params[:tab] == 'packages' %>" href="<%= project_path_with_collection(@project, 'packages') %>">Packages
+      <%= link_to project_path_with_collection(@project, "packages"),
+          class: "nav-link #{'active' if params[:tab] == 'packages'}",
+          aria: (params[:tab] == "packages" ? { current: "page" } : {}) do %>
+        Packages
         <span class="badge bg-secondary ms-1"><%= number_to_human(@project.packages_count || 0) %></span>
-      </a>
+      <% end %>
     </li>
+
     <li class="nav-item">
-      <a class="nav-link <%= 'active' if params[:tab] == 'security' %>" href="<%= project_path_with_collection(@project, 'security') %>">Security
+      <%= link_to project_path_with_collection(@project, "security"),
+          class: "nav-link #{'active' if params[:tab] == 'security'}",
+          aria: (params[:tab] == "security" ? { current: "page" } : {}) do %>
+        Security
         <span class="badge bg-secondary ms-1"><%= number_to_human(@project.advisories_count) %></span>
-      </a>
+      <% end %>
     </li>
   </ul>
   <hr class="mt-5 me-3" />
