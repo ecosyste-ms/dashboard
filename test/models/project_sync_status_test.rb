@@ -2,7 +2,13 @@ require "test_helper"
 
 class ProjectSyncStatusTest < ActiveSupport::TestCase
   setup do
-    @project = create(:project, :with_repository)
+    # Use unique URL to avoid conflicts
+    @project = create(:project, url: "https://github.com/test/sync-status-#{SecureRandom.hex(8)}", 
+                       repository: {
+                         "full_name" => "test/sync-status",
+                         "name" => "sync-status",
+                         "owner" => "test"
+                       })
   end
 
   test "sync methods update individual last_synced_at timestamps" do

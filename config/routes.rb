@@ -26,6 +26,24 @@ Rails.application.routes.draw do
         end
         member do
           get :ping
+          get :issues
+          get :releases
+          get :commits
+          get :packages
+          get :advisories
+        end
+      end
+      resources :collections, constraints: { id: /.*/ }, only: [:index, :show] do
+        collection do
+          get :lookup
+        end
+        member do
+          get :projects
+          get :issues
+          get :releases
+          get :commits
+          get :packages
+          get :advisories
         end
       end
     end

@@ -99,8 +99,539 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Project'
+  /projects/{id}/ping:
+    get:
+      description: ping a project to trigger sync
+      operationId: pingProject
+      tags:
+        - projects
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: slug of the project
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        404:
+          description: Project not found
+  /projects/{id}/issues:
+    get:
+      description: get issues for a project
+      operationId: getProjectIssues
+      tags:
+        - projects
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: slug of the project
+        - name: page
+          in: query
+          description: pagination page number 
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return 
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
+        404:
+          description: Project not found
+  /projects/{id}/releases:
+    get:
+      description: get releases for a project
+      operationId: getProjectReleases
+      tags:
+        - projects
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: slug of the project
+        - name: page
+          in: query
+          description: pagination page number 
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return 
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Release'
+        404:
+          description: Project not found
+  /projects/{id}/commits:
+    get:
+      description: get commits for a project
+      operationId: getProjectCommits
+      tags:
+        - projects
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: slug of the project
+        - name: page
+          in: query
+          description: pagination page number 
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return 
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Commit'
+        404:
+          description: Project not found
+  /projects/{id}/packages:
+    get:
+      description: get packages for a project
+      operationId: getProjectPackagesList
+      tags:
+        - projects
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: slug of the project
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Package'
+        404:
+          description: Project not found
+  /projects/{id}/advisories:
+    get:
+      description: get security advisories for a project
+      operationId: getProjectAdvisories
+      tags:
+        - projects
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: slug of the project
+        - name: page
+          in: query
+          description: pagination page number 
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return 
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Advisory'
+        404:
+          description: Project not found
+  /collections:
+    get:
+      description: get public collections
+      operationId: getCollections
+      tags:
+        - collections
+      parameters:
+        - name: page
+          in: query
+          description: pagination page number 
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return 
+          required: false
+          schema:
+            type: integer
+        - name: sort
+          in: query
+          description: The field to sort by
+          required: false
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: The sort order (asc or desc)
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Collection'
+  /collections/{id}:
+    get:
+      description: get a public collection by id
+      operationId: getCollection
+      tags:
+        - collections
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: slug of the collection
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        404:
+          description: Collection not found or not public
+  /collections/lookup:
+    get:
+      description: lookup public collection by slug
+      operationId: lookupCollection
+      tags:
+        - collections
+      parameters:
+        - name: slug
+          in: query
+          description: slug of the collection
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        404:
+          description: Collection not found or not public
+  /collections/{id}/projects:
+    get:
+      description: get projects in a public collection
+      operationId: getCollectionProjects
+      tags:
+        - collections
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: slug of the collection
+        - name: page
+          in: query
+          description: pagination page number 
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return 
+          required: false
+          schema:
+            type: integer
+        - name: sort
+          in: query
+          description: The field to sort by
+          required: false
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: The sort order (asc or desc)
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+        404:
+          description: Collection not found or not public
+  /collections/{id}/issues:
+    get:
+      description: get issues from all projects in a public collection
+      operationId: getCollectionIssues
+      tags:
+        - collections
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: slug of the collection
+        - name: page
+          in: query
+          description: pagination page number
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
+        404:
+          description: Collection not found or not public
+  /collections/{id}/releases:
+    get:
+      description: get releases from all projects in a public collection
+      operationId: getCollectionReleases
+      tags:
+        - collections
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: slug of the collection
+        - name: page
+          in: query
+          description: pagination page number
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Release'
+        404:
+          description: Collection not found or not public
+  /collections/{id}/commits:
+    get:
+      description: get commits from all projects in a public collection
+      operationId: getCollectionCommits
+      tags:
+        - collections
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: slug of the collection
+        - name: page
+          in: query
+          description: pagination page number
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Commit'
+        404:
+          description: Collection not found or not public
+  /collections/{id}/packages:
+    get:
+      description: get packages from all projects in a public collection
+      operationId: getCollectionPackages
+      tags:
+        - collections
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: slug of the collection
+        - name: page
+          in: query
+          description: pagination page number
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Package'
+        404:
+          description: Collection not found or not public
+  /collections/{id}/advisories:
+    get:
+      description: get security advisories from all projects in a public collection
+      operationId: getCollectionAdvisories
+      tags:
+        - collections
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: slug of the collection
+        - name: page
+          in: query
+          description: pagination page number
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Advisory'
+        404:
+          description: Collection not found or not public
 components:
   schemas:
+    Collection:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        slug:
+          type: string
+        visibility:
+          type: string
+          enum: [public, private]
+        projects_count:
+          type: integer
+        collection_url:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
     Project:
       type: object
       properties:
@@ -155,4 +686,179 @@ components:
             type: string
         works:
           type: object
-    
+    Issue:
+      type: object
+      properties:
+        id:
+          type: integer
+        number:
+          type: integer
+        title:
+          type: string
+        body:
+          type: string
+        state:
+          type: string
+        html_url:
+          type: string
+        user:
+          type: string
+        labels:
+          type: array
+          items:
+            type: string
+        pull_request:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        closed_at:
+          type: string
+          format: date-time
+        merged_at:
+          type: string
+          format: date-time
+        comments_count:
+          type: integer
+        author_association:
+          type: string
+        time_to_close:
+          type: integer
+        bot:
+          type: boolean
+    Release:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        sha:
+          type: string
+        kind:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    Commit:
+      type: object
+      properties:
+        id:
+          type: integer
+        sha:
+          type: string
+        message:
+          type: string
+        author_name:
+          type: string
+        author_email:
+          type: string
+        author_login:
+          type: string
+        committer_name:
+          type: string
+        committer_email:
+          type: string
+        committer_login:
+          type: string
+        stats:
+          type: object
+        datetime:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    Package:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        platform:
+          type: string
+        description:
+          type: string
+        homepage:
+          type: string
+        repository_url:
+          type: string
+        normalized_licenses:
+          type: array
+          items:
+            type: string
+        latest_release_number:
+          type: string
+        latest_release_published_at:
+          type: string
+          format: date-time
+        keywords:
+          type: array
+          items:
+            type: string
+        language:
+          type: string
+        status:
+          type: string
+        versions_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    Advisory:
+      type: object
+      properties:
+        id:
+          type: integer
+        uuid:
+          type: string
+        source_kind:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        severity:
+          type: string
+        url:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+        withdrawn_at:
+          type: string
+          format: date-time
+        references:
+          type: array
+          items:
+            type: string
+        cvss_score:
+          type: number
+        cvss_vector:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        project_id:
+          type: integer
+        project_slug:
+          type: string
