@@ -1,14 +1,27 @@
 <% content_for :title, "Your Projects" %>
 
-<div class="container">
-  <div class="d-md-flex justify-content-between align-items-center mt-5 mb-2">
-    <h1 class="my-4">Your projects</h1>
-    <%= link_to new_project_path, class: "btn btn-primary rounded-pill" do %>
+<div class="breadcrumb-section py-3 mt-3">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb bg-transparent p-0 mb-1">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item active text-light" aria-current="page">
+          Projects
+        </li>
+      </ol>
+    </nav>
+  </div>
+</div>
+<div class="project-header purple-grad-bg  mb-5 pt-4 pb-4">
+  <div class="container">
+    <h1 class="my-4 display-1">Your projects</h1>
+    <%= link_to new_project_path, class: "btn btn-success rounded-pill mb-3" do %>
       <%= bootstrap_icon 'plus-circle', width: 16, height: 16, class: 'me-2' %>
       Add a new project
     <% end %>
   </div>
-
+</div>
+<div class="container">
   <% if @user_projects.empty? %>
     <div class="text-center py-5">
       <p class="lead text-muted">You haven't added any projects yet.</p>

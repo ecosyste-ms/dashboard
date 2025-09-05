@@ -1,13 +1,24 @@
 <% @meta_title = "Collections" %>
 <% @meta_description = "Open Source Collections" %>
-
-<div class="container">
-
-    <div class="d-md-flex justify-content-between align-items-center mt-5 mb-2">
-    <h1 class="my-4">Your collections</h1>
-    <a href="<%= new_collection_path %>" class="btn btn-primary rounded-pill">Create a new collection</a>
+<div class="breadcrumb-section py-3 mt-3">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb bg-transparent p-0 mb-1">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item active text-light" aria-current="page">
+          Collections
+        </li>
+      </ol>
+    </nav>
   </div>
-
+</div>
+<div class="project-header purple-grad-bg  mb-5 pt-4 pb-4">
+  <div class="container">
+    <h1 class="my-4 display-1">Your collections</h1>
+    <a href="<%= new_collection_path %>" class="btn btn-success rounded-pill mb-3">Create a new collection</a>
+  </div>
+</div>
+<div class="container">
   <%= render @collections %>
   <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
 </div>
