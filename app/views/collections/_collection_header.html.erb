@@ -2,8 +2,8 @@
   <div class="container">
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb bg-transparent p-0 mb-1">
-        <li class="breadcrumb-item"><a href="#">Home</a></li><!-- if this is aproject or collection you made, probably insert your name here? -->
-        <li class="breadcrumb-item"><a href="#">Collections</a></li>
+        <li class="breadcrumb-item"><a href="/">Home</a></li><!-- if this is aproject or collection you made, probably insert your name here? -->
+        <li class="breadcrumb-item"><a href="<%= collections_path %>">Collections</a></li>
         <li class="breadcrumb-item active" aria-current="page"><%= @collection.to_s %></li>
       </ol>
     </nav>
