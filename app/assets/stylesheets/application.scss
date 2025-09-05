@@ -232,3 +232,20 @@ html {
     }
   }
 }
+
+.inverted-nav {
+  border-top: 3px solid $color-purple-dark;
+  .nav-link {
+    color: $color-white;
+    &.disabled {
+      color: $color-purple-light;
+    }
+    &.active {
+      background-color: adjust-color($color-purple-dark, $saturation: -15%, $lightness: -15%);
+      border-bottom: 1px solid $color-purple;
+    }
+    &:hover, &:active, &:focus {
+      background-color: adjust-color($color-purple-dark, $saturation: -15%, $lightness: -7.5%);
+    }
+  }
+}
