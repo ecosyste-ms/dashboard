@@ -213,3 +213,39 @@ html {
   max-height: 16rem;
   overflow-y: auto;
 }
+
+
+.breadcrumb-section {
+  
+  background-color: $color-purple-dark;
+  .breadcrumb {
+    margin: 0;
+    --bs-breadcrumb-divider-color: #{$color-purple-light};
+    
+  }
+
+  .breadcrumb-item {
+    font-size: $font-size-small ;
+    color: $color-white;
+    a { 
+      color: $color-white;
+    }
+  }
+}
+
+.inverted-nav {
+  border-top: 3px solid $color-purple-dark;
+  .nav-link {
+    color: $color-white;
+    &.disabled {
+      color: $color-purple-light;
+    }
+    &.active {
+      background-color: adjust-color($color-purple-dark, $saturation: -15%, $lightness: -15%);
+      border-bottom: 1px solid $color-purple;
+    }
+    &:hover, &:active, &:focus {
+      background-color: adjust-color($color-purple-dark, $saturation: -15%, $lightness: -7.5%);
+    }
+  }
+}
