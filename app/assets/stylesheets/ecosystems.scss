@@ -998,6 +998,13 @@ body {
   }
 }
 
+.dboard__title-bar {
+  position: sticky; 
+  top: 0;            
+  z-index: 1020;      
+  background: $color-white;
+}
+
 .dboard-filter-controls {
   .btn-link {
     text-decoration: none;

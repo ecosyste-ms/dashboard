@@ -8,7 +8,7 @@
     <%= render 'nav' %>
 
     <div class="dashboard-layout__dboard">
-      <div class="d-md-flex justify-content-between align-items-center mb-4">
+      <div class="dboard__title-bar d-flex justify-content-between align-items-center mb-4">
         <h1>Dependencies</h1>
         <div class="d-flex align-items-center gap-3">
           <% if logged_in? && @project.dependencies.present? %>
