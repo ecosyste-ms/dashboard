@@ -11,10 +11,14 @@
       <div class="dboard__title-bar d-flex justify-content-between align-items-center mb-4">
         <h1>Dependencies</h1>
         <div class="d-flex align-items-center gap-3">
-          <% if logged_in? && @project.dependencies.present? %>
+          <%= render 'bots' %>
+        </div>
+      </div>
+      <div class="mb-5">
+            <% if logged_in? && @project.dependencies.present? %>
             <% existing_collection = @project.dependency_collection_for_user(current_user) %>
             <% if existing_collection %>
-              <%= link_to existing_collection, class: "btn btn-success btn-sm" do %>
+              <%= link_to existing_collection, class: "btn btn-success rounded-pill" do %>
                 <svg width="16" height="16" fill="currentColor" class="bi bi-collection me-1" viewBox="0 0 16 16">
                   <path d="M2.5 3.5a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1zm2-2a.5.5 0 0 1 0-1h7a.5.5 0 0 1 0 1zM0 13a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 16 11.5v-6A1.5 1.5 0 0 0 14.5 4h-13A1.5 1.5 0 0 0 0 5.5zm1.5 0a.5.5 0 0 1-.5-.5v-6a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-.5.5z"/>
                 </svg>
@@ -23,18 +27,17 @@
             <% else %>
               <%= button_to create_collection_from_dependencies_project_path(@project), 
                             method: :post, 
-                            class: "btn btn-primary btn-sm",
+                            class: "btn btn-success rounded-pill",
                             data: { confirm: "This will create a public collection from all dependencies of this project. Continue?" } do %>
                 <svg width="16" height="16" fill="currentColor" class="bi bi-collection me-1" viewBox="0 0 16 16">
                   <path d="M2.5 3.5a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1zm2-2a.5.5 0 0 1 0-1h7a.5.5 0 0 1 0 1zM0 13a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 16 11.5v-6A1.5 1.5 0 0 0 14.5 4h-13A1.5 1.5 0 0 0 0 5.5zm1.5 0a.5.5 0 0 1-.5-.5v-6a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-.5.5z"/>
                 </svg>
-                Create Collection
+                Create a new collection from these dependencies
               <% end %>
             <% end %>
           <% end %>
-          <%= render 'bots' %>
-        </div>
       </div>
+          
         <div class="dashboard-grid">
           <div class="three-equal-widgets">
             <%= link_to (params[:filter] == 'direct' ? dependencies_project_path(@project) : dependencies_project_path(@project, filter: 'direct')), class: "card well p-3 border-0 text-decoration-none #{'filter-active' if params[:filter] == 'direct'}" do %>
@@ -68,7 +71,7 @@
               </div>
             <% end %>
           </div>
-          
+          <% if @unique_dependencies.present? %>
           <div class="full-width-widget">
             <div class="card well p-3 border-0">
               <div class="card-body">
@@ -128,11 +131,11 @@
                     </table>
                   </div>
                 </figure>
-
-                </div>
               </div>
             </div>
           </div>
+          <% end %>
+        </div>
     </div>
   </div>
 </div>

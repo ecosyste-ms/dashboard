@@ -249,3 +249,13 @@ html {
     }
   }
 }
+
+
+.callout {
+  border: 0;
+  border-radius: 1.5rem;
+  display: flex;
+  align-items: center; 
+  justify-content: center; 
+  box-shadow: 0px 7px 24px $color-purple-light;
+}
