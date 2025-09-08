@@ -3,7 +3,6 @@
   <div class="container">
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb bg-transparent p-0 mb-1">
-        <li class="breadcrumb-item"><a href="/">Home</a></li><!-- if this is a project or collection you made, probably insert your name here? -->
         <li class="breadcrumb-item">
           <%= link_to @collection.name, clean_collection_path(@collection), class: "text-light" %>
         </li>
@@ -20,7 +19,9 @@
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">Home</a></li><!-- if this is a project or collection you made, probably insert your name here? -->
-        <li class="breadcrumb-item"><a href="<%= projects_path %>">Projects</a></li>
+        <% if logged_in? %>
+          <li class="breadcrumb-item"><a href="<%= projects_path %>">Projects</a></li>
+        <% end %>
         <li class="breadcrumb-item active" aria-current="page"><%= @project.name || @project.to_s.split('/').last %></li>
       </ol>
     </nav>
