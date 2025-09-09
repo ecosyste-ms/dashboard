@@ -532,7 +532,7 @@ class ProjectsController < ApplicationController
     collection = @project.create_collection_from_dependencies(current_user)
     
     if collection
-      redirect_to collection, notice: 'Collection created successfully from project dependencies!'
+      redirect_to clean_collection_path(collection), notice: 'Collection created successfully from project dependencies!'
     else
       redirect_to "#{project_path(@project)}?tab=dependencies", alert: 'Unable to create collection. This project may not have any dependencies.'
     end
@@ -545,7 +545,7 @@ class ProjectsController < ApplicationController
     Rails.logger.debug "Existing collection found: #{existing_collection.present?}"
     
     if existing_collection
-      redirect_to existing_collection, notice: "Viewing #{existing_collection.name} collection!"
+      redirect_to clean_collection_path(existing_collection), notice: "Viewing #{existing_collection.name} collection!"
       return
     end
     
@@ -560,7 +560,7 @@ class ProjectsController < ApplicationController
     if collection
       # Start syncing the collection if it was just created
       collection.sync_projects if collection.projects.empty?
-      redirect_to collection, notice: "Viewing #{collection.name} collection!"
+      redirect_to clean_collection_path(collection), notice: "Viewing #{collection.name} collection!"
     else
       redirect_to @project, alert: 'Unable to create owner collection. This project may not have repository owner information.'
     end
