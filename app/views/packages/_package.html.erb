@@ -1,11 +1,11 @@
 <div class="card mb-4 pb-4 listing d-flex flex-row align-items-center">	
   <div class="card-body p-0">
-    <% if package.status %>
-      <span class="listing__badge badge bg-secondary">
-        <%= package.status %>
+    <% if package.rankings.present? && package.rankings['average'] < 10.05 %>
+      <span class="listing__badge badge bg-success">
+        Top <%= [package.rankings['average'].round(1), 0.1].max %>% on <%= package.registry_name %>
       </span>
     <% end %>
-
+  
     <h3 class="card-title listing__title mt-3">
       <%= link_to package.name, package.registry_url %>
       <% if package.description_with_fallback.present? %>
@@ -45,13 +45,12 @@
         %>
         <span class="me-3"><span title="<%= package.latest_release_published_at %>">Latest release: <%= time_ago_in_words package.latest_release_published_at %> ago</span></span>
       <% end %>
-      <% if package.rankings.present? && package.rankings['average'] < 10.05 %>
-        <%= bootstrap_icon 'asterisk',
+
+      <% if package.status %>
+        <%= bootstrap_icon 'question-circle',
           width: 16, height: 16, aria_hidden: 'true', focusable: 'false', role: 'img', class: 'flex-shrink-0 me-2'
         %>
-        <span class="me-3">
-          Top <%= [package.rankings['average'].round(1), 0.1].max %>% on <%= package.registry_name %>
-        </span>
+        <span class="me-3"><%= package.status %></span>
       <% end %>
       </div>
     </div>
