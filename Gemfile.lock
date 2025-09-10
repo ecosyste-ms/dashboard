@@ -234,10 +234,10 @@ GEM
       rack (>= 1.2, < 4)
       snaky_hash (~> 2.0, >= 2.0.3)
       version_gem (~> 1.1, >= 1.1.8)
-    octicons (19.17.0)
-    octicons_helper (19.17.0)
+    octicons (19.18.0)
+    octicons_helper (19.18.0)
       actionview
-      octicons (= 19.17.0)
+      octicons (= 19.18.0)
       railties
     omniauth (2.1.3)
       hashie (>= 3.4.6)
@@ -577,8 +577,8 @@ CHECKSUMS
   nokogiri (1.18.9-x86_64-linux-musl) sha256=e69359d6240c17e64cc9f43970d54f13bfc7b8cc516b819228f687e953425e69
   numerizer (0.1.1) sha256=10ec9efec62472b69a3a0e275a18a44baa595ce6e2e4cfc1678d5cb2974c336f
   oauth2 (2.0.15) sha256=96ce2ca86cd06e80b0452e17c5bc0a1e349815d29c875a7951cdd8ff04743eab
-  octicons (19.17.0) sha256=da5834c1f3b6762143aa91b564ab387c91072d1c9db111892d91ab3f1260797a
-  octicons_helper (19.17.0) sha256=9ffeb53114db17b749066d08b8635fe2c637053f7235b8993c07da64fed3db9d
+  octicons (19.18.0) sha256=6605e5b9d84bee9e80b8d9b43be84782aec811114a935f417c01c809d7720e06
+  octicons_helper (19.18.0) sha256=ed2f0ae9bf28961729fc54f750acc54e656089be2c6ed36f8584b3a804750c36
   omniauth (2.1.3) sha256=8d24e2e55c41926c96e4a93fd566bc026dfd6f2c850408748e89945a565956c2
   omniauth-github (2.0.1) sha256=8ff8e70ac6d6db9d52485eef52cfa894938c941496e66b52b5e2773ade3ccad4
   omniauth-oauth2 (1.8.0) sha256=b2f8e9559cc7e2d4efba57607691d6d2b634b879fc5b5b6ccfefa3da85089e78
