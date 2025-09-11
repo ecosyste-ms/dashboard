@@ -1,5 +1,5 @@
 class CollectionsController < ApplicationController
-  before_action :set_period_vars, only: [:show, :engagement, :productivity, :finance, :responsiveness, :security]
+  before_action :set_period_vars, only: [:show, :engagement, :productivity, :finance, :responsiveness, :security, :projects]
 
   before_action :authenticate_user!
 
@@ -495,6 +495,25 @@ class CollectionsController < ApplicationController
   def projects
     @projects = @collection.projects
     @top_package = @collection.packages.order_by_rankings.first
+    issues_scope = @collection.issues
+
+    @new_issues_last_period = issues_scope.issue.between(@last_period_range.begin, @last_period_range.end).count
+    @new_issues_this_period = issues_scope.issue.between(@this_period_range.begin, @this_period_range.end).count
+
+    @new_prs_this_period = issues_scope.pull_request.between(@this_period_range.begin, @this_period_range.end).count
+    @new_prs_last_period = issues_scope.pull_request.between(@last_period_range.begin, @last_period_range.end).count
+
+    @time_to_close_prs_last_period = (issues_scope.pull_request.closed_between(@last_period_range.begin, @last_period_range.end)
+      .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
+    @time_to_close_prs_last_period = @time_to_close_prs_last_period.round(1)
+    
+    @time_to_close_prs_this_period = (issues_scope.pull_request.closed_between(@this_period_range.begin, @this_period_range.end)
+      .average('EXTRACT(EPOCH FROM (closed_at - issues.created_at))') || 0) / 86400.0
+    @time_to_close_prs_this_period = @time_to_close_prs_this_period.round(1)
+
+    @active_contributors_last_period = issues_scope.between(@last_period_range.begin, @last_period_range.end).group(:user).count.length
+    @active_contributors_this_period = issues_scope.between(@this_period_range.begin, @this_period_range.end).group(:user).count.length
+
     @pagy, @projects = pagy(@projects)
   end
 
