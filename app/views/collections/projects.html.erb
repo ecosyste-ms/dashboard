@@ -10,11 +10,45 @@
     <div class="dashboard-layout__dboard">
     <div class="dboard__title-bar d-flex justify-content-between align-items-center mb-4">
         <h1>Projects in <%= @collection.to_s %></h1>
+         <%= render 'bots' %>
       </div>
       <div class="dashboard-grid">  
-        
+        <div class="two-thirds-widgets">
+          <%= stat_card_widget 'New issues', @new_issues_this_period, @new_issues_last_period, symbol: '', increase_good: true, stat_size: "large", title_class: "card-title small", card_class: "two-thirds-widgets__large" %>
+          <%= stat_card_widget 'New PRs', @new_prs_last_period, @new_prs_this_period, symbol: '', increase_good: true, stat_size: "large", title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
+        </div>
+         <div class="two-thirds-widgets">
+          <%= stat_card_widget 'Time to close PRs', @time_to_close_prs_this_period, @time_to_close_prs_last_period, symbol: '', increase_good: false, stat_size: "large", title_class: "card-title small", card_class: " two-thirds-widgets__small" %>
+          <%= stat_card_widget 'Active contributors', @active_contributors_this_period, @active_contributors_last_period, symbol: '', increase_good: true, stat_size: "large", title_class: "card-title small", card_class: " two-thirds-widgets__large" %>
+          </div>
+        <% if  @top_package.present? %>
+          <div class="full-width-widget mb-5">
+            <div class="card well p-3 border-0">
+              <div class="card-body">
+                <h5 class="card-title">Ranking 
+                  <a href="/glossary#ranking-help" aria-labelledby="ranking-help">
+                    <%= bootstrap_icon 'question-circle',
+                    width: 18, height: 18, aria_hidden: 'true', focusable: 'false', role: 'img', class: 'mb-1', title: 'what is ranking?'
+                    %>
+                    <span id="ranking-help" class="visually-hidden">What is ranking?</span>
+                  </a>
+                </h5>
+                <div class="stat-card mb-2">
+                  <div class="stat-card-body">
+                      <span class="stat-card-title stat-card-title--large stat-card-number stat-card-number-positive">Top <%= @top_package.rankings['average'].round(1) %>%</span>
+                      <span class="stat-card-text">
+                        on <%= @top_package.registry_name %>
+                      </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+        <div class="mt-5">
         <%= render @projects %>
         <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+        </div>
       </div>
     </div>
   </div>
