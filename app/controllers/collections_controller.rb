@@ -494,6 +494,7 @@ class CollectionsController < ApplicationController
 
   def projects
     @projects = @collection.projects
+    @top_package = @collection.packages.order_by_rankings.first
     @pagy, @projects = pagy(@projects)
   end
 
