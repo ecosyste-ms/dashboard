@@ -30,13 +30,21 @@
                         label: "Issues Closed",
                         data: @closed_issues_per_period.map(&:last),
                         borderColor: "rgb(75, 192, 192)",
-                        backgroundColor: "rgba(75, 192, 192, 0.1)"
+                        backgroundColor: "rgba(75, 192, 192, 0.1)",
+                        borderWidth: 3,
+                        pointRadius: 3,
+                        tension: 0.4,
+                        fill: true
                       },
                       {
                         label: "PRs Merged",
                         data: @merged_prs_per_period.map(&:last),
                         borderColor: "rgb(153, 102, 255)",
-                        backgroundColor: "rgba(153, 102, 255, 0.1)"
+                        backgroundColor: "rgba(153, 102, 255, 0.1)",
+                        borderWidth: 3,
+                        pointRadius: 3,
+                        tension: 0.4,
+                        fill: true
                       }
                     ]
                   }.to_json.html_safe %>'

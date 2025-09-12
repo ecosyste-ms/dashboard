@@ -31,13 +31,21 @@
                         label: "New Issues",
                         data: @new_issues_per_period.map(&:last),
                         borderColor: "rgb(255, 99, 132)",
-                        backgroundColor: "rgba(255, 99, 132, 0.1)"
+                        backgroundColor: "rgba(255, 99, 132, 0.1)",
+                        borderWidth: 3,
+                        pointRadius: 3,
+                        tension: 0.4,
+                        fill: true
                       },
                       {
                         label: "New PRs",
                         data: @new_prs_per_period.map(&:last),
                         borderColor: "rgb(54, 162, 235)",
-                        backgroundColor: "rgba(54, 162, 235, 0.1)"
+                        backgroundColor: "rgba(54, 162, 235, 0.1)",
+                        borderWidth: 3,
+                        pointRadius: 3,
+                        tension: 0.4,
+                        fill: true
                       }
                     ]
                   }.to_json.html_safe %>'
@@ -55,18 +63,22 @@
           </div>
         </div>
         
-        <div class="three-equal-widgets">
-          <%= small_widget 'Commits', @commits_this_period, @commits_last_period, symbol: '' %>
-          <%= small_widget 'Releases', @tags_this_period, @tags_last_period, symbol: '' %>
-          <%= small_widget 'Commits per author', @avg_commits_per_author_this_period, @avg_commits_per_author_last_period,  symbol: '' %>
+        <div class="two-thirds-widgets">
+          <%= stat_card_widget 'Commits', @commits_this_period, @commits_last_period,  increase_good: true, title_class: "card-title small", stat_size: "large", card_class: "two-thirds-widgets__large" %> 
+          <%= stat_card_widget 'Commits per author', @avg_commits_per_author_this_period, @avg_commits_per_author_last_period,  increase_good: true, title_class: "card-title small", stat_size: "large", card_class: "two-thirds-widgets__small" %>
         </div>
-        <div class="three-equal-widgets">
-          <%= small_widget 'New issues', @new_issues_this_period, @new_issues_last_period,  symbol: '', increase_good: false %>
-          <%= small_widget 'Open issues', @open_isues_this_period, @open_isues_last_period,  symbol: '', increase_good: false %>
-          <%= small_widget 'Vulnerabilities', @advisories_this_period, @advisories_last_period, symbol: '', increase_good: false  %>
+
+        <div class="two-thirds-widgets">
+          <%= stat_card_widget 'Releases', @tags_this_period, @tags_last_period, increase_good: true, title_class: "card-title small", stat_size: "large", card_class: "two-thirds-widgets__small" %> 
+          <%= stat_card_widget 'Vulnerabilities', @advisories_this_period, @advisories_last_period, increase_good: false, title_class: "card-title small", stat_size: "large", card_class: "two-thirds-widgets__large" %> 
         </div>
+
+        <div class="two-thirds-widgets">
+          <%= stat_card_widget 'New issues', @new_issues_this_period, @new_issues_last_period, increase_good: false, title_class: "card-title small", stat_size: "large", card_class: "two-thirds-widgets__large" %>
+          <%= stat_card_widget 'Open issues', @open_isues_this_period, @open_isues_last_period, increase_good: false, title_class: "card-title small", stat_size: "large", card_class: "two-thirds-widgets__small" %> 
+        </div>
+
         <div class="three-equal-widgets">
-          
           <%= small_widget 'New PRs', @new_prs_last_period, @new_prs_this_period, symbol: '' %>
           <%= small_widget 'Open PRs', @open_prs_this_period, @open_prs_last_period,  symbol: '', increase_good: false %>
           <%= small_widget 'Merged PRs', @merged_prs_this_period, @merged_prs_last_period, symbol: '' %>
