@@ -85,48 +85,55 @@
 
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
-        document.addEventListener('DOMContentLoaded', function() {
-          const ctx = document.getElementById('securityChart').getContext('2d');
-          new Chart(ctx, {
-            type: 'line',
-            data: {
-              labels: <%= @dependabot_security_per_period.keys.to_json.html_safe %>,
-              datasets: [{
-                label: 'Security Advisories',
-                data: <%= @advisories_per_period.values.to_json.html_safe %>,
-                borderColor: '#ffc107',
-                backgroundColor: 'rgba(255, 193, 7, 0.1)',
-                borderWidth: 2,
-                fill: true
-              }, {
-                label: 'Dependabot Security PRs',
-                data: <%= @dependabot_security_per_period.values.to_json.html_safe %>,
-                borderColor: '#17a2b8',
-                backgroundColor: 'rgba(23, 162, 184, 0.1)',
-                borderWidth: 2,
-                fill: true
-              }]
-            },
-            options: {
-              responsive: true,
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  ticks: {
-                    stepSize: 1
+          document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('securityChart').getContext('2d');
+            new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: <%= @dependabot_security_per_period.keys.to_json.html_safe %>,
+                datasets: [
+                  {
+                    label: 'Security Advisories',
+                    data: <%= @advisories_per_period.values.to_json.html_safe %>,
+                    borderColor: '#ffc107',
+                    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                    borderWidth: 3,
+                    pointRadius: 3,
+                    tension: 0.4,
+                    fill: true
+                  },
+                  {
+                    label: 'Dependabot Security PRs',
+                    data: <%= @dependabot_security_per_period.values.to_json.html_safe %>,
+                    borderColor: '#17a2b8',
+                    backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                    borderWidth: 3,
+                    pointRadius: 3,
+                    tension: 0.4,
+                    fill: true
+                  }
+                ]
+              },
+              options: {
+                responsive: true,
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: {
+                      stepSize: 1
+                    }
+                  }
+                },
+                plugins: {
+                  legend: {
+                    position: 'top'
                   }
                 }
-              },
-              plugins: {
-                legend: {
-                  position: 'top'
-                }
               }
-            }
+            });
           });
-        });
         </script>
-      <% end %>
+        <% end %>
 
       <!-- Top Projects with Security Issues -->
       <% if @projects_with_security.any? %>
@@ -141,7 +148,7 @@
                   <%= link_to project.display_name, project, class: 'text-decoration-none fw-bold' %>
                 </div>
                 <div class="text-end">
-                  <span class="badge bg-warning"><%= project.security_count %> security issues</span>
+                  <span class="badge text-bg-warning"><%= project.security_count %> security issues</span>
                 </div>
               </div>
             <% end %>

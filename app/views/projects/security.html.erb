@@ -88,21 +88,28 @@
             type: 'line',
             data: {
               labels: <%= @dependabot_security_per_period.keys.to_json.html_safe %>,
-              datasets: [{
-                label: 'Security Advisories',
-                data: <%= @advisories_per_period.values.to_json.html_safe %>,
-                borderColor: '#ffc107',
-                backgroundColor: 'rgba(255, 193, 7, 0.1)',
-                borderWidth: 2,
-                fill: true
-              }, {
-                label: 'Dependabot Security PRs',
-                data: <%= @dependabot_security_per_period.values.to_json.html_safe %>,
-                borderColor: '#17a2b8',
-                backgroundColor: 'rgba(23, 162, 184, 0.1)',
-                borderWidth: 2,
-                fill: true
-              }]
+              datasets: [
+                {
+                  label: 'Security Advisories',
+                  data: <%= @advisories_per_period.values.to_json.html_safe %>,
+                  borderColor: '#ffc107',
+                  backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                  borderWidth: 3,
+                  pointRadius: 3,
+                  tension: 0.4,
+                  fill: true
+                },
+                {
+                  label: 'Dependabot Security PRs',
+                  data: <%= @dependabot_security_per_period.values.to_json.html_safe %>,
+                  borderColor: '#17a2b8',
+                  backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                  borderWidth: 3,
+                  pointRadius: 3,
+                  tension: 0.4,
+                  fill: true
+                }
+              ]
             },
             options: {
               responsive: true,
@@ -122,7 +129,7 @@
             }
           });
         });
-        </script>
+      </script>
       <% end %>
 
       <!-- Recent Dependabot Security PRs -->
