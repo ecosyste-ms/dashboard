@@ -232,6 +232,7 @@ class Collective < ApplicationRecord
     conn = Faraday.new(url: "https://repos.ecosyste.ms") do |faraday|
       faraday.headers['User-Agent'] = 'dashboard.ecosyste.ms'
       faraday.headers['X-Source'] = 'dashboard.ecosyste.ms'
+      faraday.headers['X-API-Key'] = ENV['ECOSYSTEMS_API_KEY'] if ENV['ECOSYSTEMS_API_KEY']
       faraday.response :follow_redirects
       faraday.adapter Faraday.default_adapter
     end

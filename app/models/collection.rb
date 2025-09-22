@@ -186,9 +186,10 @@ class Collection < ApplicationRecord
     conn = Faraday.new do |f|
       f.headers['User-Agent'] = 'dashboard.ecosyste.ms'
       f.headers['X-Source'] = 'dashboard.ecosyste.ms'
+      f.headers['X-API-Key'] = ENV['ECOSYSTEMS_API_KEY'] if ENV['ECOSYSTEMS_API_KEY']
       f.options.timeout = 30  # 30 seconds timeout
       f.options.open_timeout = 10  # 10 seconds to establish connection
-      f.request :retry, max: 3, interval: 2, backoff_factor: 2, 
+      f.request :retry, max: 3, interval: 2, backoff_factor: 2,
                 retry_statuses: [429, 500, 502, 503, 504],
                 methods: [:get]
       f.adapter Faraday.default_adapter
@@ -325,9 +326,10 @@ class Collection < ApplicationRecord
       conn = Faraday.new do |f|
         f.headers['User-Agent'] = 'dashboard.ecosyste.ms'
         f.headers['X-Source'] = 'dashboard.ecosyste.ms'
+        f.headers['X-API-Key'] = ENV['ECOSYSTEMS_API_KEY'] if ENV['ECOSYSTEMS_API_KEY']
         f.options.timeout = 30  # 30 seconds timeout
         f.options.open_timeout = 10  # 10 seconds to establish connection
-        f.request :retry, max: 3, interval: 2, backoff_factor: 2, 
+        f.request :retry, max: 3, interval: 2, backoff_factor: 2,
                   retry_statuses: [429, 500, 502, 503, 504],
                   methods: [:get]
         f.adapter Faraday.default_adapter
