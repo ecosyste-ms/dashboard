@@ -7,6 +7,7 @@ module EcosystemsApiClient
     conn = Faraday.new(url: url) do |faraday|
       faraday.headers['User-Agent'] = 'dashboard.ecosyste.ms'
       faraday.headers['X-Source'] = 'dashboard.ecosyste.ms'
+      faraday.headers['X-API-Key'] = ENV['ECOSYSTEMS_API_KEY'] if ENV['ECOSYSTEMS_API_KEY']
       headers.each { |k, v| faraday.headers[k] = v }
       faraday.request :json
       faraday.response :follow_redirects

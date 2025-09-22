@@ -132,21 +132,21 @@ class ApplicationController < ActionController::Base
 
   def clean_collection_path(collection, query_params = {})
     return collection_path(collection, query_params) if collection.slug.blank?
-    
+
     if collection.slug.include?('..')
       Rails.logger.warn "Potential path traversal attempt: #{collection.slug}"
       return collection_path(collection, query_params)
     end
-    
+
     # Build clean path manually but use Rails' parameter handling for security
     path = "/collections/#{CGI.escape(collection.slug)}"
-    
+
     if query_params.present?
       # Use Rails' to_query method for safe parameter encoding
       query_string = query_params.to_query
       path = "#{path}?#{query_string}" if query_string.present?
     end
-    
+
     path
   end
 end
