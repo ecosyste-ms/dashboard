@@ -532,7 +532,16 @@ class Project < ApplicationRecord
 
   def package_funding_links
     return [] if packages_count.zero?
-    packages.map(&:funding).compact.map{|f| f.is_a?(Hash) ? f['url'] : f }.flatten.compact
+    packages.map(&:funding).compact.flatten.map do |f|
+      case f
+      when Hash
+        f['url']
+      when String
+        f
+      else
+        nil
+      end
+    end.compact
   end
 
   def owner_funding_links
@@ -988,7 +997,7 @@ class Project < ApplicationRecord
       homepage_url,
       documentation_urls,
       funding_links
-  ].flatten.compact.uniq.sort
+    ].flatten.compact.uniq.sort
   end
 
   def fetch_packages(max_pages: 10)

@@ -1016,4 +1016,48 @@ class ProjectTest < ActiveSupport::TestCase
     assert_nil project.dependabot_api_url
   end
 
+  test "essential_links handles mixed string and array data types" do
+    project = build(:project, url: "https://github.com/test/project")
+
+    # Mock the methods to return different data types
+    project.stubs(:homepage_url).returns(["https://example.com", "https://test.com"])
+    project.stubs(:documentation_urls).returns(["https://docs.example.com"])
+    project.stubs(:funding_links).returns(["https://github.com/sponsors/test"])
+
+    # Should not raise an error and return sorted unique links
+    links = project.essential_links
+
+    assert_kind_of Array, links
+    assert links.all? { |link| link.is_a?(String) }
+    assert_equal links.sort, links # Should be sorted
+    assert_equal links.uniq, links # Should be unique
+  end
+
+  test "package_funding_links extracts URLs from hash funding data" do
+    project = build(:project)
+
+    # Create a mock package with hash funding data like from npm/composer
+    package = mock('package')
+    package.stubs(:funding).returns([{"url" => "https://wordpressfoundation.org/donate/", "type" => "other"}])
+
+    project.stubs(:packages_count).returns(1)
+    project.stubs(:packages).returns([package])
+
+    links = project.package_funding_links
+
+    assert_equal ["https://wordpressfoundation.org/donate/"], links
+    assert links.all? { |link| link.is_a?(String) }
+  end
+
+  test "essential_links returns empty array when all methods return nil or empty" do
+    project = build(:project, url: nil)
+
+    project.stubs(:homepage_url).returns([])
+    project.stubs(:documentation_urls).returns([])
+    project.stubs(:funding_links).returns([])
+
+    links = project.essential_links
+    assert_equal [], links
+  end
+
 end
