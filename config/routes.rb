@@ -7,6 +7,12 @@ Sidekiq::Web.use Rack::Auth::Basic do |username, password|
 end if Rails.env.production?
 
 Rails.application.routes.draw do
+  # Redirect old domain to new domain
+  constraints host: 'dashboard.ecosyste.ms' do
+    get '*path', to: redirect { |params, req|
+      "https://dashboards.ecosyste.ms#{req.fullpath}"
+    }, status: 301
+  end
   get "home/index"
 
   
