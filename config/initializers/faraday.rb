@@ -7,5 +7,5 @@ Faraday.default_connection = Faraday::Connection.new do |builder|
   builder.adapter Faraday.default_adapter
   builder.options.timeout = 10
   builder.options.open_timeout = 10
-  builder.headers['User-Agent'] = 'dashboard.ecosyste.ms'
+  builder.headers['User-Agent'] = 'dashboards.ecosyste.ms'
 end

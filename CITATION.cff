@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-title: 'Ecosyste.ms: Dashboard'
+title: 'Ecosyste.ms: Dashboards'
 message: >-
   If you use this software, please cite it using the
   metadata from this file.
@@ -9,8 +9,8 @@ authors:
     family-names: Nesbitt
     email: andrew@ecosyste.ms
     orcid: 'https://orcid.org/0009-0007-2710-1118'
-repository-code: 'https://github.com/ecosyste-ms/dashboard'
-url: 'https://dashboard.ecosyste.ms'
+repository-code: 'https://github.com/ecosyste-ms/dashboards'
+url: 'https://dashboards.ecosyste.ms'
 abstract: >-
   A web application to visualize and manage open source project data from the Ecosyste.ms API.
 keywords:

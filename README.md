@@ -1,4 +1,4 @@
-# [Ecosyste.ms: Dashboard](https://dashboard.ecosyste.ms)
+# [Ecosyste.ms: Dashboards](https://dashboards.ecosyste.ms)
 
 A web application to visualize and manage open source project data from the Ecosyste.ms API.
 
@@ -6,7 +6,7 @@ This project is part of [Ecosyste.ms](https://ecosyste.ms): Tools and open datas
 
 ## API
 
-Documentation for the REST API is available here: [https://dashboard.ecosyste.ms/docs](https://dashboard.ecosyste.ms/docs)
+Documentation for the REST API is available here: [https://dashboards.ecosyste.ms/docs](https://dashboards.ecosyste.ms/docs)
 
 The default rate limit for the API is 5000/req per hour based on your IP address, get in contact if you need to to increase your rate limit.
 

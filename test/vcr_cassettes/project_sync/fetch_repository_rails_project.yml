@@ -8,9 +8,9 @@ http_interactions:
       string: ''
     headers:
       User-Agent:
-      - dashboard.ecosyste.ms
+      - dashboards.ecosyste.ms
       X-Source:
-      - dashboard.ecosyste.ms
+      - dashboards.ecosyste.ms
       Expect:
       - ''
   response:

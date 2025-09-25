@@ -12,13 +12,13 @@ services:
       - RAILS_ENV=development
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=development
-      - DATABASE_HOST=database.service.dashboard.internal
+      - DATABASE_HOST=database.service.dashboards.internal
     networks:
       - internal
     depends_on:
-      - database.service.dashboard.internal
+      - database.service.dashboards.internal
 
-  database.service.dashboard.internal:
+  database.service.dashboards.internal:
     image: postgres:14.1-alpine
     volumes:
       - pg_data:/var/lib/postgresql/data

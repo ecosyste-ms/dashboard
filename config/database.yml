@@ -10,13 +10,13 @@ default: &default
 
 development:
   <<: *default
-  database: dashboard_development
+  database: dashboards_development
 
 test:
   <<: *default
-  database: dashboard_test
+  database: dashboards_test
 
 production:
   <<: *default
-  database: dashboard_production
+  database: dashboards_production
   url: <%= ENV['DATABASE_URL'] %>

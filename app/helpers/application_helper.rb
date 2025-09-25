@@ -2,7 +2,7 @@ module ApplicationHelper
   include Pagy::Frontend
 
   def meta_title
-    [@meta_title, 'Ecosyste.ms: Dashboard'].compact.join(' | ')
+    [@meta_title, 'Ecosyste.ms: Dashboards'].compact.join(' | ')
   end
 
   def meta_description
@@ -10,7 +10,7 @@ module ApplicationHelper
   end
 
   def app_name
-    "Dashboard"
+    "Dashboards"
   end
 
   def app_description

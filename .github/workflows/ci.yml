@@ -11,8 +11,8 @@ jobs:
       postgres:
         image: postgres:14
         env:
-          POSTGRES_USER: dashboard
-          POSTGRES_DB: dashboard_test
+          POSTGRES_USER: dashboards
+          POSTGRES_DB: dashboards_test
           POSTGRES_PASSWORD: postgres
         ports: ["5432:5432"]
         options: >-
@@ -46,8 +46,8 @@ jobs:
       - name: Run tests
         env:
           RAILS_ENV: test
-          POSTGRES_DB: dashboard_test
-          POSTGRES_USER: dashboard
+          POSTGRES_DB: dashboards_test
+          POSTGRES_USER: dashboards
           POSTGRES_PASSWORD: postgres
           POSTGRES_HOST: localhost
           POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}

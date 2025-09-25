@@ -149,7 +149,7 @@ class Collection < ApplicationRecord
     org_name = uri.path.split("/")[1]
     
     oc_api_url = "https://opencollective.ecosyste.ms/api/v1/collectives/#{org_name}/projects"
-    resp = Faraday.get(oc_api_url, nil, {'User-Agent' => 'dashboard.ecosyste.ms'})
+    resp = Faraday.get(oc_api_url, nil, {'User-Agent' => 'dashboards.ecosyste.ms'})
     if resp.status == 200
       data = JSON.parse(resp.body)
       urls = data.map { |p| p['url'] }.uniq.reject(&:blank?)
@@ -184,8 +184,8 @@ class Collection < ApplicationRecord
     repos_url = "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=#{CGI.escape(github_repo_url)}"
     
     conn = Faraday.new do |f|
-      f.headers['User-Agent'] = 'dashboard.ecosyste.ms'
-      f.headers['X-Source'] = 'dashboard.ecosyste.ms'
+      f.headers['User-Agent'] = 'dashboards.ecosyste.ms'
+      f.headers['X-Source'] = 'dashboards.ecosyste.ms'
       f.headers['X-API-Key'] = ENV['ECOSYSTEMS_API_KEY'] if ENV['ECOSYSTEMS_API_KEY']
       f.options.timeout = 30  # 30 seconds timeout
       f.options.open_timeout = 10  # 10 seconds to establish connection
@@ -324,8 +324,8 @@ class Collection < ApplicationRecord
     
     loop do
       conn = Faraday.new do |f|
-        f.headers['User-Agent'] = 'dashboard.ecosyste.ms'
-        f.headers['X-Source'] = 'dashboard.ecosyste.ms'
+        f.headers['User-Agent'] = 'dashboards.ecosyste.ms'
+        f.headers['X-Source'] = 'dashboards.ecosyste.ms'
         f.headers['X-API-Key'] = ENV['ECOSYSTEMS_API_KEY'] if ENV['ECOSYSTEMS_API_KEY']
         f.options.timeout = 30  # 30 seconds timeout
         f.options.open_timeout = 10  # 10 seconds to establish connection

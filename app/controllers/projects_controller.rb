@@ -712,7 +712,7 @@ class ProjectsController < ApplicationController
       purl_without_version = purl_obj.with(version: nil).to_s
       
       # Call packages.ecosyste.ms API
-      response = Faraday.get("https://packages.ecosyste.ms/api/v1/packages/lookup", { purl: purl_without_version }, {'User-Agent' => 'dashboard.ecosyste.ms'})
+      response = Faraday.get("https://packages.ecosyste.ms/api/v1/packages/lookup", { purl: purl_without_version }, {'User-Agent' => 'dashboards.ecosyste.ms'})
       
       if response.success?
         data = JSON.parse(response.body)

@@ -4,7 +4,7 @@
 
 First things first, you'll need to fork and clone the project to your local machine.
 
-`git clone https://github.com/ecosyste-ms/dashboard.git`
+`git clone https://github.com/ecosyste-ms/dashboards.git`
 
 The project uses ruby on rails which have a number of system dependencies you'll need to install. 
 

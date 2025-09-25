@@ -105,8 +105,8 @@ class Sbom < ApplicationRecord
         
         # For all other PURL types (including pkg:githubactions/), use API lookup
         conn = Faraday.new do |f|
-          f.headers['User-Agent'] = 'dashboard.ecosyste.ms'
-          f.headers['X-Source'] = 'dashboard.ecosyste.ms'
+          f.headers['User-Agent'] = 'dashboards.ecosyste.ms'
+          f.headers['X-Source'] = 'dashboards.ecosyste.ms'
           f.headers['X-API-Key'] = ENV['ECOSYSTEMS_API_KEY'] if ENV['ECOSYSTEMS_API_KEY']
           f.options.timeout = 10  # 10 seconds timeout
           f.options.open_timeout = 5  # 5 seconds to establish connection

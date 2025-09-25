@@ -223,15 +223,15 @@ class Collective < ApplicationRecord
   end
 
   def ping_owner
-    Faraday.get(ping_owner_url, nil, {'User-Agent' => 'dashboard.ecosyste.ms'}) rescue nil
+    Faraday.get(ping_owner_url, nil, {'User-Agent' => 'dashboards.ecosyste.ms'}) rescue nil
   end
 
   def fetch_owner
     return unless project_owner.present?
     
     conn = Faraday.new(url: "https://repos.ecosyste.ms") do |faraday|
-      faraday.headers['User-Agent'] = 'dashboard.ecosyste.ms'
-      faraday.headers['X-Source'] = 'dashboard.ecosyste.ms'
+      faraday.headers['User-Agent'] = 'dashboards.ecosyste.ms'
+      faraday.headers['X-Source'] = 'dashboards.ecosyste.ms'
       faraday.headers['X-API-Key'] = ENV['ECOSYSTEMS_API_KEY'] if ENV['ECOSYSTEMS_API_KEY']
       faraday.response :follow_redirects
       faraday.adapter Faraday.default_adapter
@@ -337,7 +337,7 @@ class Collective < ApplicationRecord
     page = 1
     loop do
       per_page = Rails.application.config.x.per_page_limits&.dig(:repositories) || 100
-      resp = Faraday.get("https://repos.ecosyste.ms/api/v1/hosts/#{project_host}/owners/#{project_owner}/repositories?per_page=#{per_page}&page=#{page}", nil, {'User-Agent' => 'dashboard.ecosyste.ms'})
+      resp = Faraday.get("https://repos.ecosyste.ms/api/v1/hosts/#{project_host}/owners/#{project_owner}/repositories?per_page=#{per_page}&page=#{page}", nil, {'User-Agent' => 'dashboards.ecosyste.ms'})
       break unless resp.status == 200
 
       data = JSON.parse(resp.body)
@@ -406,8 +406,8 @@ class Collective < ApplicationRecord
     GRAPHQL
 
     conn = Faraday.new(url: graphql_url) do |faraday|
-      faraday.headers['User-Agent'] = 'dashboard.ecosyste.ms'
-      faraday.headers['X-Source'] = 'dashboard.ecosyste.ms'
+      faraday.headers['User-Agent'] = 'dashboards.ecosyste.ms'
+      faraday.headers['X-Source'] = 'dashboards.ecosyste.ms'
       faraday.response :follow_redirects
       faraday.adapter Faraday.default_adapter
     end
@@ -497,8 +497,8 @@ class Collective < ApplicationRecord
     GRAPHQL
 
     conn = Faraday.new(url: graphql_url) do |faraday|
-      faraday.headers['User-Agent'] = 'dashboard.ecosyste.ms'
-      faraday.headers['X-Source'] = 'dashboard.ecosyste.ms'
+      faraday.headers['User-Agent'] = 'dashboards.ecosyste.ms'
+      faraday.headers['X-Source'] = 'dashboards.ecosyste.ms'
       faraday.response :follow_redirects
       faraday.adapter Faraday.default_adapter
     end

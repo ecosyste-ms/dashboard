@@ -1,6 +1,6 @@
 openapi: 3.0.1
 info:
-  title: "Ecosyste.ms: Dashboard"
+  title: "Ecosyste.ms: Dashboards"
   description: "A web application to visualize and manage open source project data from the Ecosyste.ms API."
   contact:
     name: Ecosyste.ms
@@ -12,9 +12,9 @@ info:
     url: https://creativecommons.org/licenses/by-sa/4.0/
 externalDocs:
   description: GitHub Project
-  url: https://github.com/ecosyste-ms/dashboard
+  url: https://github.com/ecosyste-ms/dashboards
 servers:
-- url: https://dashboard.ecosyste.ms/api/v1
+- url: https://dashboards.ecosyste.ms/api/v1
 paths:
   /projects:
     get:
