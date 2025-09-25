@@ -334,9 +334,6 @@ hr {
       color: $color-white !important;
     }
   }
-  .btn-outline-light {
-    color: $color-white;
-  }
 }
 
 .grey-grad-bg  {
@@ -809,7 +806,6 @@ body {
 }
 
 .table-wrapper {
-  overflow-x: auto;
   /* Add a shadow to indicate there's more to see if you scroll */
   background: 
     linear-gradient(90deg, $color-white 20%, rgba(255, 255, 255, 0)),
@@ -1027,7 +1023,7 @@ body {
   }
 }
 
-/* Dashboards */
+/* Dashboard */
 .dashboard-layout {
   display: grid;
   grid-template-columns: 100%;
